@@ -468,22 +468,24 @@ class TestRunner:
             self.log(f"❌ Company creation error: {str(e)}", "ERROR")
             return False
         
-        # Get participant ID
+        # Use the logged-in participant's ID
+        if not self.participant_token:
+            self.log("❌ No participant token available", "ERROR")
+            return False
+            
+        # Get current participant info
+        participant_headers = {'Authorization': f'Bearer {self.participant_token}'}
         try:
-            response = self.session.get(f"{BASE_URL}/users?role=participant", headers=headers)
+            response = self.session.get(f"{BASE_URL}/auth/me", headers=participant_headers)
             if response.status_code == 200:
-                participants = response.json()
-                if participants:
-                    self.participant_id = participants[0]['id']
-                    self.log(f"✅ Found participant ID: {self.participant_id}")
-                else:
-                    self.log("❌ No participants found", "ERROR")
-                    return False
+                participant_info = response.json()
+                self.participant_id = participant_info['id']
+                self.log(f"✅ Using logged-in participant ID: {self.participant_id}")
             else:
-                self.log(f"❌ Failed to get participants: {response.status_code}", "ERROR")
+                self.log(f"❌ Failed to get participant info: {response.status_code}", "ERROR")
                 return False
         except Exception as e:
-            self.log(f"❌ Error getting participants: {str(e)}", "ERROR")
+            self.log(f"❌ Error getting participant info: {str(e)}", "ERROR")
             return False
         
         # Create session with participant
