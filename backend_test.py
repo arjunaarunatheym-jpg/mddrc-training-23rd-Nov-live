@@ -981,6 +981,7 @@ class TestRunner:
             # Phase 1 participant test-taking endpoints
             ("Create Company and Session", self.create_company_and_session),
             ("Set Participant Access", self.set_participant_access),
+            ("Create Fresh Pre-Test", self.create_fresh_pre_test),
             ("Get Available Tests as Participant", self.test_get_available_tests_as_participant),
             ("Get Available Tests as Non-Participant (403)", self.test_get_available_tests_as_non_participant),
             ("Get Test as Participant (No Correct Answers)", self.test_get_test_as_participant),
