@@ -155,7 +155,7 @@ const Settings = () => {
             <ImageIcon className="w-5 h-5" />
             Company Logo
           </CardTitle>
-          <CardDescription>Upload your company logo (appears on certificates and dashboard)</CardDescription>
+          <CardDescription>Upload your company logo (appears on login page before sign in)</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {settings?.logo_url && (
