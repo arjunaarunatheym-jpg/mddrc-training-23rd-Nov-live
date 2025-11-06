@@ -38,7 +38,7 @@ from datetime import datetime
 from pathlib import Path
 
 # Configuration
-BASE_URL = "https://training-hub-94.preview.emergentagent.com/api"
+BASE_URL = "https://trainsafe-drive.preview.emergentagent.com/api"
 ADMIN_EMAIL = "admin@example.com"
 ADMIN_PASSWORD = "admin123"
 
