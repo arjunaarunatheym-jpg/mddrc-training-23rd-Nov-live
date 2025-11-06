@@ -176,10 +176,14 @@ const ParticipantDashboard = ({ user, onLogout }) => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8">
+          <TabsList className="grid w-full grid-cols-5 mb-8">
             <TabsTrigger value="overview" data-testid="overview-tab">
               <FileText className="w-4 h-4 mr-2" />
               Overview
+            </TabsTrigger>
+            <TabsTrigger value="details" data-testid="details-tab">
+              <Users className="w-4 h-4 mr-2" />
+              My Details
             </TabsTrigger>
             <TabsTrigger value="certificates" data-testid="certificates-tab">
               <Award className="w-4 h-4 mr-2" />
