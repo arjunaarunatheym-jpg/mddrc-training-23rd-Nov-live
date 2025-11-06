@@ -115,33 +115,36 @@ const ParticipantDashboard = ({ user, onLogout }) => {
       });
       
       if (!downloadResponse.ok) {
+        const errorText = await downloadResponse.text();
+        console.error('Download failed:', errorText);
         throw new Error('Download failed');
       }
       
       // Get the blob from response
       const blob = await downloadResponse.blob();
+      console.log('Blob size:', blob.size, 'Type:', blob.type);
       
       // Create download link with blob URL
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `certificate_${sessionId}.pdf`;
-      link.style.display = 'none';
+      link.download = `training_certificate_${sessionId}.pdf`;
       document.body.appendChild(link);
       
-      // Trigger download
-      link.click();
+      // Trigger download with small delay
+      setTimeout(() => {
+        link.click();
+        toast.success("Certificate PDF downloading! Check your Downloads folder.");
+      }, 100);
       
-      // Cleanup after a delay to ensure download starts
+      // Cleanup after a longer delay
       setTimeout(() => {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-      }, 100);
-      
-      toast.success("Certificate PDF downloaded! Check your Downloads folder.");
+      }, 3000);
     } catch (error) {
       console.error('Download error:', error);
-      toast.error(error.response?.data?.detail || "Failed to download certificate. Please try again.");
+      toast.error(error.message || "Failed to download certificate. Please try again.");
     }
   };
 
