@@ -1771,14 +1771,21 @@ async def download_certificate(certificate_id: str, current_user: User = Depends
     
     cert_url = cert['certificate_url']
     filename = cert_url.split('/')[-1]
-    file_path = CERTIFICATE_DIR / filename
+    
+    # Check if it's a PDF or DOCX
+    if filename.endswith('.pdf'):
+        file_path = CERTIFICATE_PDF_DIR / filename
+        media_type = 'application/pdf'
+    else:
+        file_path = CERTIFICATE_DIR / filename
+        media_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Certificate file not found")
     
     return FileResponse(
         file_path,
-        media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        media_type=media_type,
         filename=filename,
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
