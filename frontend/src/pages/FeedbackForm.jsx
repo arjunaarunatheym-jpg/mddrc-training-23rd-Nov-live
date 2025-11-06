@@ -44,23 +44,34 @@ const FeedbackForm = () => {
     }
   };
 
-  const handleRatingClick = (field, value) => {
-    setFeedback({ ...feedback, [field]: value });
+  const handleResponseChange = (index, value) => {
+    setResponses({ ...responses, [index]: value });
   };
 
   const handleSubmit = async () => {
-    // Validate all ratings are filled
-    if (feedback.overall_rating === 0 || feedback.content_rating === 0 || 
-        feedback.trainer_rating === 0 || feedback.venue_rating === 0) {
-      toast.error("Please provide all ratings");
+    // Validate required fields
+    const invalidField = template.questions.findIndex((q, idx) => {
+      if (!q.required) return false;
+      if (q.type === "rating") return responses[idx] === 0;
+      return !responses[idx] || responses[idx].trim() === "";
+    });
+
+    if (invalidField !== -1) {
+      toast.error(`Please complete question ${invalidField + 1}`);
       return;
     }
 
     setSubmitting(true);
     try {
+      const formattedResponses = template.questions.map((q, idx) => ({
+        question: q.question,
+        answer: responses[idx]
+      }));
+
       await axiosInstance.post("/feedback/submit", {
         session_id: sessionId,
-        ...feedback
+        program_id: session.program_id,
+        responses: formattedResponses
       });
       
       toast.success("Feedback submitted successfully! You can now access your certificate.");
