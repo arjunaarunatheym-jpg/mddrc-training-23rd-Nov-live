@@ -1266,6 +1266,346 @@ class TestRunner:
         except Exception as e:
             self.log(f"❌ Participant session deletion error: {str(e)}", "ERROR")
             return False
+
+    # ============ CERTIFICATE PREVIEW FUNCTIONALITY TESTS ============
+    
+    def setup_certificate_test_data(self):
+        """Setup test data for certificate preview testing"""
+        self.log("Setting up certificate test data...")
+        
+        if not self.admin_token or not self.participant_token:
+            self.log("❌ Missing admin or participant tokens", "ERROR")
+            return False
+        
+        # Use existing test credentials from test_result.md
+        admin_headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        # Create a program for certificate testing
+        program_data = {
+            "name": "Certificate Preview Test Program",
+            "description": "Program for testing certificate preview functionality",
+            "pass_percentage": 70.0
+        }
+        
+        try:
+            response = self.session.post(f"{BASE_URL}/programs", json=program_data, headers=admin_headers)
+            if response.status_code == 200:
+                self.cert_program_id = response.json()['id']
+                self.log(f"✅ Certificate test program created. ID: {self.cert_program_id}")
+            else:
+                self.log(f"❌ Certificate program creation failed: {response.status_code}", "ERROR")
+                return False
+        except Exception as e:
+            self.log(f"❌ Certificate program creation error: {str(e)}", "ERROR")
+            return False
+        
+        # Create a company for certificate testing
+        company_data = {
+            "name": "Certificate Test Company"
+        }
+        
+        try:
+            response = self.session.post(f"{BASE_URL}/companies", json=company_data, headers=admin_headers)
+            if response.status_code == 200:
+                self.cert_company_id = response.json()['id']
+                self.log(f"✅ Certificate test company created. ID: {self.cert_company_id}")
+            else:
+                self.log(f"❌ Certificate company creation failed: {response.status_code}", "ERROR")
+                return False
+        except Exception as e:
+            self.log(f"❌ Certificate company creation error: {str(e)}", "ERROR")
+            return False
+        
+        # Get participant ID
+        participant_headers = {'Authorization': f'Bearer {self.participant_token}'}
+        try:
+            response = self.session.get(f"{BASE_URL}/auth/me", headers=participant_headers)
+            if response.status_code == 200:
+                self.cert_participant_id = response.json()['id']
+                self.log(f"✅ Using participant ID: {self.cert_participant_id}")
+            else:
+                self.log(f"❌ Failed to get participant info: {response.status_code}", "ERROR")
+                return False
+        except Exception as e:
+            self.log(f"❌ Error getting participant info: {str(e)}", "ERROR")
+            return False
+        
+        # Create a session with the participant
+        session_data = {
+            "name": "Certificate Preview Test Session",
+            "program_id": self.cert_program_id,
+            "company_id": self.cert_company_id,
+            "location": "Test Location",
+            "start_date": "2024-01-01",
+            "end_date": "2024-01-31",
+            "participant_ids": [self.cert_participant_id]
+        }
+        
+        try:
+            response = self.session.post(f"{BASE_URL}/sessions", json=session_data, headers=admin_headers)
+            if response.status_code == 200:
+                self.cert_session_id = response.json()['id']
+                self.log(f"✅ Certificate test session created. ID: {self.cert_session_id}")
+                return True
+            else:
+                self.log(f"❌ Certificate session creation failed: {response.status_code}", "ERROR")
+                return False
+        except Exception as e:
+            self.log(f"❌ Certificate session creation error: {str(e)}", "ERROR")
+            return False
+    
+    def generate_test_certificate(self):
+        """Generate a certificate for testing preview functionality"""
+        self.log("Generating test certificate...")
+        
+        if not self.admin_token or not hasattr(self, 'cert_session_id') or not hasattr(self, 'cert_participant_id'):
+            self.log("❌ Missing admin token, session ID, or participant ID", "ERROR")
+            return False
+        
+        admin_headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        # First, enable feedback access for the participant
+        access_data = {
+            "participant_id": self.cert_participant_id,
+            "session_id": self.cert_session_id,
+            "can_access_feedback": True
+        }
+        
+        try:
+            response = self.session.post(f"{BASE_URL}/participant-access/update", json=access_data, headers=admin_headers)
+            if response.status_code != 200:
+                self.log(f"❌ Failed to enable feedback access: {response.status_code}", "ERROR")
+                return False
+        except Exception as e:
+            self.log(f"❌ Error enabling feedback access: {str(e)}", "ERROR")
+            return False
+        
+        # Submit feedback as participant to enable certificate generation
+        participant_headers = {'Authorization': f'Bearer {self.participant_token}'}
+        feedback_data = {
+            "session_id": self.cert_session_id,
+            "program_id": self.cert_program_id,
+            "responses": [
+                {"question": "Overall Training Experience", "answer": 5},
+                {"question": "Training Content Quality", "answer": 4},
+                {"question": "Trainer Effectiveness", "answer": 5},
+                {"question": "Venue & Facilities", "answer": 4},
+                {"question": "Suggestions for Improvement", "answer": "Great course!"},
+                {"question": "Additional Comments", "answer": "Very helpful training"}
+            ]
+        }
+        
+        try:
+            response = self.session.post(f"{BASE_URL}/feedback/submit", json=feedback_data, headers=participant_headers)
+            if response.status_code == 200:
+                self.log("✅ Feedback submitted successfully")
+            else:
+                self.log(f"❌ Feedback submission failed: {response.status_code}", "ERROR")
+                return False
+        except Exception as e:
+            self.log(f"❌ Feedback submission error: {str(e)}", "ERROR")
+            return False
+        
+        # Generate certificate
+        try:
+            response = self.session.post(f"{BASE_URL}/certificates/generate/{self.cert_session_id}/{self.cert_participant_id}", headers=admin_headers)
+            if response.status_code == 200:
+                cert_data = response.json()
+                self.test_certificate_id = cert_data['id']
+                self.log(f"✅ Test certificate generated. ID: {self.test_certificate_id}")
+                return True
+            else:
+                self.log(f"❌ Certificate generation failed: {response.status_code} - {response.text}", "ERROR")
+                return False
+        except Exception as e:
+            self.log(f"❌ Certificate generation error: {str(e)}", "ERROR")
+            return False
+    
+    def test_certificate_preview_without_auth(self):
+        """Test certificate preview without authentication (should return 401)"""
+        self.log("Testing certificate preview without authentication (should fail)...")
+        
+        if not hasattr(self, 'test_certificate_id'):
+            self.log("❌ Missing test certificate ID", "ERROR")
+            return False
+        
+        try:
+            # No Authorization header
+            response = self.session.get(f"{BASE_URL}/certificates/preview/{self.test_certificate_id}")
+            
+            if response.status_code == 403:  # FastAPI returns 403 for missing auth
+                self.log("✅ Unauthenticated certificate preview correctly returned 403")
+                return True
+            else:
+                self.log(f"❌ Expected 403 for unauthenticated request, got: {response.status_code}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Unauthenticated certificate preview error: {str(e)}", "ERROR")
+            return False
+    
+    def test_certificate_preview_as_participant_owner(self):
+        """Test certificate preview as the participant who owns the certificate (should return 200)"""
+        self.log("Testing certificate preview as participant owner...")
+        
+        if not self.participant_token or not hasattr(self, 'test_certificate_id'):
+            self.log("❌ Missing participant token or certificate ID", "ERROR")
+            return False
+        
+        headers = {'Authorization': f'Bearer {self.participant_token}'}
+        
+        try:
+            response = self.session.get(f"{BASE_URL}/certificates/preview/{self.test_certificate_id}", headers=headers)
+            
+            if response.status_code == 200:
+                self.log("✅ Participant owner certificate preview successful")
+                
+                # Verify response headers
+                content_type = response.headers.get('content-type', '')
+                content_disposition = response.headers.get('content-disposition', '')
+                
+                if 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' in content_type:
+                    self.log("✅ Correct media type returned")
+                else:
+                    self.log(f"❌ Incorrect media type: {content_type}", "ERROR")
+                    return False
+                
+                if 'inline' in content_disposition:
+                    self.log("✅ Content-Disposition header includes 'inline'")
+                else:
+                    self.log(f"❌ Content-Disposition missing 'inline': {content_disposition}", "ERROR")
+                    return False
+                
+                # Verify file content exists
+                if len(response.content) > 0:
+                    self.log(f"✅ Certificate file content received ({len(response.content)} bytes)")
+                    return True
+                else:
+                    self.log("❌ Empty certificate file content", "ERROR")
+                    return False
+                    
+            else:
+                self.log(f"❌ Participant certificate preview failed: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Participant certificate preview error: {str(e)}", "ERROR")
+            return False
+    
+    def test_certificate_preview_as_admin(self):
+        """Test certificate preview as admin (should return 200)"""
+        self.log("Testing certificate preview as admin...")
+        
+        if not self.admin_token or not hasattr(self, 'test_certificate_id'):
+            self.log("❌ Missing admin token or certificate ID", "ERROR")
+            return False
+        
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        try:
+            response = self.session.get(f"{BASE_URL}/certificates/preview/{self.test_certificate_id}", headers=headers)
+            
+            if response.status_code == 200:
+                self.log("✅ Admin certificate preview successful")
+                
+                # Verify response headers
+                content_type = response.headers.get('content-type', '')
+                content_disposition = response.headers.get('content-disposition', '')
+                
+                if 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' in content_type:
+                    self.log("✅ Correct media type returned")
+                else:
+                    self.log(f"❌ Incorrect media type: {content_type}", "ERROR")
+                    return False
+                
+                if 'inline' in content_disposition:
+                    self.log("✅ Content-Disposition header includes 'inline'")
+                    return True
+                else:
+                    self.log(f"❌ Content-Disposition missing 'inline': {content_disposition}", "ERROR")
+                    return False
+                    
+            else:
+                self.log(f"❌ Admin certificate preview failed: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Admin certificate preview error: {str(e)}", "ERROR")
+            return False
+    
+    def test_certificate_preview_as_different_participant(self):
+        """Test certificate preview as different participant (should return 403)"""
+        self.log("Testing certificate preview as different participant (should fail)...")
+        
+        if not hasattr(self, 'second_participant_token') or not hasattr(self, 'test_certificate_id'):
+            self.log("❌ Missing second participant token or certificate ID", "ERROR")
+            return False
+        
+        headers = {'Authorization': f'Bearer {self.second_participant_token}'}
+        
+        try:
+            response = self.session.get(f"{BASE_URL}/certificates/preview/{self.test_certificate_id}", headers=headers)
+            
+            if response.status_code == 403:
+                self.log("✅ Different participant certificate preview correctly returned 403 Forbidden")
+                return True
+            else:
+                self.log(f"❌ Expected 403 for different participant, got: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Different participant certificate preview error: {str(e)}", "ERROR")
+            return False
+    
+    def test_certificate_preview_nonexistent_certificate(self):
+        """Test certificate preview with non-existent certificate ID (should return 404)"""
+        self.log("Testing certificate preview with non-existent certificate...")
+        
+        if not self.participant_token:
+            self.log("❌ Missing participant token", "ERROR")
+            return False
+        
+        headers = {'Authorization': f'Bearer {self.participant_token}'}
+        fake_certificate_id = "non-existent-certificate-id-12345"
+        
+        try:
+            response = self.session.get(f"{BASE_URL}/certificates/preview/{fake_certificate_id}", headers=headers)
+            
+            if response.status_code == 404:
+                self.log("✅ Non-existent certificate preview correctly returned 404")
+                return True
+            else:
+                self.log(f"❌ Expected 404 for non-existent certificate, got: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Non-existent certificate preview error: {str(e)}", "ERROR")
+            return False
+    
+    def test_certificate_preview_invalid_format(self):
+        """Test certificate preview with invalid certificate ID format"""
+        self.log("Testing certificate preview with invalid certificate ID format...")
+        
+        if not self.participant_token:
+            self.log("❌ Missing participant token", "ERROR")
+            return False
+        
+        headers = {'Authorization': f'Bearer {self.participant_token}'}
+        invalid_certificate_id = "invalid-format-123!@#"
+        
+        try:
+            response = self.session.get(f"{BASE_URL}/certificates/preview/{invalid_certificate_id}", headers=headers)
+            
+            if response.status_code == 404:
+                self.log("✅ Invalid certificate ID format correctly returned 404")
+                return True
+            else:
+                self.log(f"❌ Expected 404 for invalid certificate ID, got: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Invalid certificate ID preview error: {str(e)}", "ERROR")
+            return False
     
     def cleanup(self):
         """Clean up created test data"""
