@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { LogOut, FileText, ClipboardCheck, MessageSquare, Award, Play, Users, Clock, Download } from "lucide-react";
+import { LogOut, FileText, ClipboardCheck, MessageSquare, Award, Play, Users, Clock, Download, Eye } from "lucide-react";
 
 const ParticipantDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
