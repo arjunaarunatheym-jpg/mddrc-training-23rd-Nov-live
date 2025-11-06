@@ -217,14 +217,72 @@ const TrainerDashboard = ({ user, onLogout }) => {
               <CardHeader>
                 <CardTitle>Vehicle Checklists</CardTitle>
                 <CardDescription>
-                  Review and complete checklists for assigned participants
+                  Complete vehicle inspection checklists for your assigned participants
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-12">
-                  <ClipboardCheck className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                  <p className="text-gray-500">Checklist management coming soon...</p>
-                </div>
+                {sessions.length === 0 ? (
+                  <div className="text-center py-12">
+                    <ClipboardCheck className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                    <p className="text-gray-500">No sessions assigned yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {sessions.map((session) => {
+                      const participants = sessionParticipants[session.id] || [];
+                      const isChief = isChiefTrainer(session);
+                      
+                      return (
+                        <Card key={session.id} className="border-l-4 border-l-orange-500">
+                          <CardHeader>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <CardTitle className="text-lg">{session.name}</CardTitle>
+                                <p className="text-sm text-gray-600 mt-1">{session.location}</p>
+                                <span className={`inline-block mt-2 px-2 py-1 rounded text-xs ${
+                                  isChief ? 'bg-purple-100 text-purple-800' : 'bg-orange-100 text-orange-800'
+                                }`}>
+                                  {getMyRole(session)}
+                                </span>
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                <Users className="w-4 h-4 inline mr-1" />
+                                {participants.length} Participants
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            {participants.length === 0 ? (
+                              <p className="text-gray-500 text-center py-4">No participants assigned</p>
+                            ) : (
+                              <div className="space-y-2">
+                                {participants.map((participant) => (
+                                  <div
+                                    key={participant.id}
+                                    className="p-3 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border border-orange-200 flex justify-between items-center"
+                                  >
+                                    <div>
+                                      <p className="font-semibold text-gray-900">{participant.full_name}</p>
+                                      <p className="text-sm text-gray-600">{participant.email}</p>
+                                    </div>
+                                    <Button
+                                      onClick={() => navigate(`/trainer-checklist/${session.id}/${participant.id}`)}
+                                      size="sm"
+                                      className="bg-orange-600 hover:bg-orange-700"
+                                    >
+                                      <ClipboardCheck className="w-4 h-4 mr-2" />
+                                      Complete Checklist
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
