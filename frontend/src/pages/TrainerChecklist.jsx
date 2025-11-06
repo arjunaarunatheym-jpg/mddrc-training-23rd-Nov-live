@@ -20,6 +20,8 @@ const TrainerChecklist = ({ user }) => {
   const [checklistItems, setChecklistItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [existingChecklist, setExistingChecklist] = useState(null);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
     loadData();
