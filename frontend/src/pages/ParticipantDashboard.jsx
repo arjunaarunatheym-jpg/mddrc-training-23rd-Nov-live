@@ -147,27 +147,45 @@ const ParticipantDashboard = ({ user, onLogout }) => {
 
   const handleDownloadExistingCertificate = async (cert) => {
     try {
-      // Use the download endpoint with authenticated request for proper file download
-      const downloadResponse = await axiosInstance.get(`/certificates/download/${cert.id}`, {
-        responseType: 'blob'
+      // Get auth token
+      const token = localStorage.getItem('token');
+      
+      // Use fetch with auth header for download
+      const downloadResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/certificates/download/${cert.id}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       
-      // Create blob URL and trigger download
-      const blob = new Blob([downloadResponse.data], {
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-      });
+      if (!downloadResponse.ok) {
+        throw new Error('Download failed');
+      }
+      
+      // Get the blob from response
+      const blob = await downloadResponse.blob();
+      
+      // Create download link with blob URL
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `certificate_${cert.session_id}.docx`;
+      link.style.display = 'none';
       document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
       
-      toast.success("Certificate downloaded successfully!");
+      // Trigger download
+      link.click();
+      
+      // Cleanup after a delay to ensure download starts
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
+      toast.success("Certificate downloaded! Check your Downloads folder.");
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to download certificate");
+      console.error('Download error:', error);
+      toast.error("Failed to download certificate. Please try again.");
     }
   };
 
