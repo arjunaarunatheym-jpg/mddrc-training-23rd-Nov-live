@@ -1427,7 +1427,28 @@ const AdminDashboard = ({ user, onLogout }) => {
                                     <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
                                       ID: {u.id_number}
                                     </span>
+                                    <span className={`text-xs px-2 py-1 rounded ${u.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                      {u.is_active ? 'Active' : 'Inactive'}
+                                    </span>
                                   </div>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant={u.is_active ? "outline" : "default"}
+                                    onClick={() => handleToggleUserStatus(u.id, u.is_active)}
+                                    data-testid={`toggle-status-${u.id}`}
+                                  >
+                                    {u.is_active ? 'Deactivate' : 'Activate'}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => handleDeleteClick("user", u)}
+                                    data-testid={`delete-user-${u.id}`}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
                                 </div>
                               </div>
                             ))}
