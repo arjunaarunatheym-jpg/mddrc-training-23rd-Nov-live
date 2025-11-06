@@ -102,9 +102,32 @@ const ParticipantDashboard = ({ user, onLogout }) => {
     try {
       const response = await axiosInstance.post(`/certificates/generate/${sessionId}/${user.id}`);
       
-      // Open download URL
-      window.open(`${process.env.REACT_APP_BACKEND_URL}${response.data.download_url}`, '_blank');
-      toast.success("Certificate downloaded!");
+      // Use the direct certificate URL instead of download endpoint to avoid auth issues with window.open
+      const certificateUrl = response.data.certificate_url;
+      if (certificateUrl) {
+        window.open(`${process.env.REACT_APP_BACKEND_URL}${certificateUrl}`, '_blank');
+        toast.success("Certificate downloaded!");
+      } else {
+        // Fallback: try to download via authenticated request
+        const downloadResponse = await axiosInstance.get(response.data.download_url, {
+          responseType: 'blob'
+        });
+        
+        // Create blob URL and trigger download
+        const blob = new Blob([downloadResponse.data], {
+          type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `certificate_${sessionId}.docx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        toast.success("Certificate downloaded!");
+      }
     } catch (error) {
       toast.error(error.response?.data?.detail || "Failed to generate certificate");
     }
