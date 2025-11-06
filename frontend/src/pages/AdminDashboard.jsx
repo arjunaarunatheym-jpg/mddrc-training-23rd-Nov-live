@@ -1445,6 +1445,110 @@ const AdminDashboard = ({ user, onLogout }) => {
         </Tabs>
       </main>
 
+      {/* Edit Program Dialog */}
+      {editingProgram && (
+        <Dialog open={editProgramDialogOpen} onOpenChange={setEditProgramDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Program</DialogTitle>
+              <DialogDescription>Update program details</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>Program Name</Label>
+                <Input
+                  value={editingProgram.name}
+                  onChange={(e) => setEditingProgram({ ...editingProgram, name: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Description</Label>
+                <Textarea
+                  value={editingProgram.description || ""}
+                  onChange={(e) => setEditingProgram({ ...editingProgram, description: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Pass Percentage (%)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={editingProgram.pass_percentage}
+                  onChange={(e) => setEditingProgram({ ...editingProgram, pass_percentage: parseFloat(e.target.value) })}
+                />
+              </div>
+              <Button onClick={handleUpdateProgram} className="w-full">
+                Update Program
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Edit Company Dialog */}
+      {editingCompany && (
+        <Dialog open={editCompanyDialogOpen} onOpenChange={setEditCompanyDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Company</DialogTitle>
+              <DialogDescription>Update company name</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>Company Name</Label>
+                <Input
+                  value={editingCompany.name}
+                  onChange={(e) => setEditingCompany({ ...editingCompany, name: e.target.value })}
+                />
+              </div>
+              <Button onClick={handleUpdateCompany} className="w-full">
+                Update Company
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              {deleteTarget && (
+                <>
+                  Are you sure you want to delete this {deleteTarget.type}?
+                  <br />
+                  <strong>{deleteTarget.item.name || deleteTarget.item.full_name}</strong>
+                  <br />
+                  <span className="text-red-600">This action cannot be undone.</span>
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                setDeleteConfirmOpen(false);
+                setDeleteTarget(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              className="flex-1"
+              onClick={handleConfirmDelete}
+            >
+              Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Session Dialog */}
       {editingSession && (
         <Dialog open={editSessionDialogOpen} onOpenChange={setEditSessionDialogOpen}>
