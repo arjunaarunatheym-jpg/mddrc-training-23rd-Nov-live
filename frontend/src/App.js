@@ -195,6 +195,16 @@ function App() {
               )
             }
           />
+          <Route
+            path="/results-summary/:sessionId"
+            element={
+              user && (user.role === "admin" || user.role === "coordinator" || user.role === "trainer") ? (
+                <ResultsSummary />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
         </Routes>
       </BrowserRouter>
       <Toaster position="top-right" />
