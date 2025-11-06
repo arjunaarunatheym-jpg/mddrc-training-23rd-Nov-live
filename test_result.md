@@ -252,15 +252,18 @@ frontend:
 
   - task: "Participant Dashboard - Test Integration"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/ParticipantDashboard.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Updated ParticipantDashboard.jsx to show available tests with 'Take Test' buttons and completed test results with ability to view details. Integrated navigation to TakeTest and TestResults pages."
+      - working: true
+        agent: "testing"
+        comment: "✅ Participant Dashboard fully tested and working! Certificate download functionality verified with user maaman@gmail.com. Download Certificate button exists in Overview tab, certificate properly listed in Certificates tab with functional Download button. Backend certificate generation and file download both working (200 OK responses). Success toast message appears, new tab opens for download. All UI integrations working correctly including test navigation and results display."
 
   - task: "Admin Dashboard - Session Delete Functionality"
     implemented: true
