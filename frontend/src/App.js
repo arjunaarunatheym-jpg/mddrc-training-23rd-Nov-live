@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import ParticipantDashboard from "./pages/ParticipantDashboard";
 import SupervisorDashboard from "./pages/SupervisorDashboard";
+import TrainerDashboard from "./pages/TrainerDashboard";
 import { Toaster } from "@/components/ui/sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
