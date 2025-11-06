@@ -1097,6 +1097,238 @@ async def get_checklist_template(program_id: str, current_user: User = Depends(g
         template['created_at'] = datetime.fromisoformat(template['created_at'])
     return ChecklistTemplate(**template)
 
+# Vehicle Details Routes
+@api_router.post("/vehicle-details/submit", response_model=VehicleDetails)
+async def submit_vehicle_details(vehicle_data: VehicleDetailsSubmit, current_user: User = Depends(get_current_user)):
+    if current_user.role != "participant":
+        raise HTTPException(status_code=403, detail="Only participants can submit vehicle details")
+    
+    # Check if already exists
+    existing = await db.vehicle_details.find_one({
+        "participant_id": current_user.id,
+        "session_id": vehicle_data.session_id
+    }, {"_id": 0})
+    
+    if existing:
+        # Update existing
+        await db.vehicle_details.update_one(
+            {"participant_id": current_user.id, "session_id": vehicle_data.session_id},
+            {"$set": {
+                "vehicle_model": vehicle_data.vehicle_model,
+                "registration_number": vehicle_data.registration_number,
+                "roadtax_expiry": vehicle_data.roadtax_expiry
+            }}
+        )
+        existing.update(vehicle_data.model_dump())
+        if isinstance(existing.get('created_at'), str):
+            existing['created_at'] = datetime.fromisoformat(existing['created_at'])
+        return VehicleDetails(**existing)
+    
+    vehicle_obj = VehicleDetails(
+        participant_id=current_user.id,
+        session_id=vehicle_data.session_id,
+        vehicle_model=vehicle_data.vehicle_model,
+        registration_number=vehicle_data.registration_number,
+        roadtax_expiry=vehicle_data.roadtax_expiry
+    )
+    
+    doc = vehicle_obj.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    
+    await db.vehicle_details.insert_one(doc)
+    return vehicle_obj
+
+@api_router.get("/vehicle-details/{session_id}/{participant_id}")
+async def get_vehicle_details(session_id: str, participant_id: str, current_user: User = Depends(get_current_user)):
+    vehicle = await db.vehicle_details.find_one({
+        "participant_id": participant_id,
+        "session_id": session_id
+    }, {"_id": 0})
+    
+    if not vehicle:
+        return None
+    
+    if isinstance(vehicle.get('created_at'), str):
+        vehicle['created_at'] = datetime.fromisoformat(vehicle['created_at'])
+    return vehicle
+
+# Attendance Routes
+@api_router.post("/attendance/clock-in")
+async def clock_in(attendance_data: AttendanceClockIn, current_user: User = Depends(get_current_user)):
+    if current_user.role != "participant":
+        raise HTTPException(status_code=403, detail="Only participants can clock in")
+    
+    today = datetime.now(timezone.utc).date().isoformat()
+    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+    
+    # Check if already clocked in today
+    existing = await db.attendance.find_one({
+        "participant_id": current_user.id,
+        "session_id": attendance_data.session_id,
+        "date": today
+    }, {"_id": 0})
+    
+    if existing and existing.get('clock_in'):
+        raise HTTPException(status_code=400, detail="Already clocked in today")
+    
+    if existing:
+        # Update existing
+        await db.attendance.update_one(
+            {"id": existing['id']},
+            {"$set": {"clock_in": now}}
+        )
+        return {"message": "Clocked in successfully", "time": now}
+    
+    # Create new
+    attendance_obj = Attendance(
+        participant_id=current_user.id,
+        session_id=attendance_data.session_id,
+        date=today,
+        clock_in=now
+    )
+    
+    doc = attendance_obj.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.attendance.insert_one(doc)
+    
+    return {"message": "Clocked in successfully", "time": now}
+
+@api_router.post("/attendance/clock-out")
+async def clock_out(attendance_data: AttendanceClockOut, current_user: User = Depends(get_current_user)):
+    if current_user.role != "participant":
+        raise HTTPException(status_code=403, detail="Only participants can clock out")
+    
+    today = datetime.now(timezone.utc).date().isoformat()
+    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+    
+    existing = await db.attendance.find_one({
+        "participant_id": current_user.id,
+        "session_id": attendance_data.session_id,
+        "date": today
+    }, {"_id": 0})
+    
+    if not existing or not existing.get('clock_in'):
+        raise HTTPException(status_code=400, detail="Please clock in first")
+    
+    if existing.get('clock_out'):
+        raise HTTPException(status_code=400, detail="Already clocked out today")
+    
+    await db.attendance.update_one(
+        {"id": existing['id']},
+        {"$set": {"clock_out": now}}
+    )
+    
+    return {"message": "Clocked out successfully", "time": now}
+
+@api_router.get("/attendance/{session_id}/{participant_id}")
+async def get_attendance(session_id: str, participant_id: str, current_user: User = Depends(get_current_user)):
+    attendance_records = await db.attendance.find({
+        "participant_id": participant_id,
+        "session_id": session_id
+    }, {"_id": 0}).to_list(100)
+    
+    for record in attendance_records:
+        if isinstance(record.get('created_at'), str):
+            record['created_at'] = datetime.fromisoformat(record['created_at'])
+    
+    return attendance_records
+
+# Trainer Checklist Routes
+@api_router.post("/trainer-checklist/submit")
+async def submit_trainer_checklist(checklist_data: TrainerChecklistSubmit, current_user: User = Depends(get_current_user)):
+    if current_user.role != "trainer":
+        raise HTTPException(status_code=403, detail="Only trainers can submit checklists")
+    
+    # Create checklist
+    checklist_obj = VehicleChecklist(
+        participant_id=checklist_data.participant_id,
+        session_id=checklist_data.session_id,
+        interval="trainer_inspection",
+        checklist_items=[item.model_dump() for item in checklist_data.items],
+        verified_by=current_user.id,
+        verified_at=datetime.now(timezone.utc),
+        verification_status="completed"
+    )
+    
+    doc = checklist_obj.model_dump()
+    doc['submitted_at'] = doc['submitted_at'].isoformat()
+    doc['verified_at'] = doc['verified_at'].isoformat()
+    
+    await db.vehicle_checklists.insert_one(doc)
+    
+    return {"message": "Checklist submitted successfully", "checklist_id": checklist_obj.id}
+
+@api_router.get("/trainer-checklist/{session_id}/assigned-participants")
+async def get_assigned_participants(session_id: str, current_user: User = Depends(get_current_user)):
+    if current_user.role != "trainer":
+        raise HTTPException(status_code=403, detail="Only trainers can access this")
+    
+    # Get session
+    session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Get all trainers in session
+    trainer_assignments = session.get('trainer_assignments', [])
+    trainers = [t['trainer_id'] for t in trainer_assignments]
+    
+    if not trainers:
+        return []
+    
+    # Auto-assign participants to trainers
+    participant_ids = session.get('participant_ids', [])
+    total_participants = len(participant_ids)
+    total_trainers = len(trainers)
+    
+    if total_trainers == 0:
+        return []
+    
+    # Find chief trainer
+    chief_trainer = next((t['trainer_id'] for t in trainer_assignments if t.get('role') == 'chief'), None)
+    
+    # Calculate assignment
+    participants_per_trainer = total_participants // total_trainers
+    remainder = total_participants % total_trainers
+    
+    # Assign participants
+    current_trainer_index = trainers.index(current_user.id)
+    start_index = current_trainer_index * participants_per_trainer
+    
+    # Chief trainer gets fewer
+    if chief_trainer and current_user.id == chief_trainer:
+        assigned_count = max(participants_per_trainer - 1, 0)
+    else:
+        assigned_count = participants_per_trainer
+        if current_trainer_index < remainder:
+            assigned_count += 1
+    
+    end_index = start_index + assigned_count
+    assigned_participant_ids = participant_ids[start_index:end_index]
+    
+    # Get participant details
+    participants = await db.users.find(
+        {"id": {"$in": assigned_participant_ids}},
+        {"_id": 0, "password": 0}
+    ).to_list(100)
+    
+    # Get vehicle details for each
+    for participant in participants:
+        vehicle = await db.vehicle_details.find_one({
+            "participant_id": participant['id'],
+            "session_id": session_id
+        }, {"_id": 0})
+        participant['vehicle_details'] = vehicle
+        
+        # Get existing checklist
+        checklist = await db.vehicle_checklists.find_one({
+            "participant_id": participant['id'],
+            "session_id": session_id,
+            "verified_by": current_user.id
+        }, {"_id": 0})
+        participant['checklist'] = checklist
+    
+    return participants
+
 # Vehicle Checklist Routes
 @api_router.post("/checklists/submit", response_model=VehicleChecklist)
 async def submit_checklist(checklist_data: ChecklistSubmit, current_user: User = Depends(get_current_user)):
