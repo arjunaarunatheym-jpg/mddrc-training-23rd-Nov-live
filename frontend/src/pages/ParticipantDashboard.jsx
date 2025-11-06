@@ -79,6 +79,22 @@ const ParticipantDashboard = ({ user, onLogout }) => {
     navigate(`/test-results/${resultId}`);
   };
 
+  const handleFeedback = (sessionId) => {
+    navigate(`/feedback/${sessionId}`);
+  };
+
+  const handleDownloadCertificate = async (sessionId) => {
+    try {
+      const response = await axiosInstance.post(`/certificates/generate/${sessionId}/${user.id}`);
+      
+      // Open download URL
+      window.open(`${process.env.REACT_APP_BACKEND_URL}${response.data.download_url}`, '_blank');
+      toast.success("Certificate downloaded!");
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to generate certificate");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
       {/* Header */}
