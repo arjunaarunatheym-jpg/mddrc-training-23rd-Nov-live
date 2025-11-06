@@ -8,6 +8,8 @@ import ParticipantDashboard from "./pages/ParticipantDashboard";
 import SupervisorDashboard from "./pages/SupervisorDashboard";
 import TrainerDashboard from "./pages/TrainerDashboard";
 import CoordinatorDashboard from "./pages/CoordinatorDashboard";
+import TakeTest from "./pages/TakeTest";
+import TestResults from "./pages/TestResults";
 import { Toaster } from "@/components/ui/sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
