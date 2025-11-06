@@ -137,7 +137,7 @@ const Settings = () => {
             <div className="mb-4">
               <p className="text-sm text-gray-600 mb-2">Current Logo:</p>
               <img
-                src={`${import.meta.env.VITE_API_URL || process.env.REACT_APP_BACKEND_URL}${settings.logo_url}`}
+                src={`${process.env.REACT_APP_BACKEND_URL}${settings.logo_url}`}
                 alt="Company Logo"
                 className="h-20 object-contain border rounded p-2"
               />
