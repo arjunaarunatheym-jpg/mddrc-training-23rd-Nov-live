@@ -212,15 +212,18 @@ backend:
 
   - task: "Certificate preview functionality"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added new endpoint GET /api/certificates/preview/{certificate_id} that serves the certificate .docx file with inline content-disposition header for browser preview. Returns FileResponse with proper authentication. Frontend updated with handlePreviewCertificate and handlePreviewExistingCertificate functions that fetch blob via authenticated request and open in new tab. Added Preview buttons (blue with Eye icon) in both Overview tab and Certificates tab, alongside Download buttons. Preview uses blob URL creation for authenticated file access. Ready for testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ CERTIFICATE PREVIEW ENDPOINT FULLY TESTED AND WORKING! Comprehensive testing completed with 13/13 tests passed. ✅ Authentication Tests: Correctly returns 403 for unauthenticated requests. ✅ Authorization Tests: Participants can only preview their own certificates (403 for others), admin can preview any certificate. ✅ Functionality Tests: Returns correct media type 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', includes 'Content-Disposition: inline' header, serves actual certificate file (1.4MB .docx). ✅ Error Handling: Returns 404 for non-existent certificates and invalid certificate ID formats. All security controls working perfectly. Certificate preview endpoint is production-ready."
 
 frontend:
   - task: "Test Management UI - Add/Edit/Delete Questions"
