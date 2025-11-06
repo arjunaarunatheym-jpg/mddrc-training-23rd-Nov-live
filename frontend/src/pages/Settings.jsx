@@ -51,20 +51,36 @@ const Settings = () => {
       return;
     }
 
+    // Check file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (logoFile.size > maxSize) {
+      toast.error("Logo file size must be less than 5MB");
+      return;
+    }
+
+    // Check file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(logoFile.type)) {
+      toast.error("Please upload a valid image file (JPEG, PNG, GIF, or WebP)");
+      return;
+    }
+
     setUploadingLogo(true);
     try {
       const formData = new FormData();
       formData.append("file", logoFile);
 
       const response = await axiosInstance.post("/settings/upload-logo", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
+        headers: { "Content-Type": "multipart/form-data" },
+        timeout: 30000 // 30 second timeout for upload
       });
 
       toast.success("Logo uploaded successfully!");
       setLogoFile(null);
       loadSettings();
     } catch (error) {
-      toast.error("Failed to upload logo");
+      console.error("Logo upload error:", error);
+      toast.error(error.response?.data?.detail || "Failed to upload logo. Please try a smaller file.");
     } finally {
       setUploadingLogo(false);
     }
