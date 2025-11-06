@@ -1841,7 +1841,16 @@ async def get_certificate_pdf(filename: str):
     file_path = CERTIFICATE_PDF_DIR / filename
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Certificate PDF not found")
-    return FileResponse(file_path, media_type='application/pdf')
+    return FileResponse(
+        file_path, 
+        media_type='application/pdf',
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET",
+            "X-Content-Type-Options": "nosniff"
+        }
+    )
 
 @api_router.get("/static/templates/{filename}")
 async def get_template(filename: str):
