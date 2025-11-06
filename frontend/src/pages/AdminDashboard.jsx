@@ -8,71 +8,61 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { LogOut, Building2, Users, Calendar, ClipboardList, MessageSquare } from "lucide-react";
+import { LogOut, Building2, Users, Calendar, ClipboardList, MessageSquare, BookOpen, Settings, Plus, Trash2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 const AdminDashboard = ({ user, onLogout }) => {
   const [companies, setCompanies] = useState([]);
+  const [programs, setPrograms] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [users, setUsers] = useState([]);
-  const [activeTab, setActiveTab] = useState("companies");
+  const [activeTab, setActiveTab] = useState("programs");
 
   // Company form
   const [companyName, setCompanyName] = useState("");
   const [companyDialogOpen, setCompanyDialogOpen] = useState(false);
 
-  // Session form
+  // Program form
+  const [programForm, setProgramForm] = useState({ name: "", description: "" });
+  const [programDialogOpen, setProgramDialogOpen] = useState(false);
+
+  // Session form with participants
   const [sessionForm, setSessionForm] = useState({
-    name: "",
+    program_id: "",
     company_id: "",
     location: "",
     start_date: "",
     end_date: "",
     supervisor_ids: [],
+    participants: [],
   });
-  const [sessionDialogOpen, setSessionDialogOpen] = useState(false);
-
-  // User form
-  const [userForm, setUserForm] = useState({
+  const [newParticipant, setNewParticipant] = useState({
     email: "",
     password: "",
     full_name: "",
     id_number: "",
-    role: "participant",
-    company_id: "",
     location: "",
   });
-  const [userDialogOpen, setUserDialogOpen] = useState(false);
+  const [sessionDialogOpen, setSessionDialogOpen] = useState(false);
 
   useEffect(() => {
-    loadCompanies();
-    loadSessions();
-    loadUsers();
+    loadData();
   }, []);
 
-  const loadCompanies = async () => {
+  const loadData = async () => {
     try {
-      const response = await axiosInstance.get("/companies");
-      setCompanies(response.data);
+      const [companiesRes, programsRes, sessionsRes, usersRes] = await Promise.all([
+        axiosInstance.get("/companies"),
+        axiosInstance.get("/programs"),
+        axiosInstance.get("/sessions"),
+        axiosInstance.get("/users"),
+      ]);
+      setCompanies(companiesRes.data);
+      setPrograms(programsRes.data);
+      setSessions(sessionsRes.data);
+      setUsers(usersRes.data);
     } catch (error) {
-      toast.error("Failed to load companies");
-    }
-  };
-
-  const loadSessions = async () => {
-    try {
-      const response = await axiosInstance.get("/sessions");
-      setSessions(response.data);
-    } catch (error) {
-      toast.error("Failed to load sessions");
-    }
-  };
-
-  const loadUsers = async () => {
-    try {
-      const response = await axiosInstance.get("/users");
-      setUsers(response.data);
-    } catch (error) {
-      toast.error("Failed to load users");
+      toast.error("Failed to load data");
     }
   };
 
@@ -83,50 +73,102 @@ const AdminDashboard = ({ user, onLogout }) => {
       toast.success("Company created successfully");
       setCompanyName("");
       setCompanyDialogOpen(false);
-      loadCompanies();
+      loadData();
     } catch (error) {
       toast.error(error.response?.data?.detail || "Failed to create company");
     }
   };
 
-  const handleCreateSession = async (e) => {
+  const handleCreateProgram = async (e) => {
     e.preventDefault();
     try {
-      await axiosInstance.post("/sessions", sessionForm);
-      toast.success("Session created successfully");
+      await axiosInstance.post("/programs", programForm);
+      toast.success("Program created successfully");
+      setProgramForm({ name: "", description: "" });
+      setProgramDialogOpen(false);
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to create program");
+    }
+  };
+
+  const handleAddParticipant = () => {
+    if (!newParticipant.email || !newParticipant.password || !newParticipant.full_name || !newParticipant.id_number) {
+      toast.error("Please fill all participant fields");
+      return;
+    }
+    setSessionForm({
+      ...sessionForm,
+      participants: [...sessionForm.participants, { ...newParticipant }],
+    });
+    setNewParticipant({ email: "", password: "", full_name: "", id_number: "", location: "" });
+    toast.success("Participant added to list");
+  };
+
+  const handleRemoveParticipant = (index) => {
+    const updated = sessionForm.participants.filter((_, i) => i !== index);
+    setSessionForm({ ...sessionForm, participants: updated });
+  };
+
+  const handleCreateSession = async (e) => {
+    e.preventDefault();
+    
+    if (sessionForm.participants.length === 0) {
+      toast.error("Please add at least one participant");
+      return;
+    }
+
+    try {
+      // Get program name for session name
+      const program = programs.find(p => p.id === sessionForm.program_id);
+      if (!program) {
+        toast.error("Please select a program");
+        return;
+      }
+
+      // Create all participants first
+      const participantIds = [];
+      for (const participant of sessionForm.participants) {
+        try {
+          const response = await axiosInstance.post("/auth/register", {
+            ...participant,
+            role: "participant",
+            company_id: sessionForm.company_id,
+            location: participant.location || sessionForm.location,
+          });
+          participantIds.push(response.data.id);
+        } catch (error) {
+          toast.error(`Failed to create participant ${participant.full_name}: ${error.response?.data?.detail || 'Unknown error'}`);
+          return;
+        }
+      }
+
+      // Create session with program name
+      await axiosInstance.post("/sessions", {
+        name: program.name,
+        program_id: sessionForm.program_id,
+        company_id: sessionForm.company_id,
+        location: sessionForm.location,
+        start_date: sessionForm.start_date,
+        end_date: sessionForm.end_date,
+        supervisor_ids: sessionForm.supervisor_ids,
+        participant_ids: participantIds,
+      });
+
+      toast.success(`Session created with ${participantIds.length} participants`);
       setSessionForm({
-        name: "",
+        program_id: "",
         company_id: "",
         location: "",
         start_date: "",
         end_date: "",
         supervisor_ids: [],
+        participants: [],
       });
       setSessionDialogOpen(false);
-      loadSessions();
+      loadData();
     } catch (error) {
       toast.error(error.response?.data?.detail || "Failed to create session");
-    }
-  };
-
-  const handleCreateUser = async (e) => {
-    e.preventDefault();
-    try {
-      await axiosInstance.post("/auth/register", userForm);
-      toast.success("User created successfully");
-      setUserForm({
-        email: "",
-        password: "",
-        full_name: "",
-        id_number: "",
-        role: "participant",
-        company_id: "",
-        location: "",
-      });
-      setUserDialogOpen(false);
-      loadUsers();
-    } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to create user");
     }
   };
 
@@ -156,7 +198,11 @@ const AdminDashboard = ({ user, onLogout }) => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-8">
+          <TabsList className="grid w-full grid-cols-5 mb-8">
+            <TabsTrigger value="programs" data-testid="programs-tab">
+              <BookOpen className="w-4 h-4 mr-2" />
+              Programs
+            </TabsTrigger>
             <TabsTrigger value="companies" data-testid="companies-tab">
               <Building2 className="w-4 h-4 mr-2" />
               Companies
@@ -174,6 +220,90 @@ const AdminDashboard = ({ user, onLogout }) => {
               Feedback
             </TabsTrigger>
           </TabsList>
+
+          {/* Programs Tab */}
+          <TabsContent value="programs">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>Training Programs</CardTitle>
+                    <CardDescription>Manage your training modules</CardDescription>
+                  </div>
+                  <Dialog open={programDialogOpen} onOpenChange={setProgramDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button data-testid="create-program-button">
+                        <BookOpen className="w-4 h-4 mr-2" />
+                        Add Program
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Create New Program</DialogTitle>
+                        <DialogDescription>
+                          Add a new training program/module
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={handleCreateProgram} className="space-y-4">
+                        <div>
+                          <Label htmlFor="program-name">Program Name *</Label>
+                          <Input
+                            id="program-name"
+                            data-testid="program-name-input"
+                            placeholder="e.g., Defensive Riding"
+                            value={programForm.name}
+                            onChange={(e) => setProgramForm({ ...programForm, name: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="program-description">Description (Optional)</Label>
+                          <Textarea
+                            id="program-description"
+                            data-testid="program-description-input"
+                            placeholder="Brief description of the program"
+                            value={programForm.description}
+                            onChange={(e) => setProgramForm({ ...programForm, description: e.target.value })}
+                          />
+                        </div>
+                        <Button data-testid="submit-program-button" type="submit" className="w-full">
+                          Create Program
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {programs.length === 0 ? (
+                    <div className="text-center py-12">
+                      <BookOpen className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                      <p className="text-gray-500">No programs yet. Create your first training program!</p>
+                    </div>
+                  ) : (
+                    programs.map((program) => (
+                      <div
+                        key={program.id}
+                        data-testid={`program-item-${program.id}`}
+                        className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg hover:shadow-md transition-shadow"
+                      >
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{program.name}</h3>
+                          {program.description && (
+                            <p className="text-sm text-gray-600 mt-1">{program.description}</p>
+                          )}
+                          <p className="text-xs text-gray-500 mt-2">
+                            Created: {new Date(program.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Companies Tab */}
           <TabsContent value="companies">
@@ -249,87 +379,198 @@ const AdminDashboard = ({ user, onLogout }) => {
                 <div className="flex justify-between items-center">
                   <div>
                     <CardTitle>Training Sessions</CardTitle>
-                    <CardDescription>Manage training sessions</CardDescription>
+                    <CardDescription>Create sessions with participants</CardDescription>
                   </div>
                   <Dialog open={sessionDialogOpen} onOpenChange={setSessionDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button data-testid="create-session-button">
+                      <Button data-testid="create-session-button" disabled={programs.length === 0 || companies.length === 0}>
                         <Calendar className="w-4 h-4 mr-2" />
                         Add Session
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Create New Session</DialogTitle>
                         <DialogDescription>
-                          Add a new training session
+                          Select program and add participants
                         </DialogDescription>
                       </DialogHeader>
-                      <form onSubmit={handleCreateSession} className="space-y-4">
-                        <div>
-                          <Label htmlFor="session-name">Session Name</Label>
-                          <Input
-                            id="session-name"
-                            data-testid="session-name-input"
-                            value={sessionForm.name}
-                            onChange={(e) => setSessionForm({ ...sessionForm, name: e.target.value })}
-                            required
-                          />
+                      <form onSubmit={handleCreateSession} className="space-y-6">
+                        {/* Session Details */}
+                        <div className="space-y-4">
+                          <h3 className="font-semibold text-lg">Session Details</h3>
+                          <div>
+                            <Label htmlFor="session-program">Program/Module *</Label>
+                            <Select
+                              value={sessionForm.program_id}
+                              onValueChange={(value) => setSessionForm({ ...sessionForm, program_id: value })}
+                              required
+                            >
+                              <SelectTrigger data-testid="session-program-select">
+                                <SelectValue placeholder="Select program" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {programs.map((program) => (
+                                  <SelectItem key={program.id} value={program.id}>
+                                    {program.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label htmlFor="session-company">Company *</Label>
+                            <Select
+                              value={sessionForm.company_id}
+                              onValueChange={(value) => setSessionForm({ ...sessionForm, company_id: value })}
+                              required
+                            >
+                              <SelectTrigger data-testid="session-company-select">
+                                <SelectValue placeholder="Select company" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {companies.map((company) => (
+                                  <SelectItem key={company.id} value={company.id}>
+                                    {company.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label htmlFor="session-location">Location *</Label>
+                            <Input
+                              id="session-location"
+                              data-testid="session-location-input"
+                              value={sessionForm.location}
+                              onChange={(e) => setSessionForm({ ...sessionForm, location: e.target.value })}
+                              required
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="start-date">Start Date *</Label>
+                              <Input
+                                id="start-date"
+                                data-testid="session-start-date-input"
+                                type="date"
+                                value={sessionForm.start_date}
+                                onChange={(e) => setSessionForm({ ...sessionForm, start_date: e.target.value })}
+                                required
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="end-date">End Date *</Label>
+                              <Input
+                                id="end-date"
+                                data-testid="session-end-date-input"
+                                type="date"
+                                value={sessionForm.end_date}
+                                onChange={(e) => setSessionForm({ ...sessionForm, end_date: e.target.value })}
+                                required
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <Label htmlFor="session-company">Company</Label>
-                          <Select
-                            value={sessionForm.company_id}
-                            onValueChange={(value) => setSessionForm({ ...sessionForm, company_id: value })}
+
+                        {/* Add Participants */}
+                        <div className="space-y-4 border-t pt-4">
+                          <h3 className="font-semibold text-lg">Add Participants</h3>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label htmlFor="participant-name">Full Name</Label>
+                              <Input
+                                id="participant-name"
+                                data-testid="participant-name-input"
+                                value={newParticipant.full_name}
+                                onChange={(e) => setNewParticipant({ ...newParticipant, full_name: e.target.value })}
+                                placeholder="John Doe"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="participant-id">ID Number</Label>
+                              <Input
+                                id="participant-id"
+                                data-testid="participant-id-input"
+                                value={newParticipant.id_number}
+                                onChange={(e) => setNewParticipant({ ...newParticipant, id_number: e.target.value })}
+                                placeholder="ID123456"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="participant-email">Email</Label>
+                              <Input
+                                id="participant-email"
+                                data-testid="participant-email-input"
+                                type="email"
+                                value={newParticipant.email}
+                                onChange={(e) => setNewParticipant({ ...newParticipant, email: e.target.value })}
+                                placeholder="john@example.com"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="participant-password">Password</Label>
+                              <Input
+                                id="participant-password"
+                                data-testid="participant-password-input"
+                                type="password"
+                                value={newParticipant.password}
+                                onChange={(e) => setNewParticipant({ ...newParticipant, password: e.target.value })}
+                                placeholder="Password"
+                              />
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            data-testid="add-participant-button"
+                            onClick={handleAddParticipant}
+                            variant="outline"
+                            className="w-full"
                           >
-                            <SelectTrigger data-testid="session-company-select">
-                              <SelectValue placeholder="Select company" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {companies.map((company) => (
-                                <SelectItem key={company.id} value={company.id}>
-                                  {company.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add Participant to List
+                          </Button>
                         </div>
-                        <div>
-                          <Label htmlFor="session-location">Location</Label>
-                          <Input
-                            id="session-location"
-                            data-testid="session-location-input"
-                            value={sessionForm.location}
-                            onChange={(e) => setSessionForm({ ...sessionForm, location: e.target.value })}
-                            required
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="start-date">Start Date</Label>
-                            <Input
-                              id="start-date"
-                              data-testid="session-start-date-input"
-                              type="date"
-                              value={sessionForm.start_date}
-                              onChange={(e) => setSessionForm({ ...sessionForm, start_date: e.target.value })}
-                              required
-                            />
+
+                        {/* Participants List */}
+                        {sessionForm.participants.length > 0 && (
+                          <div className="space-y-2 border-t pt-4">
+                            <h3 className="font-semibold text-sm text-gray-700">
+                              Participants ({sessionForm.participants.length})
+                            </h3>
+                            {sessionForm.participants.map((participant, index) => (
+                              <div
+                                key={index}
+                                data-testid={`participant-list-item-${index}`}
+                                className="flex justify-between items-center p-3 bg-green-50 rounded-lg"
+                              >
+                                <div>
+                                  <p className="font-medium text-sm">{participant.full_name}</p>
+                                  <p className="text-xs text-gray-600">
+                                    {participant.email} • ID: {participant.id_number}
+                                  </p>
+                                </div>
+                                <Button
+                                  type="button"
+                                  data-testid={`remove-participant-${index}`}
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleRemoveParticipant(index)}
+                                >
+                                  <Trash2 className="w-4 h-4 text-red-600" />
+                                </Button>
+                              </div>
+                            ))}
                           </div>
-                          <div>
-                            <Label htmlFor="end-date">End Date</Label>
-                            <Input
-                              id="end-date"
-                              data-testid="session-end-date-input"
-                              type="date"
-                              value={sessionForm.end_date}
-                              onChange={(e) => setSessionForm({ ...sessionForm, end_date: e.target.value })}
-                              required
-                            />
-                          </div>
-                        </div>
-                        <Button data-testid="submit-session-button" type="submit" className="w-full">
-                          Create Session
+                        )}
+
+                        <Button
+                          data-testid="submit-session-button"
+                          type="submit"
+                          className="w-full"
+                          disabled={sessionForm.participants.length === 0}
+                        >
+                          Create Session with {sessionForm.participants.length} Participant(s)
                         </Button>
                       </form>
                     </DialogContent>
@@ -337,32 +578,52 @@ const AdminDashboard = ({ user, onLogout }) => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {sessions.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No sessions yet</p>
-                  ) : (
-                    sessions.map((session) => {
-                      const company = companies.find((c) => c.id === session.company_id);
-                      return (
-                        <div
-                          key={session.id}
-                          data-testid={`session-item-${session.id}`}
-                          className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg hover:shadow-md transition-shadow"
-                        >
-                          <h3 className="font-semibold text-gray-900">{session.name}</h3>
-                          <div className="mt-2 text-sm text-gray-600 space-y-1">
-                            <p>Company: {company?.name || "N/A"}</p>
-                            <p>Location: {session.location}</p>
-                            <p>
-                              Duration: {session.start_date} to {session.end_date}
-                            </p>
-                            <p>Participants: {session.participant_ids.length}</p>
+                {programs.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">Please create at least one program first</p>
+                  </div>
+                ) : companies.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">Please create at least one company first</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {sessions.length === 0 ? (
+                      <p className="text-gray-500 text-center py-8">No sessions yet</p>
+                    ) : (
+                      sessions.map((session) => {
+                        const company = companies.find((c) => c.id === session.company_id);
+                        const program = programs.find((p) => p.id === session.program_id);
+                        return (
+                          <div
+                            key={session.id}
+                            data-testid={`session-item-${session.id}`}
+                            className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg hover:shadow-md transition-shadow"
+                          >
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h3 className="font-semibold text-gray-900">{session.name}</h3>
+                                <div className="mt-2 text-sm text-gray-600 space-y-1">
+                                  <p>Program: {program?.name || "N/A"}</p>
+                                  <p>Company: {company?.name || "N/A"}</p>
+                                  <p>Location: {session.location}</p>
+                                  <p>
+                                    Duration: {session.start_date} to {session.end_date}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                                  {session.participant_ids.length} Participants
+                                </span>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -371,122 +632,8 @@ const AdminDashboard = ({ user, onLogout }) => {
           <TabsContent value="users">
             <Card>
               <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>Users</CardTitle>
-                    <CardDescription>Manage system users</CardDescription>
-                  </div>
-                  <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button data-testid="create-user-button">
-                        <Users className="w-4 h-4 mr-2" />
-                        Add User
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle>Create New User</DialogTitle>
-                        <DialogDescription>
-                          Add a new user to the system
-                        </DialogDescription>
-                      </DialogHeader>
-                      <form onSubmit={handleCreateUser} className="space-y-4">
-                        <div>
-                          <Label htmlFor="user-email">Email</Label>
-                          <Input
-                            id="user-email"
-                            data-testid="user-email-input"
-                            type="email"
-                            value={userForm.email}
-                            onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="user-password">Password</Label>
-                          <Input
-                            id="user-password"
-                            data-testid="user-password-input"
-                            type="password"
-                            value={userForm.password}
-                            onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="user-fullname">Full Name</Label>
-                          <Input
-                            id="user-fullname"
-                            data-testid="user-fullname-input"
-                            value={userForm.full_name}
-                            onChange={(e) => setUserForm({ ...userForm, full_name: e.target.value })}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="user-idnumber">ID Number</Label>
-                          <Input
-                            id="user-idnumber"
-                            data-testid="user-idnumber-input"
-                            value={userForm.id_number}
-                            onChange={(e) => setUserForm({ ...userForm, id_number: e.target.value })}
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="user-role">Role</Label>
-                          <Select
-                            value={userForm.role}
-                            onValueChange={(value) => setUserForm({ ...userForm, role: value })}
-                          >
-                            <SelectTrigger data-testid="user-role-select">
-                              <SelectValue placeholder="Select role" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="participant">Participant</SelectItem>
-                              <SelectItem value="supervisor">Supervisor</SelectItem>
-                              <SelectItem value="admin">Admin</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        {userForm.role === "participant" && (
-                          <>
-                            <div>
-                              <Label htmlFor="user-company">Company</Label>
-                              <Select
-                                value={userForm.company_id}
-                                onValueChange={(value) => setUserForm({ ...userForm, company_id: value })}
-                              >
-                                <SelectTrigger data-testid="user-company-select">
-                                  <SelectValue placeholder="Select company" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {companies.map((company) => (
-                                    <SelectItem key={company.id} value={company.id}>
-                                      {company.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <Label htmlFor="user-location">Location</Label>
-                              <Input
-                                id="user-location"
-                                data-testid="user-location-input"
-                                value={userForm.location}
-                                onChange={(e) => setUserForm({ ...userForm, location: e.target.value })}
-                              />
-                            </div>
-                          </>
-                        )}
-                        <Button data-testid="submit-user-button" type="submit" className="w-full">
-                          Create User
-                        </Button>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                </div>
+                <CardTitle>All Users</CardTitle>
+                <CardDescription>View all system users</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
