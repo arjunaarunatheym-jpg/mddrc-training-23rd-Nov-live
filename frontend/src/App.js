@@ -7,6 +7,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ParticipantDashboard from "./pages/ParticipantDashboard";
 import SupervisorDashboard from "./pages/SupervisorDashboard";
 import TrainerDashboard from "./pages/TrainerDashboard";
+import TrainerChecklist from "./pages/TrainerChecklist";
 import CoordinatorDashboard from "./pages/CoordinatorDashboard";
 import TakeTest from "./pages/TakeTest";
 import TestResults from "./pages/TestResults";
