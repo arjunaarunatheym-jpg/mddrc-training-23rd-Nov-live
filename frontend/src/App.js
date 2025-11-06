@@ -81,8 +81,12 @@ function App() {
                   <Navigate to="/admin" replace />
                 ) : user.role === "participant" ? (
                   <Navigate to="/participant" replace />
-                ) : (
+                ) : user.role === "supervisor" ? (
                   <Navigate to="/supervisor" replace />
+                ) : ["trainer", "chief_trainer", "coordinator"].includes(user.role) ? (
+                  <Navigate to="/trainer" replace />
+                ) : (
+                  <Navigate to="/login" replace />
                 )
               ) : (
                 <Navigate to="/login" replace />
