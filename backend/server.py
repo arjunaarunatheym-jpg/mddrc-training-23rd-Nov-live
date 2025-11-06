@@ -912,6 +912,21 @@ async def get_users(role: Optional[str] = None, current_user: User = Depends(get
             user['created_at'] = datetime.fromisoformat(user['created_at'])
     return users
 
+@api_router.get("/users/{user_id}", response_model=User)
+async def get_user(user_id: str, current_user: User = Depends(get_current_user)):
+    # Allow access if: admin, supervisor, or the user themselves
+    if current_user.role not in ["admin", "supervisor", "trainer", "coordinator"] and current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if isinstance(user.get('created_at'), str):
+        user['created_at'] = datetime.fromisoformat(user['created_at'])
+    
+    return user
+
 # Test Routes
 @api_router.post("/tests", response_model=Test)
 async def create_test(test_data: TestCreate, current_user: User = Depends(get_current_user)):
