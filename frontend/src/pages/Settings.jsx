@@ -1,0 +1,302 @@
+import { useState, useEffect } from "react";
+import { axiosInstance } from "../App";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
+import { Upload, Save, Image as ImageIcon, Palette, FileText } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+
+const Settings = () => {
+  const [settings, setSettings] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [logoFile, setLogoFile] = useState(null);
+  const [templateFile, setTemplateFile] = useState(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingTemplate, setUploadingTemplate] = useState(false);
+
+  const [formData, setFormData] = useState({
+    company_name: "",
+    primary_color: "#3b82f6",
+    secondary_color: "#6366f1",
+    footer_text: ""
+  });
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const response = await axiosInstance.get("/settings");
+      setSettings(response.data);
+      setFormData({
+        company_name: response.data.company_name || "",
+        primary_color: response.data.primary_color || "#3b82f6",
+        secondary_color: response.data.secondary_color || "#6366f1",
+        footer_text: response.data.footer_text || ""
+      });
+      setLoading(false);
+    } catch (error) {
+      toast.error("Failed to load settings");
+      setLoading(false);
+    }
+  };
+
+  const handleLogoUpload = async () => {
+    if (!logoFile) {
+      toast.error("Please select a logo file");
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", logoFile);
+
+      const response = await axiosInstance.post("/settings/upload-logo", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+
+      toast.success("Logo uploaded successfully!");
+      setLogoFile(null);
+      loadSettings();
+    } catch (error) {
+      toast.error("Failed to upload logo");
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleTemplateUpload = async () => {
+    if (!templateFile) {
+      toast.error("Please select a certificate template file");
+      return;
+    }
+
+    if (!templateFile.name.endsWith('.docx')) {
+      toast.error("Only .docx files are supported");
+      return;
+    }
+
+    setUploadingTemplate(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", templateFile);
+
+      const response = await axiosInstance.post("/settings/upload-certificate-template", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+
+      toast.success("Certificate template uploaded successfully!");
+      setTemplateFile(null);
+      loadSettings();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to upload template");
+    } finally {
+      setUploadingTemplate(false);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    setSaving(true);
+    try {
+      await axiosInstance.put("/settings", formData);
+      toast.success("Settings saved successfully!");
+      loadSettings();
+    } catch (error) {
+      toast.error("Failed to save settings");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-lg">Loading settings...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Logo Upload */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ImageIcon className="w-5 h-5" />
+            Company Logo
+          </CardTitle>
+          <CardDescription>Upload your company logo (appears on certificates and dashboard)</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {settings?.logo_url && (
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">Current Logo:</p>
+              <img
+                src={`${import.meta.env.VITE_API_URL || process.env.REACT_APP_BACKEND_URL}${settings.logo_url}`}
+                alt="Company Logo"
+                className="h-20 object-contain border rounded p-2"
+              />
+            </div>
+          )}
+          <div className="flex gap-3">
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setLogoFile(e.target.files[0])}
+              data-testid="logo-upload-input"
+            />
+            <Button
+              onClick={handleLogoUpload}
+              disabled={!logoFile || uploadingLogo}
+              data-testid="upload-logo-button"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              {uploadingLogo ? "Uploading..." : "Upload Logo"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Certificate Template Upload */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="w-5 h-5" />
+            Certificate Template
+          </CardTitle>
+          <CardDescription>
+            Upload your certificate template (.docx file). Use placeholders: «PARTICIPANT_NAME», «IC_NUMBER», «COMPANY_NAME», «PROGRAMME NAME», «VENUE», «DATE»
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {settings?.certificate_template_url && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded">
+              <p className="text-sm text-green-800">✓ Certificate template uploaded</p>
+            </div>
+          )}
+          <div className="flex gap-3">
+            <Input
+              type="file"
+              accept=".docx"
+              onChange={(e) => setTemplateFile(e.target.files[0])}
+              data-testid="template-upload-input"
+            />
+            <Button
+              onClick={handleTemplateUpload}
+              disabled={!templateFile || uploadingTemplate}
+              data-testid="upload-template-button"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              {uploadingTemplate ? "Uploading..." : "Upload Template"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Theme Colors */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Palette className="w-5 h-5" />
+            Theme Colors
+          </CardTitle>
+          <CardDescription>Customize the application color scheme</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="primary-color">Primary Color</Label>
+              <div className="flex gap-2 items-center">
+                <Input
+                  id="primary-color"
+                  type="color"
+                  value={formData.primary_color}
+                  onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })}
+                  className="h-10 w-20"
+                  data-testid="primary-color-input"
+                />
+                <Input
+                  type="text"
+                  value={formData.primary_color}
+                  onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })}
+                  placeholder="#3b82f6"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="secondary-color">Secondary Color</Label>
+              <div className="flex gap-2 items-center">
+                <Input
+                  id="secondary-color"
+                  type="color"
+                  value={formData.secondary_color}
+                  onChange={(e) => setFormData({ ...formData, secondary_color: e.target.value })}
+                  className="h-10 w-20"
+                  data-testid="secondary-color-input"
+                />
+                <Input
+                  type="text"
+                  value={formData.secondary_color}
+                  onChange={(e) => setFormData({ ...formData, secondary_color: e.target.value })}
+                  placeholder="#6366f1"
+                />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Company Details */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Company Details</CardTitle>
+          <CardDescription>Configure company information</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="company-name">Company Name</Label>
+            <Input
+              id="company-name"
+              value={formData.company_name}
+              onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
+              placeholder="Your Company Name"
+              data-testid="company-name-input"
+            />
+            <p className="text-xs text-gray-500 mt-1">This appears in the certificate template</p>
+          </div>
+          <div>
+            <Label htmlFor="footer-text">Footer Text (Optional)</Label>
+            <Textarea
+              id="footer-text"
+              value={formData.footer_text}
+              onChange={(e) => setFormData({ ...formData, footer_text: e.target.value })}
+              placeholder="Footer text for emails and documents"
+              rows={3}
+              data-testid="footer-text-input"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <Button
+          onClick={handleSaveSettings}
+          disabled={saving}
+          size="lg"
+          data-testid="save-settings-button"
+        >
+          <Save className="w-4 h-4 mr-2" />
+          {saving ? "Saving..." : "Save Settings"}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default Settings;
