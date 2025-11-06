@@ -435,6 +435,51 @@ const AdminDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const handleCreateChecklistTemplate = async (e) => {
+    e.preventDefault();
+    if (!checklistForm.program_id || checklistForm.items.filter(i => i.trim()).length === 0) {
+      toast.error("Please select a program and add at least one checklist item");
+      return;
+    }
+    try {
+      await axiosInstance.post("/checklist-templates", {
+        program_id: checklistForm.program_id,
+        items: checklistForm.items.filter(i => i.trim())
+      });
+      toast.success("Checklist template created successfully");
+      setChecklistDialogOpen(false);
+      setChecklistForm({ program_id: "", items: [""] });
+      loadChecklistTemplates();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to create checklist template");
+    }
+  };
+
+  const handleAddChecklistItem = () => {
+    setChecklistForm({ ...checklistForm, items: [...checklistForm.items, ""] });
+  };
+
+  const handleRemoveChecklistItem = (index) => {
+    const newItems = checklistForm.items.filter((_, i) => i !== index);
+    setChecklistForm({ ...checklistForm, items: newItems });
+  };
+
+  const handleChecklistItemChange = (index, value) => {
+    const newItems = [...checklistForm.items];
+    newItems[index] = value;
+    setChecklistForm({ ...checklistForm, items: newItems });
+  };
+
+  const handleDeleteChecklistTemplate = async (templateId) => {
+    try {
+      await axiosInstance.delete(`/checklist-templates/${templateId}`);
+      toast.success("Checklist template deleted");
+      loadChecklistTemplates();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to delete template");
+    }
+  };
+
   return (
     <div 
       className="min-h-screen"
