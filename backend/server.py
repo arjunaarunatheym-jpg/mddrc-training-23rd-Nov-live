@@ -1754,7 +1754,8 @@ async def download_certificate(certificate_id: str, current_user: User = Depends
     return FileResponse(
         file_path,
         media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        filename=filename
+        filename=filename,
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
 @api_router.get("/certificates/preview/{certificate_id}")
