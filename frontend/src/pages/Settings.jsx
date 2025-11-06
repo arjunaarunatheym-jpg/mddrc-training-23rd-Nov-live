@@ -97,20 +97,29 @@ const Settings = () => {
       return;
     }
 
+    // Check file size (max 10MB for Word documents)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (templateFile.size > maxSize) {
+      toast.error("Template file size must be less than 10MB");
+      return;
+    }
+
     setUploadingTemplate(true);
     try {
       const formData = new FormData();
       formData.append("file", templateFile);
 
       const response = await axiosInstance.post("/settings/upload-certificate-template", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
+        headers: { "Content-Type": "multipart/form-data" },
+        timeout: 30000 // 30 second timeout for upload
       });
 
       toast.success("Certificate template uploaded successfully!");
       setTemplateFile(null);
       loadSettings();
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to upload template");
+      console.error("Template upload error:", error);
+      toast.error(error.response?.data?.detail || "Failed to upload template. Please try again.");
     } finally {
       setUploadingTemplate(false);
     }
