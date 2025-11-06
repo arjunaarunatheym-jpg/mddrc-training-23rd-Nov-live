@@ -8,9 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { LogOut, Building2, Users, Calendar, ClipboardList, MessageSquare, BookOpen, Settings, Plus, Trash2, Edit, UserPlus } from "lucide-react";
+import { LogOut, Building2, Users, Calendar, MessageSquare, BookOpen, Plus, Trash2, Edit, UserPlus, UserCog } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 
 const AdminDashboard = ({ user, onLogout }) => {
   const [companies, setCompanies] = useState([]);
@@ -19,36 +18,36 @@ const AdminDashboard = ({ user, onLogout }) => {
   const [users, setUsers] = useState([]);
   const [activeTab, setActiveTab] = useState("programs");
 
-  // Company form
   const [companyName, setCompanyName] = useState("");
   const [companyDialogOpen, setCompanyDialogOpen] = useState(false);
 
-  // Program form
   const [programForm, setProgramForm] = useState({ name: "", description: "", pass_percentage: 70 });
   const [programDialogOpen, setProgramDialogOpen] = useState(false);
 
-  // Session form
   const [sessionForm, setSessionForm] = useState({
     program_id: "",
     company_id: "",
     location: "",
     start_date: "",
     end_date: "",
-    supervisor_ids: [],
     participants: [],
+    trainer_assignments: [],
+    coordinator_id: "",
   });
   const [newParticipant, setNewParticipant] = useState({
     email: "",
     password: "",
     full_name: "",
     id_number: "",
-    location: "",
+  });
+  const [newTrainerAssignment, setNewTrainerAssignment] = useState({
+    trainer_id: "",
+    role: "regular",
   });
   const [sessionDialogOpen, setSessionDialogOpen] = useState(false);
   const [editingSession, setEditingSession] = useState(null);
   const [editSessionDialogOpen, setEditSessionDialogOpen] = useState(false);
 
-  // Trainer form (no role - just create trainer account)
   const [trainerForm, setTrainerForm] = useState({
     email: "",
     password: "",
@@ -57,7 +56,6 @@ const AdminDashboard = ({ user, onLogout }) => {
   });
   const [trainerDialogOpen, setTrainerDialogOpen] = useState(false);
 
-  // Coordinator form
   const [coordinatorForm, setCoordinatorForm] = useState({
     email: "",
     password: "",
@@ -118,20 +116,30 @@ const AdminDashboard = ({ user, onLogout }) => {
     try {
       await axiosInstance.post("/auth/register", {
         ...trainerForm,
-        role: trainerForm.trainer_role,
+        role: "trainer",
       });
       toast.success("Trainer created successfully");
-      setTrainerForm({
-        email: "",
-        password: "",
-        full_name: "",
-        id_number: "",
-        trainer_role: "trainer",
-      });
+      setTrainerForm({ email: "", password: "", full_name: "", id_number: "" });
       setTrainerDialogOpen(false);
       loadData();
     } catch (error) {
       toast.error(error.response?.data?.detail || "Failed to create trainer");
+    }
+  };
+
+  const handleCreateCoordinator = async (e) => {
+    e.preventDefault();
+    try {
+      await axiosInstance.post("/auth/register", {
+        ...coordinatorForm,
+        role: "coordinator",
+      });
+      toast.success("Coordinator created successfully");
+      setCoordinatorForm({ email: "", password: "", full_name: "", id_number: "" });
+      setCoordinatorDialogOpen(false);
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to create coordinator");
     }
   };
 
@@ -144,13 +152,36 @@ const AdminDashboard = ({ user, onLogout }) => {
       ...sessionForm,
       participants: [...sessionForm.participants, { ...newParticipant }],
     });
-    setNewParticipant({ email: "", password: "", full_name: "", id_number: "", location: "" });
+    setNewParticipant({ email: "", password: "", full_name: "", id_number: "" });
     toast.success("Participant added to list");
   };
 
   const handleRemoveParticipant = (index) => {
     const updated = sessionForm.participants.filter((_, i) => i !== index);
     setSessionForm({ ...sessionForm, participants: updated });
+  };
+
+  const handleAddTrainerAssignment = () => {
+    if (!newTrainerAssignment.trainer_id) {
+      toast.error("Please select a trainer");
+      return;
+    }
+    // Check if trainer already assigned
+    if (sessionForm.trainer_assignments.some(t => t.trainer_id === newTrainerAssignment.trainer_id)) {
+      toast.error("Trainer already assigned to this session");
+      return;
+    }
+    setSessionForm({
+      ...sessionForm,
+      trainer_assignments: [...sessionForm.trainer_assignments, { ...newTrainerAssignment }],
+    });
+    setNewTrainerAssignment({ trainer_id: "", role: "regular" });
+    toast.success("Trainer assigned");
+  };
+
+  const handleRemoveTrainerAssignment = (index) => {
+    const updated = sessionForm.trainer_assignments.filter((_, i) => i !== index);
+    setSessionForm({ ...sessionForm, trainer_assignments: updated });
   };
 
   const handleCreateSession = async (e) => {
@@ -175,7 +206,7 @@ const AdminDashboard = ({ user, onLogout }) => {
             ...participant,
             role: "participant",
             company_id: sessionForm.company_id,
-            location: participant.location || sessionForm.location,
+            location: sessionForm.location,
           });
           participantIds.push(response.data.id);
         } catch (error) {
@@ -191,8 +222,9 @@ const AdminDashboard = ({ user, onLogout }) => {
         location: sessionForm.location,
         start_date: sessionForm.start_date,
         end_date: sessionForm.end_date,
-        supervisor_ids: sessionForm.supervisor_ids,
         participant_ids: participantIds,
+        trainer_assignments: sessionForm.trainer_assignments,
+        coordinator_id: sessionForm.coordinator_id || null,
       });
 
       toast.success(`Session created with ${participantIds.length} participants`);
@@ -202,8 +234,9 @@ const AdminDashboard = ({ user, onLogout }) => {
         location: "",
         start_date: "",
         end_date: "",
-        supervisor_ids: [],
         participants: [],
+        trainer_assignments: [],
+        coordinator_id: "",
       });
       setSessionDialogOpen(false);
       loadData();
@@ -213,24 +246,78 @@ const AdminDashboard = ({ user, onLogout }) => {
   };
 
   const handleEditSession = (session) => {
-    setEditingSession(session);
+    setEditingSession({
+      ...session,
+      newParticipants: [],
+    });
     setEditSessionDialogOpen(true);
+  };
+
+  const handleAddParticipantToEdit = () => {
+    if (!newParticipant.email || !newParticipant.password || !newParticipant.full_name || !newParticipant.id_number) {
+      toast.error("Please fill all participant fields");
+      return;
+    }
+    setEditingSession({
+      ...editingSession,
+      newParticipants: [...(editingSession.newParticipants || []), { ...newParticipant }],
+    });
+    setNewParticipant({ email: "", password: "", full_name: "", id_number: "" });
+  };
+
+  const handleRemoveNewParticipant = (index) => {
+    const updated = editingSession.newParticipants.filter((_, i) => i !== index);
+    setEditingSession({ ...editingSession, newParticipants: updated });
   };
 
   const handleUpdateSession = async () => {
     try {
-      await axiosInstance.put(`/sessions/${editingSession.id}`, editingSession);
+      // Create new participants if any
+      const newParticipantIds = [];
+      if (editingSession.newParticipants && editingSession.newParticipants.length > 0) {
+        for (const participant of editingSession.newParticipants) {
+          const response = await axiosInstance.post("/auth/register", {
+            ...participant,
+            role: "participant",
+            company_id: editingSession.company_id,
+            location: editingSession.location,
+          });
+          newParticipantIds.push(response.data.id);
+        }
+      }
+
+      // Update session
+      await axiosInstance.put(`/sessions/${editingSession.id}`, {
+        location: editingSession.location,
+        start_date: editingSession.start_date,
+        end_date: editingSession.end_date,
+        participant_ids: [...editingSession.participant_ids, ...newParticipantIds],
+        trainer_assignments: editingSession.trainer_assignments || [],
+        coordinator_id: editingSession.coordinator_id || null,
+      });
+
       toast.success("Session updated successfully");
       setEditSessionDialogOpen(false);
       setEditingSession(null);
+      setNewParticipant({ email: "", password: "", full_name: "", id_number: "" });
       loadData();
     } catch (error) {
       toast.error(error.response?.data?.detail || "Failed to update session");
     }
   };
 
-  const trainers = users.filter((u) => u.role === "trainer" || u.role === "chief_trainer" || u.role === "coordinator");
-  const supervisors = users.filter((u) => u.role === "supervisor");
+  const trainers = users.filter((u) => u.role === "trainer");
+  const coordinators = users.filter((u) => u.role === "coordinator");
+
+  const getTrainerName = (trainerId) => {
+    const trainer = trainers.find(t => t.id === trainerId);
+    return trainer ? trainer.full_name : "Unknown";
+  };
+
+  const getCoordinatorName = (coordinatorId) => {
+    const coordinator = coordinators.find(c => c.id === coordinatorId);
+    return coordinator ? coordinator.full_name : "Unknown";
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -271,13 +358,13 @@ const AdminDashboard = ({ user, onLogout }) => {
               <UserPlus className="w-4 h-4 mr-2" />
               Trainers
             </TabsTrigger>
+            <TabsTrigger value="coordinators" data-testid="coordinators-tab">
+              <UserCog className="w-4 h-4 mr-2" />
+              Coordinators
+            </TabsTrigger>
             <TabsTrigger value="users" data-testid="users-tab">
               <Users className="w-4 h-4 mr-2" />
-              Users
-            </TabsTrigger>
-            <TabsTrigger value="feedback" data-testid="feedback-tab">
-              <MessageSquare className="w-4 h-4 mr-2" />
-              Feedback
+              All Users
             </TabsTrigger>
           </TabsList>
 
@@ -470,10 +557,11 @@ const AdminDashboard = ({ user, onLogout }) => {
                       <DialogHeader>
                         <DialogTitle>Create New Session</DialogTitle>
                         <DialogDescription>
-                          Select program and add participants
+                          Configure session details, participants, and trainers
                         </DialogDescription>
                       </DialogHeader>
                       <form onSubmit={handleCreateSession} className="space-y-6">
+                        {/* Session Details */}
                         <div className="space-y-4">
                           <h3 className="font-semibold text-lg">Session Details</h3>
                           <div>
@@ -550,6 +638,96 @@ const AdminDashboard = ({ user, onLogout }) => {
                           </div>
                         </div>
 
+                        {/* Assign Trainers */}
+                        <div className="space-y-4 border-t pt-4">
+                          <h3 className="font-semibold text-lg">Assign Trainers</h3>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label>Select Trainer</Label>
+                              <Select
+                                value={newTrainerAssignment.trainer_id}
+                                onValueChange={(value) => setNewTrainerAssignment({ ...newTrainerAssignment, trainer_id: value })}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select trainer" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {trainers.map((trainer) => (
+                                    <SelectItem key={trainer.id} value={trainer.id}>
+                                      {trainer.full_name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label>Role for This Session</Label>
+                              <Select
+                                value={newTrainerAssignment.role}
+                                onValueChange={(value) => setNewTrainerAssignment({ ...newTrainerAssignment, role: value })}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="regular">Regular Trainer</SelectItem>
+                                  <SelectItem value="chief">Chief Trainer</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            onClick={handleAddTrainerAssignment}
+                            variant="outline"
+                            className="w-full"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Assign Trainer
+                          </Button>
+                          {sessionForm.trainer_assignments.length > 0 && (
+                            <div className="space-y-2">
+                              <Label className="text-sm text-gray-700">Assigned Trainers</Label>
+                              {sessionForm.trainer_assignments.map((assignment, idx) => (
+                                <div key={idx} className="flex justify-between items-center p-2 bg-blue-50 rounded">
+                                  <span className="text-sm">
+                                    {getTrainerName(assignment.trainer_id)} - <strong>{assignment.role === "chief" ? "Chief Trainer" : "Regular Trainer"}</strong>
+                                  </span>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRemoveTrainerAssignment(idx)}
+                                  >
+                                    <Trash2 className="w-4 h-4 text-red-600" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Assign Coordinator */}
+                        <div className="space-y-4 border-t pt-4">
+                          <h3 className="font-semibold text-lg">Assign Coordinator (Optional)</h3>
+                          <Select
+                            value={sessionForm.coordinator_id}
+                            onValueChange={(value) => setSessionForm({ ...sessionForm, coordinator_id: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select coordinator" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {coordinators.map((coordinator) => (
+                                <SelectItem key={coordinator.id} value={coordinator.id}>
+                                  {coordinator.full_name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Add Participants */}
                         <div className="space-y-4 border-t pt-4">
                           <h3 className="font-semibold text-lg">Add Participants</h3>
                           <div className="grid grid-cols-2 gap-3">
@@ -682,9 +860,13 @@ const AdminDashboard = ({ user, onLogout }) => {
                                   <p>Program: {program?.name || "N/A"}</p>
                                   <p>Company: {company?.name || "N/A"}</p>
                                   <p>Location: {session.location}</p>
-                                  <p>
-                                    Duration: {session.start_date} to {session.end_date}
-                                  </p>
+                                  <p>Duration: {session.start_date} to {session.end_date}</p>
+                                  {session.trainer_assignments && session.trainer_assignments.length > 0 && (
+                                    <p>Trainers: {session.trainer_assignments.map(t => `${getTrainerName(t.trainer_id)} (${t.role})`).join(", ")}</p>
+                                  )}
+                                  {session.coordinator_id && (
+                                    <p>Coordinator: {getCoordinatorName(session.coordinator_id)}</p>
+                                  )}
                                 </div>
                               </div>
                               <div className="flex flex-col gap-2 items-end">
@@ -719,7 +901,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                 <div className="flex justify-between items-center">
                   <div>
                     <CardTitle>Trainers</CardTitle>
-                    <CardDescription>Manage training staff</CardDescription>
+                    <CardDescription>Create trainer accounts (roles assigned per session)</CardDescription>
                   </div>
                   <Dialog open={trainerDialogOpen} onOpenChange={setTrainerDialogOpen}>
                     <DialogTrigger asChild>
@@ -732,7 +914,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                       <DialogHeader>
                         <DialogTitle>Create New Trainer</DialogTitle>
                         <DialogDescription>
-                          Add a trainer, chief trainer, or coordinator
+                          Add a trainer account
                         </DialogDescription>
                       </DialogHeader>
                       <form onSubmit={handleCreateTrainer} className="space-y-4">
@@ -778,22 +960,6 @@ const AdminDashboard = ({ user, onLogout }) => {
                             required
                           />
                         </div>
-                        <div>
-                          <Label htmlFor="trainer-role">Trainer Role *</Label>
-                          <Select
-                            value={trainerForm.trainer_role}
-                            onValueChange={(value) => setTrainerForm({ ...trainerForm, trainer_role: value })}
-                          >
-                            <SelectTrigger data-testid="trainer-role-select">
-                              <SelectValue placeholder="Select role" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="trainer">Regular Trainer</SelectItem>
-                              <SelectItem value="chief_trainer">Chief Trainer</SelectItem>
-                              <SelectItem value="coordinator">Coordinator</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
                         <Button data-testid="submit-trainer-button" type="submit" className="w-full">
                           Create Trainer
                         </Button>
@@ -817,8 +983,8 @@ const AdminDashboard = ({ user, onLogout }) => {
                           <h3 className="font-semibold text-gray-900">{trainer.full_name}</h3>
                           <p className="text-sm text-gray-600">{trainer.email}</p>
                           <div className="flex gap-2 mt-2">
-                            <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded capitalize">
-                              {trainer.role.replace('_', ' ')}
+                            <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                              Trainer
                             </span>
                             <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
                               ID: {trainer.id_number}
@@ -833,7 +999,112 @@ const AdminDashboard = ({ user, onLogout }) => {
             </Card>
           </TabsContent>
 
-          {/* Users Tab */}
+          {/* Coordinators Tab */}
+          <TabsContent value="coordinators">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>Coordinators</CardTitle>
+                    <CardDescription>Manage training coordinators</CardDescription>
+                  </div>
+                  <Dialog open={coordinatorDialogOpen} onOpenChange={setCoordinatorDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button data-testid="create-coordinator-button">
+                        <UserCog className="w-4 h-4 mr-2" />
+                        Add Coordinator
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Create New Coordinator</DialogTitle>
+                        <DialogDescription>
+                          Add a coordinator account
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={handleCreateCoordinator} className="space-y-4">
+                        <div>
+                          <Label htmlFor="coordinator-name">Full Name *</Label>
+                          <Input
+                            id="coordinator-name"
+                            data-testid="coordinator-name-input"
+                            value={coordinatorForm.full_name}
+                            onChange={(e) => setCoordinatorForm({ ...coordinatorForm, full_name: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="coordinator-id">ID Number *</Label>
+                          <Input
+                            id="coordinator-id"
+                            data-testid="coordinator-id-input"
+                            value={coordinatorForm.id_number}
+                            onChange={(e) => setCoordinatorForm({ ...coordinatorForm, id_number: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="coordinator-email">Email *</Label>
+                          <Input
+                            id="coordinator-email"
+                            data-testid="coordinator-email-input"
+                            type="email"
+                            value={coordinatorForm.email}
+                            onChange={(e) => setCoordinatorForm({ ...coordinatorForm, email: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="coordinator-password">Password *</Label>
+                          <Input
+                            id="coordinator-password"
+                            data-testid="coordinator-password-input"
+                            type="password"
+                            value={coordinatorForm.password}
+                            onChange={(e) => setCoordinatorForm({ ...coordinatorForm, password: e.target.value })}
+                            required
+                          />
+                        </div>
+                        <Button data-testid="submit-coordinator-button" type="submit" className="w-full">
+                          Create Coordinator
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {coordinators.length === 0 ? (
+                    <p className="text-gray-500 text-center py-8">No coordinators yet</p>
+                  ) : (
+                    coordinators.map((coordinator) => (
+                      <div
+                        key={coordinator.id}
+                        data-testid={`coordinator-item-${coordinator.id}`}
+                        className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg hover:bg-purple-100 transition-colors"
+                      >
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{coordinator.full_name}</h3>
+                          <p className="text-sm text-gray-600">{coordinator.email}</p>
+                          <div className="flex gap-2 mt-2">
+                            <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                              Coordinator
+                            </span>
+                            <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
+                              ID: {coordinator.id_number}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* All Users Tab */}
           <TabsContent value="users">
             <Card>
               <CardHeader>
@@ -870,30 +1141,17 @@ const AdminDashboard = ({ user, onLogout }) => {
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* Feedback Tab */}
-          <TabsContent value="feedback">
-            <Card>
-              <CardHeader>
-                <CardTitle>Course Feedback</CardTitle>
-                <CardDescription>View feedback by company and session</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-500 text-center py-8">Feedback compilation coming soon...</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </main>
 
       {/* Edit Session Dialog */}
       {editingSession && (
         <Dialog open={editSessionDialogOpen} onOpenChange={setEditSessionDialogOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Session</DialogTitle>
               <DialogDescription>
-                Update session details
+                Update session details and add participants
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -922,6 +1180,88 @@ const AdminDashboard = ({ user, onLogout }) => {
                   />
                 </div>
               </div>
+
+              <div className="border-t pt-4">
+                <h3 className="font-semibold mb-3">Add More Participants</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="edit-participant-name">Full Name</Label>
+                    <Input
+                      id="edit-participant-name"
+                      value={newParticipant.full_name}
+                      onChange={(e) => setNewParticipant({ ...newParticipant, full_name: e.target.value })}
+                      placeholder="John Doe"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-participant-id">ID Number</Label>
+                    <Input
+                      id="edit-participant-id"
+                      value={newParticipant.id_number}
+                      onChange={(e) => setNewParticipant({ ...newParticipant, id_number: e.target.value })}
+                      placeholder="ID123456"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-participant-email">Email</Label>
+                    <Input
+                      id="edit-participant-email"
+                      type="email"
+                      value={newParticipant.email}
+                      onChange={(e) => setNewParticipant({ ...newParticipant, email: e.target.value })}
+                      placeholder="john@example.com"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-participant-password">Password</Label>
+                    <Input
+                      id="edit-participant-password"
+                      type="password"
+                      value={newParticipant.password}
+                      onChange={(e) => setNewParticipant({ ...newParticipant, password: e.target.value })}
+                      placeholder="Password"
+                    />
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  onClick={handleAddParticipantToEdit}
+                  variant="outline"
+                  className="w-full mt-3"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Participant
+                </Button>
+
+                {editingSession.newParticipants && editingSession.newParticipants.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    <Label className="text-sm">New Participants to Add ({editingSession.newParticipants.length})</Label>
+                    {editingSession.newParticipants.map((participant, idx) => (
+                      <div key={idx} className="flex justify-between items-center p-2 bg-green-50 rounded">
+                        <div>
+                          <p className="text-sm font-medium">{participant.full_name}</p>
+                          <p className="text-xs text-gray-600">{participant.email} • ID: {participant.id_number}</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveNewParticipant(idx)}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-600" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t pt-4">
+                <p className="text-sm text-gray-500 mb-2">
+                  Current Participants: {editingSession.participant_ids.length}
+                </p>
+              </div>
+
               <Button onClick={handleUpdateSession} className="w-full">
                 Update Session
               </Button>
