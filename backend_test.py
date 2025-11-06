@@ -939,6 +939,333 @@ class TestRunner:
         except Exception as e:
             self.log(f"❌ Get available tests after completion error: {str(e)}", "ERROR")
             return False
+
+    # ============ SESSION DELETE FUNCTIONALITY TESTS ============
+    
+    def create_session_delete_test_data(self):
+        """Create test data for session delete functionality testing"""
+        self.log("Creating test data for session delete functionality...")
+        
+        if not self.admin_token or not self.test_program_id:
+            self.log("❌ Missing admin token or program ID", "ERROR")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        # Create a company for session delete testing
+        company_data = {
+            "name": "Session Delete Test Company"
+        }
+        
+        try:
+            response = self.session.post(f"{BASE_URL}/companies", json=company_data, headers=headers)
+            
+            if response.status_code == 200:
+                self.session_delete_company_id = response.json()['id']
+                self.log(f"✅ Session delete test company created. ID: {self.session_delete_company_id}")
+            else:
+                self.log(f"❌ Session delete company creation failed: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Session delete company creation error: {str(e)}", "ERROR")
+            return False
+        
+        # Create a participant for session delete testing
+        participant_data = {
+            "email": "sessiondeletetest@example.com",
+            "password": "participant123",
+            "full_name": "Session Delete Test Participant",
+            "id_number": "SDTP001",
+            "role": "participant",
+            "location": "Test Location"
+        }
+        
+        try:
+            response = self.session.post(f"{BASE_URL}/auth/register", json=participant_data, headers=headers)
+            
+            if response.status_code == 200:
+                self.session_delete_participant_id = response.json()['id']
+                self.log(f"✅ Session delete test participant created. ID: {self.session_delete_participant_id}")
+                return True
+            elif response.status_code == 400 and "User already exists" in response.text:
+                # Get existing user ID
+                login_data = {
+                    "email": "sessiondeletetest@example.com",
+                    "password": "participant123"
+                }
+                response = self.session.post(f"{BASE_URL}/auth/login", json=login_data)
+                if response.status_code == 200:
+                    self.session_delete_participant_id = response.json()['user']['id']
+                    self.log(f"✅ Using existing session delete test participant. ID: {self.session_delete_participant_id}")
+                    return True
+                else:
+                    self.log("❌ Failed to get existing participant ID", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Session delete participant creation failed: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Session delete participant creation error: {str(e)}", "ERROR")
+            return False
+    
+    def create_session_for_delete_test(self):
+        """Create a session for delete testing"""
+        self.log("Creating session for delete testing...")
+        
+        if not self.admin_token or not hasattr(self, 'session_delete_company_id') or not hasattr(self, 'session_delete_participant_id'):
+            self.log("❌ Missing admin token, company ID, or participant ID", "ERROR")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        session_data = {
+            "name": "Session Delete Test Session",
+            "program_id": self.test_program_id,
+            "company_id": self.session_delete_company_id,
+            "location": "Test Location",
+            "start_date": "2024-01-01",
+            "end_date": "2024-01-31",
+            "participant_ids": [self.session_delete_participant_id]
+        }
+        
+        try:
+            response = self.session.post(f"{BASE_URL}/sessions", json=session_data, headers=headers)
+            
+            if response.status_code == 200:
+                self.session_delete_test_id = response.json()['id']
+                self.log(f"✅ Session for delete test created successfully. ID: {self.session_delete_test_id}")
+                return True
+            else:
+                self.log(f"❌ Session for delete test creation failed: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Session for delete test creation error: {str(e)}", "ERROR")
+            return False
+    
+    def verify_participant_access_created(self):
+        """Verify that participant_access record was created when session was created"""
+        self.log("Verifying participant_access record was created...")
+        
+        if not self.admin_token or not hasattr(self, 'session_delete_test_id') or not hasattr(self, 'session_delete_participant_id'):
+            self.log("❌ Missing admin token, session ID, or participant ID", "ERROR")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        try:
+            # Get session participants to verify participant_access exists
+            response = self.session.get(f"{BASE_URL}/sessions/{self.session_delete_test_id}/participants", headers=headers)
+            
+            if response.status_code == 200:
+                participants = response.json()
+                self.log(f"✅ Retrieved session participants. Count: {len(participants)}")
+                
+                # Find our test participant
+                test_participant = None
+                for participant in participants:
+                    if participant['user']['id'] == self.session_delete_participant_id:
+                        test_participant = participant
+                        break
+                
+                if test_participant and 'access' in test_participant:
+                    self.log("✅ Participant_access record found for test participant")
+                    self.log(f"   Access ID: {test_participant['access']['id']}")
+                    return True
+                else:
+                    self.log("❌ Participant_access record not found for test participant", "ERROR")
+                    return False
+                    
+            else:
+                self.log(f"❌ Get session participants failed: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Verify participant_access error: {str(e)}", "ERROR")
+            return False
+    
+    def test_delete_session_as_admin(self):
+        """Test DELETE /api/sessions/{session_id} as admin"""
+        self.log("Testing DELETE /api/sessions/{session_id} as admin...")
+        
+        if not self.admin_token or not hasattr(self, 'session_delete_test_id'):
+            self.log("❌ Missing admin token or session ID", "ERROR")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        try:
+            response = self.session.delete(f"{BASE_URL}/sessions/{self.session_delete_test_id}", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                self.log(f"✅ Session deleted successfully. Message: {data.get('message', 'No message')}")
+                return True
+            else:
+                self.log(f"❌ Session deletion failed: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Session deletion error: {str(e)}", "ERROR")
+            return False
+    
+    def verify_session_deleted(self):
+        """Verify the session was actually deleted"""
+        self.log("Verifying session was deleted...")
+        
+        if not self.admin_token or not hasattr(self, 'session_delete_test_id'):
+            self.log("❌ Missing admin token or session ID", "ERROR")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        try:
+            # Try to get the deleted session
+            response = self.session.get(f"{BASE_URL}/sessions", headers=headers)
+            
+            if response.status_code == 200:
+                sessions = response.json()
+                
+                # Check if our deleted session is still in the list
+                deleted_session = None
+                for session in sessions:
+                    if session['id'] == self.session_delete_test_id:
+                        deleted_session = session
+                        break
+                
+                if deleted_session is None:
+                    self.log("✅ Session successfully deleted from database")
+                    return True
+                else:
+                    self.log("❌ Session still exists in database after deletion", "ERROR")
+                    return False
+                    
+            else:
+                self.log(f"❌ Get sessions verification failed: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Verify session deleted error: {str(e)}", "ERROR")
+            return False
+    
+    def verify_participant_access_deleted(self):
+        """Verify that participant_access records were cascade deleted"""
+        self.log("Verifying participant_access records were cascade deleted...")
+        
+        if not self.admin_token or not hasattr(self, 'session_delete_test_id') or not hasattr(self, 'session_delete_participant_id'):
+            self.log("❌ Missing admin token, session ID, or participant ID", "ERROR")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        try:
+            # Try to get participant access for the deleted session (should fail or return empty)
+            response = self.session.get(f"{BASE_URL}/sessions/{self.session_delete_test_id}/participants", headers=headers)
+            
+            if response.status_code == 404:
+                self.log("✅ Session participants endpoint returns 404 for deleted session (expected)")
+                return True
+            elif response.status_code == 200:
+                participants = response.json()
+                if len(participants) == 0:
+                    self.log("✅ No participants found for deleted session (cascade delete worked)")
+                    return True
+                else:
+                    self.log(f"❌ Found {len(participants)} participants for deleted session (cascade delete failed)", "ERROR")
+                    return False
+            else:
+                self.log(f"❌ Unexpected response when checking deleted session participants: {response.status_code}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Verify participant_access deleted error: {str(e)}", "ERROR")
+            return False
+    
+    def test_delete_nonexistent_session(self):
+        """Test DELETE /api/sessions/{session_id} with non-existent session ID"""
+        self.log("Testing DELETE /api/sessions/{session_id} with non-existent session...")
+        
+        if not self.admin_token:
+            self.log("❌ Missing admin token", "ERROR")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        fake_session_id = "non-existent-session-id-12345"
+        
+        try:
+            response = self.session.delete(f"{BASE_URL}/sessions/{fake_session_id}", headers=headers)
+            
+            if response.status_code == 404:
+                self.log("✅ Non-existent session deletion correctly returned 404")
+                return True
+            else:
+                self.log(f"❌ Expected 404 for non-existent session, got: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Non-existent session deletion error: {str(e)}", "ERROR")
+            return False
+    
+    def create_second_session_for_non_admin_test(self):
+        """Create another session for non-admin delete test"""
+        self.log("Creating second session for non-admin delete test...")
+        
+        if not self.admin_token or not hasattr(self, 'session_delete_company_id') or not hasattr(self, 'session_delete_participant_id'):
+            self.log("❌ Missing admin token, company ID, or participant ID", "ERROR")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.admin_token}'}
+        
+        session_data = {
+            "name": "Second Session for Non-Admin Delete Test",
+            "program_id": self.test_program_id,
+            "company_id": self.session_delete_company_id,
+            "location": "Test Location",
+            "start_date": "2024-02-01",
+            "end_date": "2024-02-28",
+            "participant_ids": [self.session_delete_participant_id]
+        }
+        
+        try:
+            response = self.session.post(f"{BASE_URL}/sessions", json=session_data, headers=headers)
+            
+            if response.status_code == 200:
+                self.second_session_delete_test_id = response.json()['id']
+                self.log(f"✅ Second session for non-admin delete test created. ID: {self.second_session_delete_test_id}")
+                return True
+            else:
+                self.log(f"❌ Second session creation failed: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Second session creation error: {str(e)}", "ERROR")
+            return False
+    
+    def test_delete_session_as_participant(self):
+        """Test DELETE /api/sessions/{session_id} as participant (should fail with 403)"""
+        self.log("Testing DELETE /api/sessions/{session_id} as participant (should fail)...")
+        
+        if not self.participant_token or not hasattr(self, 'second_session_delete_test_id'):
+            self.log("❌ Missing participant token or second session ID", "ERROR")
+            return False
+            
+        headers = {'Authorization': f'Bearer {self.participant_token}'}
+        
+        try:
+            response = self.session.delete(f"{BASE_URL}/sessions/{self.second_session_delete_test_id}", headers=headers)
+            
+            if response.status_code == 403:
+                self.log("✅ Participant session deletion correctly returned 403 Forbidden")
+                return True
+            else:
+                self.log(f"❌ Expected 403 for participant deletion, got: {response.status_code} - {response.text}", "ERROR")
+                return False
+                
+        except Exception as e:
+            self.log(f"❌ Participant session deletion error: {str(e)}", "ERROR")
+            return False
     
     def cleanup(self):
         """Clean up created test data"""
