@@ -226,6 +226,49 @@ class ChecklistVerify(BaseModel):
     status: str
     comments: Optional[str] = None
 
+class VehicleDetails(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    participant_id: str
+    session_id: str
+    vehicle_model: str
+    registration_number: str
+    roadtax_expiry: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class VehicleDetailsSubmit(BaseModel):
+    session_id: str
+    vehicle_model: str
+    registration_number: str
+    roadtax_expiry: str
+
+class Attendance(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    participant_id: str
+    session_id: str
+    date: str
+    clock_in: Optional[str] = None
+    clock_out: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class AttendanceClockIn(BaseModel):
+    session_id: str
+
+class AttendanceClockOut(BaseModel):
+    session_id: str
+
+class ChecklistItem(BaseModel):
+    item: str
+    status: str  # "good", "needs_repair"
+    comments: str = ""
+    photo_url: Optional[str] = None
+
+class TrainerChecklistSubmit(BaseModel):
+    participant_id: str
+    session_id: str
+    items: List[ChecklistItem]
+
 class FeedbackQuestion(BaseModel):
     question: str
     type: str  # "rating" or "text"
