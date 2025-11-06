@@ -512,8 +512,9 @@ class CertificateTestRunner:
             
             self.log(f"Downloading from: {download_url}")
             
-            # Download the certificate file
-            response = self.session.get(download_url)
+            # Download the certificate file with admin authentication
+            headers = {'Authorization': f'Bearer {self.admin_token}'}
+            response = self.session.get(download_url, headers=headers)
             
             if response.status_code == 200:
                 self.log("✅ Certificate file downloaded successfully")
