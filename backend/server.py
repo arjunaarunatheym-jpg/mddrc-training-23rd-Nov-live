@@ -1408,6 +1408,27 @@ async def submit_checklist(checklist_data: ChecklistSubmit, current_user: User =
     
     return checklist_obj
 
+@api_router.get("/vehicle-checklists/{session_id}/{participant_id}")
+async def get_checklist(session_id: str, participant_id: str, current_user: User = Depends(get_current_user)):
+    # Allow trainer, coordinator, admin, or the participant themselves
+    if current_user.role not in ["trainer", "coordinator", "admin"] and current_user.id != participant_id:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    checklist = await db.vehicle_checklists.find_one({
+        "participant_id": participant_id,
+        "session_id": session_id
+    }, {"_id": 0})
+    
+    if not checklist:
+        raise HTTPException(status_code=404, detail="Checklist not found")
+    
+    if isinstance(checklist.get('submitted_at'), str):
+        checklist['submitted_at'] = datetime.fromisoformat(checklist['submitted_at'])
+    if checklist.get('verified_at') and isinstance(checklist['verified_at'], str):
+        checklist['verified_at'] = datetime.fromisoformat(checklist['verified_at'])
+    
+    return checklist
+
 @api_router.get("/checklists/participant/{participant_id}", response_model=List[VehicleChecklist])
 async def get_participant_checklists(participant_id: str, current_user: User = Depends(get_current_user)):
     if current_user.role == "participant" and current_user.id != participant_id:
