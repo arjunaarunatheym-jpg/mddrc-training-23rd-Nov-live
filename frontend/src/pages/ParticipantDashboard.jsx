@@ -106,7 +106,7 @@ const ParticipantDashboard = ({ user, onLogout }) => {
       // Get auth token
       const token = localStorage.getItem('token');
       
-      // Create a temporary form to submit with auth header via fetch
+      // Download PDF via authenticated fetch
       const downloadResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/certificates/download/${certificateId}`, {
         method: 'GET',
         headers: {
@@ -125,7 +125,7 @@ const ParticipantDashboard = ({ user, onLogout }) => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `certificate_${sessionId}.docx`;
+      link.download = `certificate_${sessionId}.pdf`;
       link.style.display = 'none';
       document.body.appendChild(link);
       
@@ -138,7 +138,7 @@ const ParticipantDashboard = ({ user, onLogout }) => {
         window.URL.revokeObjectURL(url);
       }, 100);
       
-      toast.success("Certificate downloaded! Check your Downloads folder.");
+      toast.success("Certificate PDF downloaded! Check your Downloads folder.");
     } catch (error) {
       console.error('Download error:', error);
       toast.error(error.response?.data?.detail || "Failed to download certificate. Please try again.");
