@@ -87,6 +87,7 @@ const AdminDashboard = ({ user, onLogout }) => {
 
   useEffect(() => {
     loadData();
+    loadChecklistTemplates();
   }, []);
 
   const loadData = async () => {
