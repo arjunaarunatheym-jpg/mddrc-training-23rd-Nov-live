@@ -1290,9 +1290,7 @@ async def generate_certificate(session_id: str, participant_id: str, current_use
     company = await db.companies.find_one({"id": session['company_id']}, {"_id": 0})
     company_name = company['name'] if company else ""
     
-    # Get settings for company name
-    settings = await db.settings.find_one({"id": "app_settings"}, {"_id": 0})
-    conducting_company = settings.get('company_name', 'Malaysian Defensive Driving and Riding Centre Sdn Bhd') if settings else 'Malaysian Defensive Driving and Riding Centre Sdn Bhd'
+    # Get settings for company name (already in template, no replacement needed)
     
     # Load template
     template_path = TEMPLATE_DIR / "certificate_template.docx"
