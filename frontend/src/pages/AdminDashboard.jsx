@@ -1333,7 +1333,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                       <div
                         key={coordinator.id}
                         data-testid={`coordinator-item-${coordinator.id}`}
-                        className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg hover:bg-purple-100 transition-colors"
+                        className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg hover:bg-purple-100 transition-colors flex justify-between items-start"
                       >
                         <div>
                           <h3 className="font-semibold text-gray-900">{coordinator.full_name}</h3>
@@ -1347,6 +1347,14 @@ const AdminDashboard = ({ user, onLogout }) => {
                             </span>
                           </div>
                         </div>
+                        <Button
+                          data-testid={`delete-coordinator-${coordinator.id}`}
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeleteClick("coordinator", coordinator)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     ))
                   )}
