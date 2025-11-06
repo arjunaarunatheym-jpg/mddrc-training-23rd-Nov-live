@@ -782,6 +782,9 @@ class TestRunner:
             if response.status_code == 200:
                 self.log("✅ Second participant user created successfully")
                 return True
+            elif response.status_code == 400 and "User already exists" in response.text:
+                self.log("✅ Second participant user already exists (expected from previous runs)")
+                return True
             else:
                 self.log(f"❌ Second participant creation failed: {response.status_code} - {response.text}", "ERROR")
                 return False
