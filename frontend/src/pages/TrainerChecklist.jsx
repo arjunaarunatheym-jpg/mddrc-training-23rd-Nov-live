@@ -65,18 +65,34 @@ const TrainerChecklist = ({ user }) => {
       console.log('Template loaded:', templateRes.data);
       setTemplate(templateRes.data);
       
-      // Initialize checklist items
-      if (templateRes.data.items && templateRes.data.items.length > 0) {
-        const items = templateRes.data.items.map(item => ({
-          item: item,
-          status: "good",
-          comments: "",
-          photo_url: null
-        }));
-        console.log('Initialized checklist items:', items);
-        setChecklistItems(items);
-      } else {
-        toast.error("No checklist template found for this program");
+      // Check for existing checklist
+      console.log('Checking for existing checklist...');
+      try {
+        const existingRes = await axiosInstance.get(`/vehicle-checklists/${sessionId}/${participantId}`);
+        console.log('Existing checklist found:', existingRes.data);
+        setExistingChecklist(existingRes.data);
+        setIsCompleted(existingRes.data.verification_status === 'completed');
+        
+        // Load existing items
+        if (existingRes.data.checklist_items) {
+          setChecklistItems(existingRes.data.checklist_items);
+        }
+      } catch (existingError) {
+        console.log('No existing checklist found, creating new one');
+        
+        // Initialize checklist items from template
+        if (templateRes.data.items && templateRes.data.items.length > 0) {
+          const items = templateRes.data.items.map(item => ({
+            item: item,
+            status: "good",
+            comments: "",
+            photo_url: null
+          }));
+          console.log('Initialized checklist items:', items);
+          setChecklistItems(items);
+        } else {
+          toast.error("No checklist template found for this program");
+        }
       }
       
       setLoading(false);
