@@ -1760,6 +1760,46 @@ async def download_certificate(certificate_id: str, current_user: User = Depends
         filename=filename
     )
 
+@api_router.get("/certificates/preview/{certificate_id}")
+async def preview_certificate(certificate_id: str, current_user: User = Depends(get_current_user)):
+    cert = await db.certificates.find_one({"id": certificate_id}, {"_id": 0})
+    if not cert:
+        raise HTTPException(status_code=404, detail="Certificate not found")
+    
+    # Only participant or admin can preview
+    if current_user.role != "admin" and current_user.id != cert['participant_id']:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    cert_url = cert['certificate_url']
+    filename = cert_url.split('/')[-1]
+    file_path = CERTIFICATE_DIR / filename
+    
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Certificate file not found")
+    
+    # Convert to PDF for preview
+    pdf_filename = filename.replace('.docx', '.pdf')
+    pdf_path = CERTIFICATE_PDF_DIR / pdf_filename
+    
+    # Convert if PDF doesn't exist or is older than docx
+    if not pdf_path.exists() or pdf_path.stat().st_mtime < file_path.stat().st_mtime:
+        try:
+            convert(str(file_path), str(pdf_path))
+        except Exception as e:
+            # If conversion fails, return the docx file instead
+            logging.error(f"PDF conversion failed: {str(e)}")
+            return FileResponse(
+                file_path,
+                media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                headers={"Content-Disposition": "inline"}
+            )
+    
+    return FileResponse(
+        pdf_path,
+        media_type='application/pdf',
+        headers={"Content-Disposition": "inline"}
+    )
+
 # Static files
 @api_router.get("/static/logos/{filename}")
 async def get_logo(filename: str):
