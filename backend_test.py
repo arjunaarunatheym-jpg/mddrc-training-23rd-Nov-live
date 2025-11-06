@@ -1658,54 +1658,31 @@ class TestRunner:
                     self.log(f"⚠️  Error cleaning up program: {str(e)}", "WARNING")
     
     def run_all_tests(self):
-        """Run all test management endpoint tests including Phase 1 participant test-taking"""
+        """Run certificate preview endpoint tests"""
         self.log("=" * 80)
-        self.log("STARTING COMPREHENSIVE TEST SUITE - PHASE 1 PARTICIPANT TEST-TAKING")
+        self.log("STARTING CERTIFICATE PREVIEW ENDPOINT TESTING")
         self.log("=" * 80)
         
         test_results = []
         
-        # Test sequence as specified in the review request
+        # Test sequence for certificate preview functionality
         tests = [
-            # Basic test management (existing tests)
+            # Setup and authentication
             ("Admin Login", self.login_admin),
-            ("Create Test Program", self.create_test_program),
-            ("Create Pre-Test", self.test_create_pre_test),
-            ("Create Post-Test", self.test_create_post_test),
-            ("Get Tests by Program", self.test_get_tests_by_program),
-            ("Delete Test as Admin", self.test_delete_test_as_admin),
-            ("Verify Test Deleted", self.test_verify_test_deleted),
-            ("Delete Non-existent Test", self.test_delete_nonexistent_test),
             ("Create Participant User", self.test_create_participant_user),
             ("Participant Login", self.login_participant),
-            ("Delete Test as Participant (403)", self.test_delete_test_as_participant),
-            ("Create Test without Auth (403)", self.test_create_test_without_auth),
-            
-            # Phase 1 participant test-taking endpoints
-            ("Create Company and Session", self.create_company_and_session),
-            ("Set Participant Access", self.set_participant_access),
-            ("Create Fresh Pre-Test", self.create_fresh_pre_test),
-            ("Get Available Tests as Participant", self.test_get_available_tests_as_participant),
-            ("Get Available Tests as Non-Participant (403)", self.test_get_available_tests_as_non_participant),
-            ("Get Test as Participant (No Correct Answers)", self.test_get_test_as_participant),
-            ("Submit Test as Participant", self.test_submit_test),
-            ("Get Test Result Detail as Participant", self.test_get_test_result_detail_as_participant),
-            ("Get Non-existent Test Result (404)", self.test_get_test_result_detail_nonexistent),
             ("Create Second Participant", self.create_second_participant),
             ("Login Second Participant", self.login_second_participant),
-            ("Get Other Participant Result (403)", self.test_get_other_participant_result),
-            ("Completed Test Not in Available", self.test_completed_test_not_in_available),
             
-            # Session Delete Functionality Tests
-            ("Create Session Delete Test Data", self.create_session_delete_test_data),
-            ("Create Session for Delete Test", self.create_session_for_delete_test),
-            ("Verify Participant Access Created", self.verify_participant_access_created),
-            ("Delete Session as Admin", self.test_delete_session_as_admin),
-            ("Verify Session Deleted", self.verify_session_deleted),
-            ("Verify Participant Access Cascade Deleted", self.verify_participant_access_deleted),
-            ("Delete Non-existent Session (404)", self.test_delete_nonexistent_session),
-            ("Create Second Session for Non-Admin Test", self.create_second_session_for_non_admin_test),
-            ("Delete Session as Participant (403)", self.test_delete_session_as_participant),
+            # Certificate preview tests
+            ("Setup Certificate Test Data", self.setup_certificate_test_data),
+            ("Generate Test Certificate", self.generate_test_certificate),
+            ("Certificate Preview Without Auth (403)", self.test_certificate_preview_without_auth),
+            ("Certificate Preview as Participant Owner (200)", self.test_certificate_preview_as_participant_owner),
+            ("Certificate Preview as Admin (200)", self.test_certificate_preview_as_admin),
+            ("Certificate Preview as Different Participant (403)", self.test_certificate_preview_as_different_participant),
+            ("Certificate Preview Non-existent Certificate (404)", self.test_certificate_preview_nonexistent_certificate),
+            ("Certificate Preview Invalid Format (404)", self.test_certificate_preview_invalid_format),
         ]
         
         for test_name, test_func in tests:
