@@ -1710,13 +1710,18 @@ async def generate_certificate(session_id: str, participant_id: str, current_use
                     if key in cell.text:
                         cell.text = cell.text.replace(key, value)
     
-    # Save as new document
+    # Save as new DOCX document
     cert_filename = f"certificate_{participant_id}_{session_id}.docx"
     cert_path = CERTIFICATE_DIR / cert_filename
     doc.save(cert_path)
     
-    # Store certificate record
-    cert_url = f"/api/static/certificates/{cert_filename}"
+    # Convert to PDF
+    pdf_filename = f"certificate_{participant_id}_{session_id}.pdf"
+    pdf_path = CERTIFICATE_PDF_DIR / pdf_filename
+    convert_docx_to_pdf(cert_path, pdf_path)
+    
+    # Store certificate record (using PDF URL)
+    cert_url = f"/api/static/certificates_pdf/{pdf_filename}"
     
     # Check if certificate already exists
     existing_cert = await db.certificates.find_one({
