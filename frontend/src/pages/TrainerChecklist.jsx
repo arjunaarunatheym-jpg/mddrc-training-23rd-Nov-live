@@ -189,6 +189,22 @@ const TrainerChecklist = ({ user }) => {
             Back to Dashboard
           </Button>
           
+          {isCompleted && (
+            <div className="mb-4 p-4 bg-green-100 border-2 border-green-500 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xl">✓</span>
+                </div>
+                <div>
+                  <p className="font-semibold text-green-800">Checklist Already Completed</p>
+                  <p className="text-sm text-green-700">
+                    Submitted on {existingChecklist?.submitted_at ? new Date(existingChecklist.submitted_at).toLocaleString() : 'N/A'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           <Card>
             <CardHeader>
               <CardTitle>Vehicle Inspection Checklist</CardTitle>
