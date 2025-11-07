@@ -1236,47 +1236,10 @@ const AdminDashboard = ({ user, onLogout }) => {
 
                         {/* Add Participants */}
                         <div className="space-y-4 border-t pt-4">
-                          <h3 className="font-semibold text-lg">Select Participants</h3>
-                          <p className="text-sm text-gray-600">Choose from existing participants or create new ones below</p>
-                          
-                          <div>
-                            <Label>Select Existing Participants (from same company)</Label>
-                            <div className="border rounded-lg p-3 max-h-40 overflow-y-auto space-y-2">
-                              {users.filter(u => u.role === "participant" && u.company_id === sessionForm.company_id).map((participant) => (
-                                <div key={participant.id} className="flex items-center gap-2">
-                                  <input
-                                    type="checkbox"
-                                    id={`existing-${participant.id}`}
-                                    checked={sessionForm.participant_ids.includes(participant.id)}
-                                    onChange={(e) => {
-                                      if (e.target.checked) {
-                                        setSessionForm({
-                                          ...sessionForm,
-                                          participant_ids: [...sessionForm.participant_ids, participant.id]
-                                        });
-                                      } else {
-                                        setSessionForm({
-                                          ...sessionForm,
-                                          participant_ids: sessionForm.participant_ids.filter(id => id !== participant.id)
-                                        });
-                                      }
-                                    }}
-                                    className="w-4 h-4"
-                                  />
-                                  <label htmlFor={`existing-${participant.id}`} className="text-sm cursor-pointer">
-                                    {participant.full_name} ({participant.email})
-                                  </label>
-                                </div>
-                              ))}
-                              {users.filter(u => u.role === "participant" && u.company_id === sessionForm.company_id).length === 0 && (
-                                <p className="text-sm text-gray-500">No existing participants for this company. Create below.</p>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div className="text-center text-sm text-gray-500">OR create new participant below</div>
-                          
-                          <h3 className="font-semibold text-sm text-gray-700">Add Participant</h3>
+                          <h3 className="font-semibold text-lg">Add Participants</h3>
+                          <p className="text-sm text-gray-600">
+                            Type participant details below. System will automatically link existing users if name, email, or ID number matches.
+                          </p>
                           
                           {/* Match Status Indicator */}
                           {participantMatchStatus?.exists && (
