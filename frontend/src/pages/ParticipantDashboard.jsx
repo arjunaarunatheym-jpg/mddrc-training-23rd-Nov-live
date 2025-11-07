@@ -273,19 +273,9 @@ const ParticipantDashboard = ({ user, onLogout }) => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {!canAccessAllTabs && (
-          <div className="mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-lg">
-            <p className="font-semibold text-yellow-800">⚠️ Complete Your Profile</p>
-            <p className="text-sm text-yellow-700 mt-1">
-              {!hasVehicleDetails && "Please fill in your vehicle details. "}
-              {!hasClockedIn && "Please clock in to access all features."}
-            </p>
-          </div>
-        )}
-        
-        <Tabs defaultValue={canAccessAllTabs ? "overview" : "details"} className="w-full">
+        <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-5 mb-8">
-            <TabsTrigger value="overview" data-testid="overview-tab" disabled={!canAccessAllTabs}>
+            <TabsTrigger value="overview" data-testid="overview-tab">
               <FileText className="w-4 h-4 mr-2" />
               Overview
             </TabsTrigger>
@@ -293,15 +283,15 @@ const ParticipantDashboard = ({ user, onLogout }) => {
               <Users className="w-4 h-4 mr-2" />
               My Details
             </TabsTrigger>
-            <TabsTrigger value="certificates" data-testid="certificates-tab" disabled={!canAccessAllTabs}>
+            <TabsTrigger value="certificates" data-testid="certificates-tab">
               <Award className="w-4 h-4 mr-2" />
               Certificates
             </TabsTrigger>
-            <TabsTrigger value="tests" data-testid="tests-tab" disabled={!canAccessAllTabs}>
+            <TabsTrigger value="tests" data-testid="tests-tab">
               <ClipboardCheck className="w-4 h-4 mr-2" />
               Tests
             </TabsTrigger>
-            <TabsTrigger value="checklists" data-testid="checklists-tab" disabled={!canAccessAllTabs}>
+            <TabsTrigger value="checklists" data-testid="checklists-tab">
               <ClipboardCheck className="w-4 h-4 mr-2" />
               Checklists
             </TabsTrigger>
