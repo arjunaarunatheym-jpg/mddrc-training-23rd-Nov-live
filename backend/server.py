@@ -1419,6 +1419,17 @@ async def create_checklist_template(template_data: ChecklistTemplateCreate, curr
     await db.checklist_templates.insert_one(doc)
     return template_obj
 
+@api_router.get("/checklist-templates", response_model=List[ChecklistTemplate])
+async def get_all_checklist_templates(current_user: User = Depends(get_current_user)):
+    """Get all checklist templates"""
+    templates = await db.checklist_templates.find({}, {"_id": 0}).to_list(length=None)
+    result = []
+    for template in templates:
+        if isinstance(template.get('created_at'), str):
+            template['created_at'] = datetime.fromisoformat(template['created_at'])
+        result.append(ChecklistTemplate(**template))
+    return result
+
 @api_router.get("/checklist-templates/program/{program_id}", response_model=ChecklistTemplate)
 async def get_checklist_template(program_id: str, current_user: User = Depends(get_current_user)):
     template = await db.checklist_templates.find_one({"program_id": program_id}, {"_id": 0})
@@ -1428,6 +1439,40 @@ async def get_checklist_template(program_id: str, current_user: User = Depends(g
     if isinstance(template.get('created_at'), str):
         template['created_at'] = datetime.fromisoformat(template['created_at'])
     return ChecklistTemplate(**template)
+
+@api_router.put("/checklist-templates/{template_id}", response_model=ChecklistTemplate)
+async def update_checklist_template(template_id: str, template_data: ChecklistTemplateCreate, current_user: User = Depends(get_current_user)):
+    """Update a checklist template"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can update checklist templates")
+    
+    existing = await db.checklist_templates.find_one({"id": template_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    await db.checklist_templates.update_one(
+        {"id": template_id},
+        {"$set": {"items": template_data.items, "program_id": template_data.program_id}}
+    )
+    
+    existing['items'] = template_data.items
+    existing['program_id'] = template_data.program_id
+    if isinstance(existing.get('created_at'), str):
+        existing['created_at'] = datetime.fromisoformat(existing['created_at'])
+    
+    return ChecklistTemplate(**existing)
+
+@api_router.delete("/checklist-templates/{template_id}")
+async def delete_checklist_template(template_id: str, current_user: User = Depends(get_current_user)):
+    """Delete a checklist template"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can delete checklist templates")
+    
+    result = await db.checklist_templates.delete_one({"id": template_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    return {"message": "Template deleted successfully"}
 
 # Vehicle Details Routes
 @api_router.post("/vehicle-details/submit", response_model=VehicleDetails)
