@@ -2784,6 +2784,18 @@ VEHICLE CHECKLIST FINDINGS:
 - Total Checklists Completed: {training_data['checklist_summary']['total_checklists']}
 - Items Needing Repair: {training_data['checklist_summary']['items_needing_repair']}
 
+DETAILED CHECKLIST ISSUES (items marked as 'needs_repair'):
+{chr(10).join([
+    f"Participant {detail['participant']}: " + 
+    ", ".join([
+        f"{item.get('item', 'Unknown item')} ({item.get('comments', 'No comment')})" 
+        for item in detail['items'] 
+        if item.get('status') == 'needs_repair'
+    ])
+    for detail in training_data['checklist_summary']['details']
+    if any(item.get('status') == 'needs_repair' for item in detail['items'])
+]) if training_data['checklist_summary']['items_needing_repair'] > 0 else 'No items needing repair'}
+
 FEEDBACK:
 - Total Responses: {training_data['feedback_summary']['total_responses']}
 
