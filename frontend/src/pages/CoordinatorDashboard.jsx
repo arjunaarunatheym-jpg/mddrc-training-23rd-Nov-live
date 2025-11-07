@@ -554,22 +554,66 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
                     </CardContent>
                   </Card>
 
+                  {/* Session Summary Statistics */}
+                  <Card className="bg-gradient-to-r from-indigo-50 to-purple-50">
+                    <CardHeader>
+                      <CardTitle>Session Summary</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                          <p className="text-2xl font-bold text-indigo-600">{participants.length}</p>
+                          <p className="text-sm text-gray-600 mt-1">Total Participants</p>
+                        </div>
+                        <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                          <p className="text-2xl font-bold text-blue-600">
+                            {testResults.filter(r => r.test_type === 'pre').length}/{participants.length}
+                          </p>
+                          <p className="text-sm text-gray-600 mt-1">Pre-Test Completed</p>
+                        </div>
+                        <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                          <p className="text-2xl font-bold text-green-600">
+                            {testResults.filter(r => r.test_type === 'post').length}/{participants.length}
+                          </p>
+                          <p className="text-sm text-gray-600 mt-1">Post-Test Completed</p>
+                        </div>
+                        <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                          <p className="text-2xl font-bold text-purple-600">
+                            {attendance.filter((v, i, a) => a.findIndex(t => t.participant_id === v.participant_id) === i).length}/{participants.length}
+                          </p>
+                          <p className="text-sm text-gray-600 mt-1">Attendance Records</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
                   {/* Participants */}
                   <Card>
                     <CardHeader>
                       <CardTitle>Participants ({participants.length})</CardTitle>
+                      <CardDescription>All participants enrolled in this session</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-2">
-                        {participants.map((p) => (
-                          <div key={p.id} className="p-3 bg-blue-50 rounded-lg flex justify-between items-center">
-                            <div>
-                              <p className="font-medium">{p.full_name}</p>
-                              <p className="text-sm text-gray-600">{p.email}</p>
+                      {participants.length === 0 ? (
+                        <div className="text-center py-8">
+                          <Users className="w-12 h-12 mx-auto text-gray-400 mb-2" />
+                          <p className="text-gray-500">No participants assigned yet</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {participants.map((p) => (
+                            <div key={p.id} className="p-3 bg-blue-50 rounded-lg flex justify-between items-center">
+                              <div>
+                                <p className="font-medium">{p.full_name}</p>
+                                <p className="text-sm text-gray-600">{p.email}</p>
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                ID: {p.id_number || 'N/A'}
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
 
