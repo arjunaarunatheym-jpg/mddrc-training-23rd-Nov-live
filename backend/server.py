@@ -64,6 +64,7 @@ class User(BaseModel):
     role: str
     company_id: Optional[str] = None
     location: Optional[str] = None
+    phone_number: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     is_active: bool = True
 
@@ -75,6 +76,7 @@ class UserCreate(BaseModel):
     role: str
     company_id: Optional[str] = None
     location: Optional[str] = None
+    phone_number: Optional[str] = None
 
 class UserLogin(BaseModel):
     email: EmailStr
