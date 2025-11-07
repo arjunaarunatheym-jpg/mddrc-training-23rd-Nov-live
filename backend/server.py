@@ -1637,6 +1637,36 @@ async def get_attendance(session_id: str, participant_id: str, current_user: Use
     
     return attendance_records
 
+@api_router.get("/attendance/session/{session_id}")
+async def get_session_attendance(session_id: str, current_user: User = Depends(get_current_user)):
+    """Get all attendance records for a session (for supervisors/coordinators)"""
+    if current_user.role not in ["pic_supervisor", "coordinator", "admin"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Get session to verify access
+    session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Get all attendance records for the session
+    attendance_records = await db.attendance.find({"session_id": session_id}, {"_id": 0}).to_list(1000)
+    
+    # Get participant details
+    participant_ids = list(set([r['participant_id'] for r in attendance_records]))
+    participants = await db.users.find({"id": {"$in": participant_ids}}, {"_id": 0}).to_list(1000)
+    participant_map = {p['id']: p for p in participants}
+    
+    # Enrich attendance records with participant info
+    for record in attendance_records:
+        if isinstance(record.get('created_at'), str):
+            record['created_at'] = datetime.fromisoformat(record['created_at'])
+        participant = participant_map.get(record['participant_id'])
+        if participant:
+            record['participant_name'] = participant['full_name']
+            record['participant_email'] = participant['email']
+    
+    return attendance_records
+
 # Training Report Routes
 @api_router.post("/training-reports", response_model=TrainingReport)
 async def create_training_report(report_data: TrainingReportCreate, current_user: User = Depends(get_current_user)):
