@@ -559,7 +559,12 @@ async def login(user_data: UserLogin):
     if not user_doc:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    if not verify_password(user_data.password, user_doc['password']):
+    # Check for both 'password' and 'hashed_password' field names
+    password_hash = user_doc.get('password') or user_doc.get('hashed_password')
+    if not password_hash:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    if not verify_password(user_data.password, password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     if not user_doc.get('is_active', True):
@@ -571,6 +576,7 @@ async def login(user_data: UserLogin):
         user_doc['created_at'] = datetime.fromisoformat(user_doc['created_at'])
     
     user_doc.pop('password', None)
+    user_doc.pop('hashed_password', None)
     user = User(**user_doc)
     
     return TokenResponse(access_token=token, token_type="bearer", user=user)
