@@ -1124,20 +1124,39 @@ const AdminDashboard = ({ user, onLogout }) => {
                           </Select>
                         </div>
 
-                        {/* Add Supervisor */}
+                        {/* Add Supervisor (Optional) */}
                         <div className="space-y-4 border-t pt-4">
                           <h3 className="font-semibold text-lg">Add Supervisor (Optional)</h3>
+                          
+                          {/* Match Status Indicator */}
+                          {supervisorMatchStatus?.exists && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm">
+                              <p className="font-semibold text-blue-800">✓ Existing supervisor found</p>
+                              <p className="text-blue-600 mt-1">
+                                {supervisorMatchStatus.user.full_name} ({supervisorMatchStatus.user.email})
+                                <br />
+                                Will be linked to this session and data will be updated.
+                              </p>
+                            </div>
+                          )}
+                          
                           <div className="grid grid-cols-2 gap-3">
                             <div>
                               <Label htmlFor="supervisor-name">Full Name</Label>
                               <Input
                                 id="supervisor-name"
-                                value={sessionForm.supervisor.full_name}
-                                onChange={(e) => setSessionForm({ 
-                                  ...sessionForm, 
-                                  supervisor: { ...sessionForm.supervisor, full_name: e.target.value }
-                                })}
+                                value={newSupervisor.full_name}
+                                onChange={(e) => setNewSupervisor({ ...newSupervisor, full_name: e.target.value })}
                                 placeholder="Supervisor Name"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="supervisor-id">ID Number</Label>
+                              <Input
+                                id="supervisor-id"
+                                value={newSupervisor.id_number}
+                                onChange={(e) => setNewSupervisor({ ...newSupervisor, id_number: e.target.value })}
+                                placeholder="ID123456"
                               />
                             </div>
                             <div>
@@ -1145,12 +1164,19 @@ const AdminDashboard = ({ user, onLogout }) => {
                               <Input
                                 id="supervisor-email"
                                 type="email"
-                                value={sessionForm.supervisor.email}
-                                onChange={(e) => setSessionForm({ 
-                                  ...sessionForm, 
-                                  supervisor: { ...sessionForm.supervisor, email: e.target.value }
-                                })}
+                                value={newSupervisor.email}
+                                onChange={(e) => setNewSupervisor({ ...newSupervisor, email: e.target.value })}
                                 placeholder="supervisor@example.com"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="supervisor-phone">Phone Number</Label>
+                              <Input
+                                id="supervisor-phone"
+                                type="tel"
+                                value={newSupervisor.phone_number}
+                                onChange={(e) => setNewSupervisor({ ...newSupervisor, phone_number: e.target.value })}
+                                placeholder="+1234567890"
                               />
                             </div>
                             <div className="col-span-2">
@@ -1158,42 +1184,54 @@ const AdminDashboard = ({ user, onLogout }) => {
                               <Input
                                 id="supervisor-password"
                                 type="password"
-                                value={sessionForm.supervisor.password}
-                                onChange={(e) => setSessionForm({ 
-                                  ...sessionForm, 
-                                  supervisor: { ...sessionForm.supervisor, password: e.target.value }
-                                })}
+                                value={newSupervisor.password}
+                                onChange={(e) => setNewSupervisor({ ...newSupervisor, password: e.target.value })}
                                 placeholder="Password"
                               />
                             </div>
                           </div>
-                        </div>
+                          <Button
+                            type="button"
+                            onClick={handleAddSupervisor}
+                            variant="outline"
+                            className="w-full"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            {supervisorMatchStatus?.exists ? "Link Existing Supervisor" : "Add New Supervisor"}
+                          </Button>
 
-                        {/* Add Supervisor (Optional) */}
-                        <div className="space-y-4 border-t pt-4">
-                          <h3 className="font-semibold text-lg">Assign Supervisor (Optional)</h3>
-                          <p className="text-sm text-gray-600">Select existing or create new supervisor</p>
-                          
-                          <div>
-                            <Label>Select Existing Supervisor</Label>
-                            <Select
-                              value={sessionForm.supervisor_id}
-                              onValueChange={(value) => setSessionForm({...sessionForm, supervisor_id: value})}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select existing supervisor or create below" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {users.filter(u => u.role === "pic_supervisor" && u.company_id === sessionForm.company_id).map((sup) => (
-                                  <SelectItem key={sup.id} value={sup.id}>
-                                    {sup.full_name} ({sup.email})
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div className="text-center text-sm text-gray-500">OR create new supervisor below</div>
+                          {/* Show added supervisors */}
+                          {sessionForm.supervisors.length > 0 && (
+                            <div className="space-y-2 border-t pt-4 mt-4">
+                              <h4 className="font-semibold text-sm text-gray-700">
+                                Supervisors to Add ({sessionForm.supervisors.length})
+                              </h4>
+                              {sessionForm.supervisors.map((sup, index) => (
+                                <div
+                                  key={index}
+                                  className="flex justify-between items-center p-3 bg-purple-50 rounded-lg"
+                                >
+                                  <div>
+                                    <p className="font-medium text-sm">{sup.full_name}</p>
+                                    <p className="text-xs text-gray-600">
+                                      {sup.email} • ID: {sup.id_number}
+                                    </p>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      const updated = sessionForm.supervisors.filter((_, i) => i !== index);
+                                      setSessionForm({ ...sessionForm, supervisors: updated });
+                                    }}
+                                  >
+                                    <Trash2 className="w-4 h-4 text-red-600" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
 
                         {/* Add Participants */}
