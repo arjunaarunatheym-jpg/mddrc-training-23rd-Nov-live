@@ -422,6 +422,82 @@ async def get_or_create_participant_access(participant_id: str, session_id: str)
     
     return ParticipantAccess(**access_doc)
 
+async def find_or_create_user(user_data: dict, role: str, company_id: str) -> dict:
+    """
+    Find existing user by combination of name + email OR name + phone
+    If found: update the user with new data
+    If not found: create new user
+    Returns: user dict with 'is_existing' flag and user data
+    """
+    full_name = user_data.get("full_name")
+    email = user_data.get("email")
+    phone_number = user_data.get("phone_number")
+    
+    # Search for existing user by name + email OR name + phone
+    query = {
+        "full_name": full_name,
+        "$or": []
+    }
+    
+    if email:
+        query["$or"].append({"email": email})
+    if phone_number:
+        query["$or"].append({"phone_number": phone_number})
+    
+    # If no email or phone, just search by name
+    if not query["$or"]:
+        query = {"full_name": full_name}
+    
+    existing_user = await db.users.find_one(query, {"_id": 0})
+    
+    if existing_user:
+        # User found - update with new data
+        update_data = {
+            "email": email,
+            "id_number": user_data.get("id_number"),
+            "phone_number": phone_number,
+            "company_id": company_id,
+        }
+        # Remove None values
+        update_data = {k: v for k, v in update_data.items() if v is not None}
+        
+        await db.users.update_one(
+            {"id": existing_user["id"]},
+            {"$set": update_data}
+        )
+        
+        # Return updated user data
+        updated_user = await db.users.find_one({"id": existing_user["id"]}, {"_id": 0})
+        if isinstance(updated_user.get('created_at'), str):
+            updated_user['created_at'] = datetime.fromisoformat(updated_user['created_at'])
+        
+        return {
+            "is_existing": True,
+            "user": User(**updated_user)
+        }
+    else:
+        # User not found - create new
+        hashed_password = pwd_context.hash(user_data.get("password"))
+        new_user = User(
+            email=email,
+            full_name=full_name,
+            id_number=user_data.get("id_number"),
+            role=role,
+            company_id=company_id,
+            phone_number=phone_number
+        )
+        
+        user_doc = new_user.model_dump()
+        user_doc["created_at"] = user_doc["created_at"].isoformat()
+        user_doc["hashed_password"] = hashed_password
+        
+        await db.users.insert_one(user_doc)
+        
+        return {
+            "is_existing": False,
+            "user": new_user
+        }
+
 # Training Report Models
 class TrainingReport(BaseModel):
     model_config = ConfigDict(extra="ignore")
