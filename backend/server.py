@@ -2811,14 +2811,19 @@ Generate a professional training report with the following sections:
 2. Training Overview (objectives, dates, location, participants)
 3. Pre-Training Assessment (detailed analysis of pre-test results)
 4. Post-Training Assessment (detailed analysis of post-test results, comparison with pre-test)
-5. Vehicle Inspection Findings (IMPORTANT: List each participant by NAME with their specific vehicle items that need repair and the detailed comments provided. Format as: "**Participant Name**: Item Name - Comment")
+5. Vehicle Inspection Findings (CRITICAL FORMAT: For each participant, list items as "**Item** - Issue description". Extract the item type (Helmet, Mirror, Vest, etc.) from the Item field and use the Issue field for the description. Format example: "**Helmet** - No sirim helmet, **Side mirror** - No side mirror")
 6. Participant Feedback (summary of feedback responses)
 7. Key Observations and Recommendations
 8. Conclusion
 
 Use professional language, include data-driven insights, and provide actionable recommendations for the company.
 Format using Markdown with proper headings and bullet points.
-CRITICAL: In the Vehicle Inspection section, ensure you use the participant names and item names from the DETAILED CHECKLIST ISSUES data provided above. Do not use "undefined" or generic placeholders."""
+CRITICAL VEHICLE INSPECTION FORMAT RULES:
+- Extract item category names (Helmet, Mirror, Vest, Brake, etc.) from the 'Item' field - even if it contains full descriptions like "No sirim helmet", you should identify it as "Helmet"
+- Use the 'Issue' field for the problem description
+- Format as: "**Item Category** - Issue description"
+- Example: If Item="No sirim helmet" and Issue="No sirim helmet", display as "**Helmet** - No sirim helmet"
+- Do NOT use "undefined" or leave items unnamed"""
 
     # Call GPT-5
     try:
