@@ -75,10 +75,15 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
     try {
       const session = sessions.find(s => s.id === sessionId) || selectedSession;
       
+      if (!session) {
+        console.error("Session not found");
+        return;
+      }
+      
       const [usersRes, attendanceRes, testResultsRes] = await Promise.all([
-        axiosInstance.get(`/users`),
-        axiosInstance.get(`/attendance/session/${sessionId}`),
-        axiosInstance.get(`/tests/results/session/${sessionId}`)
+        axiosInstance.get(`/users`).catch(err => ({ data: [] })),
+        axiosInstance.get(`/attendance/session/${sessionId}`).catch(err => ({ data: [] })),
+        axiosInstance.get(`/tests/results/session/${sessionId}`).catch(err => ({ data: [] }))
       ]);
       
       // Filter participants for THIS specific session
@@ -87,14 +92,16 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
       );
       
       setParticipants(sessionParticipants);
-      setAttendance(attendanceRes.data);
-      setTestResults(testResultsRes.data);
+      setAttendance(attendanceRes.data || []);
+      setTestResults(testResultsRes.data || []);
       
       // Load checklist issues
-      loadChecklistIssues(sessionId, sessionParticipants);
+      if (sessionParticipants.length > 0) {
+        await loadChecklistIssues(sessionId, sessionParticipants);
+      }
     } catch (error) {
       console.error("Failed to load session data", error);
-      toast.error("Failed to load session data");
+      // Don't show error toast here, data might be empty initially
     }
   };
 
