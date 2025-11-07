@@ -1392,9 +1392,9 @@ const AdminDashboard = ({ user, onLogout }) => {
                           data-testid="submit-session-button"
                           type="submit"
                           className="w-full"
-                          disabled={sessionForm.participants.length === 0}
+                          disabled={sessionForm.participants.length === 0 && sessionForm.participant_ids.length === 0}
                         >
-                          Create Session with {sessionForm.participants.length} Participant(s)
+                          Create Session with {sessionForm.participants.length + sessionForm.participant_ids.length} Participant(s)
                         </Button>
                       </form>
                     </DialogContent>
