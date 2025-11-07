@@ -1637,6 +1637,83 @@ async def get_attendance(session_id: str, participant_id: str, current_user: Use
     
     return attendance_records
 
+# Training Report Routes
+@api_router.post("/training-reports", response_model=TrainingReport)
+async def create_training_report(report_data: TrainingReportCreate, current_user: User = Depends(get_current_user)):
+    """Create or update training completion report (coordinator only)"""
+    if current_user.role != "coordinator":
+        raise HTTPException(status_code=403, detail="Only coordinators can create training reports")
+    
+    # Check if report already exists for this session
+    existing = await db.training_reports.find_one({"session_id": report_data.session_id}, {"_id": 0})
+    
+    if existing:
+        # Update existing report
+        update_data = report_data.model_dump()
+        if update_data['status'] == 'submitted':
+            update_data['submitted_at'] = datetime.now(timezone.utc).isoformat()
+        
+        await db.training_reports.update_one(
+            {"session_id": report_data.session_id},
+            {"$set": update_data}
+        )
+        
+        updated = await db.training_reports.find_one({"session_id": report_data.session_id}, {"_id": 0})
+        if isinstance(updated.get('created_at'), str):
+            updated['created_at'] = datetime.fromisoformat(updated['created_at'])
+        if isinstance(updated.get('submitted_at'), str):
+            updated['submitted_at'] = datetime.fromisoformat(updated['submitted_at'])
+        return TrainingReport(**updated)
+    
+    # Create new report
+    report_obj = TrainingReport(
+        **report_data.model_dump(),
+        coordinator_id=current_user.id
+    )
+    
+    if report_data.status == 'submitted':
+        report_obj.submitted_at = datetime.now(timezone.utc)
+    
+    doc = report_obj.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    if doc.get('submitted_at'):
+        doc['submitted_at'] = doc['submitted_at'].isoformat()
+    
+    await db.training_reports.insert_one(doc)
+    return report_obj
+
+@api_router.get("/training-reports/{session_id}", response_model=TrainingReport)
+async def get_training_report(session_id: str, current_user: User = Depends(get_current_user)):
+    """Get training report for a session"""
+    report = await db.training_reports.find_one({"session_id": session_id}, {"_id": 0})
+    
+    if not report:
+        # Return empty report structure
+        return TrainingReport(session_id=session_id, coordinator_id=current_user.id, status="draft")
+    
+    if isinstance(report.get('created_at'), str):
+        report['created_at'] = datetime.fromisoformat(report['created_at'])
+    if isinstance(report.get('submitted_at'), str) and report.get('submitted_at'):
+        report['submitted_at'] = datetime.fromisoformat(report['submitted_at'])
+    
+    return TrainingReport(**report)
+
+@api_router.get("/training-reports/coordinator/{coordinator_id}")
+async def get_coordinator_reports(coordinator_id: str, current_user: User = Depends(get_current_user)):
+    """Get all training reports for a coordinator"""
+    if current_user.role != "coordinator" and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    reports = await db.training_reports.find({"coordinator_id": coordinator_id}, {"_id": 0}).to_list(100)
+    
+    for report in reports:
+        if isinstance(report.get('created_at'), str):
+            report['created_at'] = datetime.fromisoformat(report['created_at'])
+        if isinstance(report.get('submitted_at'), str) and report.get('submitted_at'):
+            report['submitted_at'] = datetime.fromisoformat(report['submitted_at'])
+    
+    return reports
+
 # Trainer Checklist Routes
 @api_router.post("/trainer-checklist/submit")
 async def submit_trainer_checklist(checklist_data: TrainerChecklistSubmit, current_user: User = Depends(get_current_user)):
