@@ -114,7 +114,7 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
       setSelectedSession(session);
       // Wait for data to load before proceeding
       await Promise.all([
-        loadSessionData(session.id),
+        loadSessionData(session),
         loadTrainingReport(session.id)
       ]);
     } catch (error) {
@@ -123,14 +123,15 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
     }
   };
 
-  const loadSessionData = async (sessionId) => {
+  const loadSessionData = async (session) => {
     try {
-      const session = sessions.find(s => s.id === sessionId) || selectedSession;
-      
+      // Accept session object directly instead of looking it up
       if (!session) {
-        console.error("Session not found");
+        console.error("Session not provided");
         return;
       }
+      
+      const sessionId = session.id;
       
       console.log("Loading data for session:", sessionId);
       console.log("Session participant_ids:", session.participant_ids);
