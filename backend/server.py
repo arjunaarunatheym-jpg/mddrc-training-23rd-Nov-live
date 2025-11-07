@@ -1260,7 +1260,7 @@ async def get_results_summary(session_id: str, current_user: User = Depends(get_
 # User Routes
 @api_router.get("/users", response_model=List[User])
 async def get_users(role: Optional[str] = None, current_user: User = Depends(get_current_user)):
-    if current_user.role != "admin" and current_user.role != "supervisor":
+    if current_user.role not in ["admin", "supervisor", "coordinator"]:
         raise HTTPException(status_code=403, detail="Unauthorized")
     
     query = {}
