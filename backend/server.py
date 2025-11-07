@@ -1983,6 +1983,437 @@ Please generate this report professionally with proper formatting, specific deta
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate AI report: {str(e)}")
 
+
+# Professional DOCX Report Generation
+@api_router.post("/training-reports/{session_id}/generate-docx")
+async def generate_docx_report(session_id: str, current_user: User = Depends(get_current_user)):
+    """Generate a professional DOCX training report with all data populated"""
+    
+    if current_user.role not in ["coordinator", "admin"]:
+        raise HTTPException(status_code=403, detail="Only coordinators and admins can generate reports")
+    
+    try:
+        # Gather all session data
+        session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        program = await db.programs.find_one({"id": session['program_id']}, {"_id": 0})
+        company = await db.companies.find_one({"id": session['company_id']}, {"_id": 0})
+        
+        # Get participants with full details
+        participant_ids = session.get('participant_ids', [])
+        participants = []
+        for pid in participant_ids:
+            user = await db.users.find_one({"id": pid}, {"_id": 0})
+            if user:
+                # Get pre and post test results
+                pre_test = await db.test_results.find_one({
+                    "participant_id": pid,
+                    "session_id": session_id,
+                    "test_type": "pre"
+                }, {"_id": 0})
+                
+                post_test = await db.test_results.find_one({
+                    "participant_id": pid,
+                    "session_id": session_id,
+                    "test_type": "post"
+                }, {"_id": 0})
+                
+                participants.append({
+                    "name": user.get('full_name'),
+                    "id_number": user.get('id_number', 'N/A'),
+                    "pre_test_score": pre_test.get('score', 0) if pre_test else 0,
+                    "pre_test_passed": pre_test.get('passed', False) if pre_test else False,
+                    "post_test_score": post_test.get('score', 0) if post_test else 0,
+                    "post_test_passed": post_test.get('passed', False) if post_test else False,
+                    "improvement": (post_test.get('score', 0) if post_test else 0) - (pre_test.get('score', 0) if pre_test else 0)
+                })
+        
+        # Get vehicle checklists with issues
+        checklists = await db.vehicle_checklists.find({"session_id": session_id}, {"_id": 0}).to_list(100)
+        vehicle_issues = []
+        for checklist in checklists:
+            participant = await db.users.find_one({"id": checklist['participant_id']}, {"_id": 0})
+            issues_list = []
+            for item in checklist.get('checklist_items', []):
+                if item.get('status') == 'needs_repair':
+                    issues_list.append({
+                        "item": item.get('item', 'Unknown'),
+                        "comment": item.get('comments', 'No comment'),
+                        "photo_url": item.get('photo_url', '')
+                    })
+            
+            if issues_list:
+                vehicle_issues.append({
+                    "participant_name": participant.get('full_name') if participant else 'Unknown',
+                    "issues": issues_list
+                })
+        
+        # Get training photos from training report
+        training_report = await db.training_reports.find_one({"session_id": session_id}, {"_id": 0})
+        training_photos = {
+            "group_photo": training_report.get('group_photo') if training_report else None,
+            "theory_photo_1": training_report.get('theory_photo_1') if training_report else None,
+            "theory_photo_2": training_report.get('theory_photo_2') if training_report else None,
+            "practical_photo_1": training_report.get('practical_photo_1') if training_report else None,
+            "practical_photo_2": training_report.get('practical_photo_2') if training_report else None,
+            "practical_photo_3": training_report.get('practical_photo_3') if training_report else None
+        }
+        
+        # Create DOCX document
+        doc = Document()
+        
+        # COVER PAGE
+        doc.add_heading('DEFENSIVE DRIVING TRAINING', 0)
+        doc.add_heading('COMPLETION REPORT', 0)
+        doc.add_paragraph()
+        doc.add_paragraph(f"Program: {program.get('name', 'N/A')}")
+        doc.add_paragraph(f"Company: {company.get('name', 'N/A')}")
+        doc.add_paragraph(f"Location: {session.get('location', 'N/A')}")
+        doc.add_paragraph(f"Training Period: {session.get('start_date', 'N/A')} to {session.get('end_date', 'N/A')}")
+        doc.add_paragraph(f"Submitted by: {current_user.full_name}")
+        doc.add_paragraph(f"Date: {datetime.now(timezone.utc).strftime('%Y-%m-%d')}")
+        doc.add_page_break()
+        
+        # EXECUTIVE SUMMARY
+        doc.add_heading('1. EXECUTIVE SUMMARY', 1)
+        pre_avg = sum([p['pre_test_score'] for p in participants]) / len(participants) if participants else 0
+        post_avg = sum([p['post_test_score'] for p in participants]) / len(participants) if participants else 0
+        doc.add_paragraph(f"This report summarizes the Defensive Driving Training conducted for {company.get('name', 'N/A')} from {session.get('start_date', 'N/A')} to {session.get('end_date', 'N/A')}. A total of {len(participants)} participants completed the training program.")
+        doc.add_paragraph(f"Pre-training assessment average: {pre_avg:.1f}%")
+        doc.add_paragraph(f"Post-training assessment average: {post_avg:.1f}%") 
+        doc.add_paragraph(f"Overall improvement: {(post_avg - pre_avg):.1f}%")
+        doc.add_page_break()
+        
+        # TRAINING DETAILS
+        doc.add_heading('2. TRAINING DETAILS', 1)
+        doc.add_paragraph(f"Program: {program.get('name', 'N/A')}")
+        doc.add_paragraph(f"Location: {session.get('location', 'N/A')}")
+        doc.add_paragraph(f"Dates: {session.get('start_date', 'N/A')} to {session.get('end_date', 'N/A')}")
+        doc.add_paragraph(f"Total Participants: {len(participants)}")
+        doc.add_paragraph()
+        doc.add_paragraph("Participants List:")
+        table = doc.add_table(rows=1, cols=2)
+        table.style = 'Light Grid Accent 1'
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = 'Name'
+        hdr_cells[1].text = 'ID Number'
+        for p in participants:
+            row_cells = table.add_row().cells
+            row_cells[0].text = p['name']
+            row_cells[1].text = str(p['id_number'])
+        doc.add_page_break()
+        
+        # INDIVIDUAL PARTICIPANT PERFORMANCE (DETAILED)
+        doc.add_heading('3. PARTICIPANT PERFORMANCE (Detailed)', 1)
+        doc.add_paragraph("Individual participant test results showing pre-test, post-test, and improvement:")
+        doc.add_paragraph()
+        
+        for idx, p in enumerate(participants, 1):
+            doc.add_paragraph(f"{idx}. {p['name']} (ID: {p['id_number']})", style='Heading 3')
+            perf_text = f"   Pre-Test: {p['pre_test_score']:.0f}% {'✅ PASS' if p['pre_test_passed'] else '❌ FAIL'} | "
+            perf_text += f"Post-Test: {p['post_test_score']:.0f}% {'✅ PASS' if p['post_test_passed'] else '❌ FAIL'} | "
+            perf_text += f"Improvement: {p['improvement']:+.0f}%"
+            if p['improvement'] > 0:
+                perf_text += " 📈"
+            doc.add_paragraph(perf_text)
+            doc.add_paragraph()
+        
+        doc.add_page_break()
+        
+        # PERFORMANCE SUMMARY TABLE
+        doc.add_heading('4. TEST RESULTS SUMMARY', 1)
+        table = doc.add_table(rows=1, cols=6)
+        table.style = 'Light Grid Accent 1'
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = 'Participant'
+        hdr_cells[1].text = 'ID Number'
+        hdr_cells[2].text = 'Pre-Test'
+        hdr_cells[3].text = 'Post-Test'
+        hdr_cells[4].text = 'Improvement'
+        hdr_cells[5].text = 'Status'
+        
+        for p in participants:
+            row_cells = table.add_row().cells
+            row_cells[0].text = p['name']
+            row_cells[1].text = str(p['id_number'])
+            row_cells[2].text = f"{p['pre_test_score']:.0f}%"
+            row_cells[3].text = f"{p['post_test_score']:.0f}%"
+            row_cells[4].text = f"{p['improvement']:+.0f}%"
+            row_cells[5].text = 'PASS' if p['post_test_passed'] else 'FAIL'
+        
+        doc.add_page_break()
+        
+        # TRAINING PHOTOS
+        doc.add_heading('5. TRAINING PHOTOS', 1)
+        if training_photos['group_photo']:
+            doc.add_paragraph("Group Photo:", style='Heading 3')
+            doc.add_paragraph(f"[Photo URL: {training_photos['group_photo']}]")
+            doc.add_paragraph()
+        
+        if training_photos['theory_photo_1'] or training_photos['theory_photo_2']:
+            doc.add_paragraph("Theory Session Photos:", style='Heading 3')
+            if training_photos['theory_photo_1']:
+                doc.add_paragraph(f"[Photo 1 URL: {training_photos['theory_photo_1']}]")
+            if training_photos['theory_photo_2']:
+                doc.add_paragraph(f"[Photo 2 URL: {training_photos['theory_photo_2']}]")
+            doc.add_paragraph()
+        
+        if training_photos['practical_photo_1'] or training_photos['practical_photo_2'] or training_photos['practical_photo_3']:
+            doc.add_paragraph("Practical Session Photos:", style='Heading 3')
+            if training_photos['practical_photo_1']:
+                doc.add_paragraph(f"[Photo 1 URL: {training_photos['practical_photo_1']}]")
+            if training_photos['practical_photo_2']:
+                doc.add_paragraph(f"[Photo 2 URL: {training_photos['practical_photo_2']}]")
+            if training_photos['practical_photo_3']:
+                doc.add_paragraph(f"[Photo 3 URL: {training_photos['practical_photo_3']}]")
+        
+        doc.add_page_break()
+        
+        # VEHICLE INSPECTION ISSUES
+        doc.add_heading('6. VEHICLE INSPECTION ISSUES', 1)
+        if vehicle_issues:
+            for vehicle_issue in vehicle_issues:
+                doc.add_paragraph(f"{vehicle_issue['participant_name']}", style='Heading 3')
+                for issue in vehicle_issue['issues']:
+                    doc.add_paragraph(f"   - {issue['item']}: {issue['comment']}")
+                    if issue['photo_url']:
+                        doc.add_paragraph(f"     [Photo: {issue['photo_url']}]")
+                doc.add_paragraph()
+        else:
+            doc.add_paragraph("✓ No vehicle issues reported. All vehicles inspected are in good condition.")
+        
+        doc.add_page_break()
+        
+        # COORDINATOR COMMENTS
+        doc.add_heading('7. COORDINATOR COMMENTS & OBSERVATIONS', 1)
+        doc.add_paragraph("[Please add your comments and observations here]")
+        doc.add_paragraph()
+        doc.add_paragraph()
+        doc.add_paragraph()
+        doc.add_page_break()
+        
+        # RECOMMENDATIONS
+        doc.add_heading('8. RECOMMENDATIONS', 1)
+        doc.add_paragraph("[Please add recommendations here]")
+        doc.add_paragraph()
+        doc.add_paragraph()
+        doc.add_paragraph()
+        doc.add_page_break()
+        
+        # SIGNATURES
+        doc.add_heading('9. SIGNATURES', 1)
+        doc.add_paragraph()
+        doc.add_paragraph("_" * 40)
+        doc.add_paragraph(f"Coordinator: {current_user.full_name}")
+        doc.add_paragraph(f"Date: ________________")
+        doc.add_paragraph()
+        doc.add_paragraph()
+        doc.add_paragraph("_" * 40)
+        doc.add_paragraph("PIC/Supervisor Signature")
+        doc.add_paragraph(f"Date: ________________")
+        
+        # Save DOCX
+        report_filename = f"Training_Report_{session_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.docx"
+        report_path = REPORT_DIR / report_filename
+        doc.save(str(report_path))
+        
+        # Update training report record with DOCX filename
+        await db.training_reports.update_one(
+            {"session_id": session_id},
+            {"$set": {"docx_filename": report_filename, "generated_at": datetime.now(timezone.utc).isoformat()}},
+            upsert=True
+        )
+        
+        return {
+            "message": "DOCX report generated successfully",
+            "filename": report_filename,
+            "download_url": f"/api/training-reports/{session_id}/download-docx"
+        }
+        
+    except Exception as e:
+        logging.error(f"Failed to generate DOCX report: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate report: {str(e)}")
+
+@api_router.get("/training-reports/{session_id}/download-docx")
+async def download_docx_report(session_id: str, current_user: User = Depends(get_current_user)):
+    """Download the generated DOCX report"""
+    
+    if current_user.role not in ["coordinator", "admin", "supervisor"]:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    # Get report filename from database
+    training_report = await db.training_reports.find_one({"session_id": session_id}, {"_id": 0})
+    
+    if not training_report or not training_report.get('docx_filename'):
+        raise HTTPException(status_code=404, detail="Report not found. Please generate it first.")
+    
+    report_path = REPORT_DIR / training_report['docx_filename']
+    
+    if not report_path.exists():
+        raise HTTPException(status_code=404, detail="Report file not found")
+    
+    return FileResponse(
+        path=str(report_path),
+        media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        filename=training_report['docx_filename']
+    )
+
+@api_router.post("/training-reports/{session_id}/upload-edited-docx")
+async def upload_edited_docx(
+    session_id: str,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload edited DOCX report"""
+    
+    if current_user.role not in ["coordinator", "admin"]:
+        raise HTTPException(status_code=403, detail="Only coordinators and admins can upload reports")
+    
+    if not file.filename.endswith('.docx'):
+        raise HTTPException(status_code=400, detail="Only DOCX files are allowed")
+    
+    try:
+        # Save edited DOCX
+        edited_filename = f"Training_Report_{session_id}_edited_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.docx"
+        edited_path = REPORT_DIR / edited_filename
+        
+        with open(edited_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Update database
+        await db.training_reports.update_one(
+            {"session_id": session_id},
+            {"$set": {
+                "edited_docx_filename": edited_filename,
+                "uploaded_at": datetime.now(timezone.utc).isoformat()
+            }},
+            upsert=True
+        )
+        
+        return {
+            "message": "Edited report uploaded successfully",
+            "filename": edited_filename
+        }
+        
+    except Exception as e:
+        logging.error(f"Failed to upload edited report: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload report: {str(e)}")
+
+@api_router.post("/training-reports/{session_id}/submit-final")
+async def submit_final_report(session_id: str, current_user: User = Depends(get_current_user)):
+    """Submit final report - converts to PDF and notifies supervisor/admin"""
+    
+    if current_user.role not in ["coordinator", "admin"]:
+        raise HTTPException(status_code=403, detail="Only coordinators and admins can submit reports")
+    
+    try:
+        # Get the latest report (edited if exists, otherwise generated)
+        training_report = await db.training_reports.find_one({"session_id": session_id}, {"_id": 0})
+        
+        if not training_report:
+            raise HTTPException(status_code=404, detail="No report found. Please generate a report first.")
+        
+        docx_filename = training_report.get('edited_docx_filename') or training_report.get('docx_filename')
+        
+        if not docx_filename:
+            raise HTTPException(status_code=404, detail="No report file found")
+        
+        docx_path = REPORT_DIR / docx_filename
+        
+        if not docx_path.exists():
+            raise HTTPException(status_code=404, detail="Report file not found")
+        
+        # Convert DOCX to PDF using LibreOffice
+        pdf_filename = docx_filename.replace('.docx', '.pdf')
+        pdf_path = REPORT_PDF_DIR / pdf_filename
+        
+        subprocess.run([
+            'libreoffice',
+            '--headless',
+            '--convert-to', 'pdf',
+            '--outdir', str(REPORT_PDF_DIR),
+            str(docx_path)
+        ], check=True)
+        
+        # Update training report status
+        await db.training_reports.update_one(
+            {"session_id": session_id},
+            {"$set": {
+                "pdf_filename": pdf_filename,
+                "status": "submitted",
+                "submitted_at": datetime.now(timezone.utc).isoformat(),
+                "submitted_by": current_user.id
+            }}
+        )
+        
+        # Get session and create notifications for supervisor and admin
+        session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+        
+        # Notify supervisor
+        if session.get('supervisor_ids'):
+            for supervisor_id in session['supervisor_ids']:
+                await db.notifications.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "user_id": supervisor_id,
+                    "type": "training_report_submitted",
+                    "message": f"Training report for {session.get('name')} has been submitted",
+                    "session_id": session_id,
+                    "read": False,
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                })
+        
+        # Notify all admins
+        admins = await db.users.find({"role": "admin"}, {"_id": 0}).to_list(100)
+        for admin in admins:
+            await db.notifications.insert_one({
+                "id": str(uuid.uuid4()),
+                "user_id": admin['id'],
+                "type": "training_report_submitted",
+                "message": f"Training report for {session.get('name')} has been submitted by {current_user.full_name}",
+                "session_id": session_id,
+                "read": False,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+        
+        return {
+            "message": "Report submitted successfully and PDF generated",
+            "pdf_filename": pdf_filename,
+            "download_url": f"/api/training-reports/{session_id}/download-pdf"
+        }
+        
+    except subprocess.CalledProcessError as e:
+        logging.error(f"PDF conversion failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to convert report to PDF")
+    except Exception as e:
+        logging.error(f"Failed to submit report: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to submit report: {str(e)}")
+
+@api_router.get("/training-reports/{session_id}/download-pdf")
+async def download_pdf_report(session_id: str, current_user: User = Depends(get_current_user)):
+    """Download the final PDF report"""
+    
+    if current_user.role not in ["coordinator", "admin", "supervisor"]:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    # Get report filename from database
+    training_report = await db.training_reports.find_one({"session_id": session_id}, {"_id": 0})
+    
+    if not training_report or not training_report.get('pdf_filename'):
+        raise HTTPException(status_code=404, detail="PDF report not found. Please submit the report first.")
+    
+    pdf_path = REPORT_PDF_DIR / training_report['pdf_filename']
+    
+    if not pdf_path.exists():
+        raise HTTPException(status_code=404, detail="PDF file not found")
+    
+    return FileResponse(
+        path=str(pdf_path),
+        media_type='application/pdf',
+        filename=training_report['pdf_filename']
+    )
+
 # Trainer Checklist Routes
 @api_router.post("/trainer-checklist/submit")
 async def submit_trainer_checklist(checklist_data: TrainerChecklistSubmit, current_user: User = Depends(get_current_user)):
