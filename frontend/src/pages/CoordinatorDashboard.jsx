@@ -36,6 +36,7 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
   const [generatingReport, setGeneratingReport] = useState(false);
   const [editSessionDialogOpen, setEditSessionDialogOpen] = useState(false);
   const [editingSession, setEditingSession] = useState(null);
+  const [checklistIssues, setChecklistIssues] = useState([]);
 
   useEffect(() => {
     loadSessions();
