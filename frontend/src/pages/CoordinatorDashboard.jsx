@@ -38,6 +38,7 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
   const [editingSession, setEditingSession] = useState(null);
   const [checklistIssues, setChecklistIssues] = useState([]);
   const [sessionAccess, setSessionAccess] = useState([]);
+  const [sessionStats, setSessionStats] = useState({});
 
   useEffect(() => {
     loadSessions();
