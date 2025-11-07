@@ -1846,6 +1846,100 @@ async def get_coordinator_reports(coordinator_id: str, current_user: User = Depe
     
     return reports
 
+
+@api_router.get("/training-reports/admin/all")
+async def get_all_training_reports(
+    search: Optional[str] = None,
+    company_id: Optional[str] = None,
+    program_id: Optional[str] = None,
+    status: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get all training reports with search and filter - Admin only"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access only")
+    
+    # Build query
+    query = {"status": "submitted"}  # Only show submitted reports
+    
+    if status:
+        query["status"] = status
+    
+    # Get all submitted reports
+    reports = await db.training_reports.find(query, {"_id": 0}).to_list(1000)
+    
+    # Enrich each report with session, coordinator, company, program details
+    enriched_reports = []
+    
+    for report in reports:
+        session = await db.sessions.find_one({"id": report['session_id']}, {"_id": 0})
+        if not session:
+            continue
+        
+        # Get coordinator details
+        coordinator = await db.users.find_one({"id": report.get('coordinator_id')}, {"_id": 0})
+        
+        # Get company and program details
+        company = await db.companies.find_one({"id": session.get('company_id')}, {"_id": 0})
+        program = await db.programs.find_one({"id": session.get('program_id')}, {"_id": 0})
+        
+        # Get participant count
+        participant_count = len(session.get('participant_ids', []))
+        
+        # Apply filters
+        if company_id and session.get('company_id') != company_id:
+            continue
+        
+        if program_id and session.get('program_id') != program_id:
+            continue
+        
+        # Apply date filter
+        if start_date:
+            session_date = session.get('start_date')
+            if session_date and session_date < start_date:
+                continue
+        
+        if end_date:
+            session_date = session.get('end_date')
+            if session_date and session_date > end_date:
+                continue
+        
+        # Build enriched report
+        enriched = {
+            **report,
+            "session_name": session.get('name', 'Unknown'),
+            "session_start_date": session.get('start_date'),
+            "session_end_date": session.get('end_date'),
+            "session_location": session.get('location'),
+            "coordinator_name": coordinator.get('full_name') if coordinator else 'Unknown',
+            "company_name": company.get('name') if company else 'Unknown',
+            "company_id": session.get('company_id'),
+            "program_name": program.get('name') if program else 'Unknown',
+            "program_id": session.get('program_id'),
+            "participant_count": participant_count
+        }
+        
+        # Apply search filter
+        if search:
+            search_lower = search.lower()
+            searchable_text = f"{enriched['session_name']} {enriched['coordinator_name']} {enriched['company_name']} {enriched['program_name']} {enriched['session_location']}".lower()
+            
+            if search_lower not in searchable_text:
+                continue
+        
+        enriched_reports.append(enriched)
+    
+    # Sort by submitted date (most recent first)
+    enriched_reports.sort(key=lambda x: x.get('submitted_at', ''), reverse=True)
+    
+    return {
+        "total": len(enriched_reports),
+        "reports": enriched_reports
+    }
+
+
 @api_router.post("/training-reports/{session_id}/generate-ai-report")
 async def generate_ai_report(session_id: str, current_user: User = Depends(get_current_user)):
     """Generate AI training report using ChatGPT"""
