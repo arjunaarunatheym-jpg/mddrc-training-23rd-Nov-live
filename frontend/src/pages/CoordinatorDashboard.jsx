@@ -34,6 +34,19 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
   });
   const [aiGeneratedReport, setAiGeneratedReport] = useState("");
   const [generatingReport, setGeneratingReport] = useState(false);
+  
+  // Professional DOCX Report states
+  const [professionalReportStatus, setProfessionalReportStatus] = useState({
+    docx_generated: false,
+    edited_uploaded: false,
+    pdf_submitted: false,
+    docx_filename: null,
+    edited_docx_filename: null,
+    pdf_filename: null
+  });
+  const [generatingDOCX, setGeneratingDOCX] = useState(false);
+  const [uploadingEdited, setUploadingEdited] = useState(false);
+  const [submittingFinal, setSubmittingFinal] = useState(false);
   const [editSessionDialogOpen, setEditSessionDialogOpen] = useState(false);
   const [editingSession, setEditingSession] = useState(null);
   const [checklistIssues, setChecklistIssues] = useState([]);
