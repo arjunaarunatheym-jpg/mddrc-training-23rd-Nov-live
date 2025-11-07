@@ -507,7 +507,7 @@ const AdminDashboard = ({ user, onLogout }) => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-10 mb-8">
+          <TabsList className="grid w-full grid-cols-11 mb-8">
             <TabsTrigger value="programs" data-testid="programs-tab">
               <BookOpen className="w-4 h-4 mr-2" />
               Programs
@@ -523,6 +523,10 @@ const AdminDashboard = ({ user, onLogout }) => {
             <TabsTrigger value="feedback" data-testid="feedback-tab">
               <MessageSquare className="w-4 h-4 mr-2" />
               Feedback
+            </TabsTrigger>
+            <TabsTrigger value="supervisors" data-testid="supervisors-tab">
+              <Users className="w-4 h-4 mr-2" />
+              Supervisors
             </TabsTrigger>
             <TabsTrigger value="companies" data-testid="companies-tab">
               <Building2 className="w-4 h-4 mr-2" />
