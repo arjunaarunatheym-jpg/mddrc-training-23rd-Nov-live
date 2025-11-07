@@ -381,19 +381,37 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
   const handleDownloadDOCX = async () => {
     try {
       const response = await axiosInstance.get(`/training-reports/${selectedSession.id}/download-docx`, {
-        responseType: 'blob'
+        responseType: 'blob',
+        headers: {
+          'Accept': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        }
       });
       
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      // Create blob with proper MIME type
+      const blob = new Blob([response.data], { 
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+      });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', professionalReportStatus.docx_filename || `Training_Report_${selectedSession.name}.docx`);
+      link.download = professionalReportStatus.docx_filename || `Training_Report_${selectedSession.name}.docx`;
+      link.style.display = 'none';
+      
+      // Append to body, click, and cleanup
       document.body.appendChild(link);
       link.click();
-      link.remove();
       
-      toast.success("DOCX report downloaded! Edit it in Microsoft Word and upload back.");
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
+      toast.success("DOCX report downloaded! Check your Downloads folder.");
     } catch (error) {
+      console.error("Download error:", error);
       toast.error(error.response?.data?.detail || "Failed to download report");
     }
   };
