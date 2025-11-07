@@ -674,18 +674,83 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
                           </Button>
                         </div>
                       ) : (
-                        <div className="space-y-2">
-                          {participants.map((p) => (
-                            <div key={p.id} className="p-3 bg-blue-50 rounded-lg flex justify-between items-center">
-                              <div>
-                                <p className="font-medium">{p.full_name}</p>
-                                <p className="text-sm text-gray-600">{p.email}</p>
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                ID: {p.id_number || 'N/A'}
-                              </div>
-                            </div>
-                          ))}
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b bg-gray-50">
+                                <th className="text-left p-3 font-semibold">Participant Name</th>
+                                <th className="text-left p-3 font-semibold">ID Number</th>
+                                <th className="text-center p-3 font-semibold">Pre-Test</th>
+                                <th className="text-center p-3 font-semibold">Post-Test</th>
+                                <th className="text-center p-3 font-semibold">Feedback</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {participants.map((p) => {
+                                // Find participant's test results
+                                const preTest = testResults.find(r => r.participant_id === p.id && r.test_type === 'pre');
+                                const postTest = testResults.find(r => r.participant_id === p.id && r.test_type === 'post');
+                                
+                                // Find participant's access record for feedback status
+                                const access = sessionAccess.find(a => a.participant_id === p.id);
+                                
+                                return (
+                                  <tr key={p.id} className="border-b hover:bg-gray-50">
+                                    <td className="p-3">
+                                      <p className="font-medium text-gray-900">{p.full_name}</p>
+                                      <p className="text-xs text-gray-500">{p.email}</p>
+                                    </td>
+                                    <td className="p-3 text-gray-700">{p.id_number || 'N/A'}</td>
+                                    <td className="p-3 text-center">
+                                      {preTest ? (
+                                        <div className="flex flex-col items-center gap-1">
+                                          <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                            preTest.passed 
+                                              ? 'bg-green-100 text-green-800' 
+                                              : 'bg-red-100 text-red-800'
+                                          }`}>
+                                            {preTest.passed ? '✓ PASS' : '✗ FAIL'}
+                                          </span>
+                                          <span className="text-xs text-gray-600">
+                                            {preTest.score?.toFixed(0)}%
+                                          </span>
+                                        </div>
+                                      ) : (
+                                        <span className="text-gray-400 text-xs">Not taken</span>
+                                      )}
+                                    </td>
+                                    <td className="p-3 text-center">
+                                      {postTest ? (
+                                        <div className="flex flex-col items-center gap-1">
+                                          <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                            postTest.passed 
+                                              ? 'bg-green-100 text-green-800' 
+                                              : 'bg-red-100 text-red-800'
+                                          }`}>
+                                            {postTest.passed ? '✓ PASS' : '✗ FAIL'}
+                                          </span>
+                                          <span className="text-xs text-gray-600">
+                                            {postTest.score?.toFixed(0)}%
+                                          </span>
+                                        </div>
+                                      ) : (
+                                        <span className="text-gray-400 text-xs">Not taken</span>
+                                      )}
+                                    </td>
+                                    <td className="p-3 text-center">
+                                      {access?.feedback_submitted ? (
+                                        <span className="px-2 py-1 rounded text-xs font-bold bg-purple-100 text-purple-800">
+                                          ✓ Submitted
+                                        </span>
+                                      ) : (
+                                        <span className="text-gray-400 text-xs">Not submitted</span>
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
                         </div>
                       )}
                     </CardContent>
