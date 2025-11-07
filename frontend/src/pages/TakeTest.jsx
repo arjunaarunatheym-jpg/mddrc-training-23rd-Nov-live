@@ -48,10 +48,15 @@ const TakeTest = () => {
 
     setSubmitting(true);
     try {
+      // Extract original question indices if questions were shuffled
+      const questionIndices = test.questions.map(q => q.original_index !== undefined ? q.original_index : null);
+      const hasIndices = questionIndices.some(idx => idx !== null);
+      
       const response = await axiosInstance.post("/tests/submit", {
         test_id: testId,
         session_id: sessionId,
         answers: answers,
+        question_indices: hasIndices ? questionIndices : null,
       });
       
       toast.success("Test submitted successfully!");
