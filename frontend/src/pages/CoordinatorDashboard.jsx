@@ -324,10 +324,14 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
   };
 
   // Calculate statistics
+  const uniqueParticipantsWithAttendance = attendance.filter((v, i, a) => 
+    a.findIndex(t => t.participant_id === v.participant_id) === i
+  ).length;
+  
   const stats = {
     totalParticipants: participants.length,
     attendanceRate: participants.length > 0 
-      ? ((attendance.length / participants.length) * 100).toFixed(0)
+      ? ((uniqueParticipantsWithAttendance / participants.length) * 100).toFixed(0)
       : 0,
     testPassRate: testResults.length > 0
       ? ((testResults.filter(r => r.passed).length / testResults.length) * 100).toFixed(0)
