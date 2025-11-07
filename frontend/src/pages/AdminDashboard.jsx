@@ -568,6 +568,73 @@ const AdminDashboard = ({ user, onLogout }) => {
     }
   };
 
+
+
+  // Reports Archive functions
+  const loadAllReports = async () => {
+    setLoadingReports(true);
+    try {
+      const params = {};
+      
+      if (reportsSearch) params.search = reportsSearch;
+      if (filterCompany && filterCompany !== "all") params.company_id = filterCompany;
+      if (filterProgram && filterProgram !== "all") params.program_id = filterProgram;
+      if (filterStartDate) params.start_date = filterStartDate;
+      if (filterEndDate) params.end_date = filterEndDate;
+      
+      const response = await axiosInstance.get("/training-reports/admin/all", { params });
+      setAllReports(response.data.reports || []);
+    } catch (error) {
+      console.error("Failed to load reports:", error);
+      toast.error(error.response?.data?.detail || "Failed to load training reports");
+    } finally {
+      setLoadingReports(false);
+    }
+  };
+
+  const handleDownloadReportPDF = async (sessionId) => {
+    try {
+      const response = await axiosInstance.get(`/training-reports/${sessionId}/download-pdf`, {
+        responseType: 'blob'
+      });
+      
+      // Create blob with proper MIME type
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create download link
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Training_Report_${sessionId}.pdf`;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
+      toast.success("Report PDF downloaded!");
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error(error.response?.data?.detail || "Failed to download report");
+    }
+  };
+
+  const handleViewReportDetails = (report) => {
+    setSelectedReport(report);
+    setReportDetailsOpen(true);
+  };
+
+  // Load reports when Reports tab is selected
+  useEffect(() => {
+    if (activeTab === "reports" && allReports.length === 0) {
+      loadAllReports();
+    }
+  }, [activeTab]);
+
   const handleCreateChecklistTemplate = async (e) => {
     e.preventDefault();
     if (!checklistForm.program_id || checklistForm.items.filter(i => i.trim()).length === 0) {
