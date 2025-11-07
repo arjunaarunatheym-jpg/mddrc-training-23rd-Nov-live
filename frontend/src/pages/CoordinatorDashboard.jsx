@@ -64,8 +64,11 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
   const selectSession = async (session) => {
     try {
       setSelectedSession(session);
-      await loadSessionData(session.id);
-      await loadTrainingReport(session.id);
+      // Wait for data to load before proceeding
+      await Promise.all([
+        loadSessionData(session.id),
+        loadTrainingReport(session.id)
+      ]);
     } catch (error) {
       console.error("Error selecting session:", error);
       toast.error("Failed to load session data");
