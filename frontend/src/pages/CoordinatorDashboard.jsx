@@ -352,6 +352,113 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
     }
   };
 
+
+  // Professional DOCX Report Functions
+  const handleGenerateProfessionalReport = async () => {
+    if (!selectedSession) {
+      toast.error("Please select a session first");
+      return;
+    }
+
+    setGeneratingDOCX(true);
+    try {
+      const response = await axiosInstance.post(`/training-reports/${selectedSession.id}/generate-docx`);
+      
+      setProfessionalReportStatus(prev => ({
+        ...prev,
+        docx_generated: true,
+        docx_filename: response.data.filename
+      }));
+      
+      toast.success("Professional report generated! Click 'Download DOCX' to edit it.");
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to generate professional report");
+    } finally {
+      setGeneratingDOCX(false);
+    }
+  };
+
+  const handleDownloadDOCX = async () => {
+    try {
+      const response = await axiosInstance.get(`/training-reports/${selectedSession.id}/download-docx`, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', professionalReportStatus.docx_filename || `Training_Report_${selectedSession.name}.docx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      toast.success("DOCX report downloaded! Edit it in Microsoft Word and upload back.");
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to download report");
+    }
+  };
+
+  const handleUploadEditedDOCX = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.docx')) {
+      toast.error("Please upload a DOCX file");
+      return;
+    }
+
+    setUploadingEdited(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await axiosInstance.post(
+        `/training-reports/${selectedSession.id}/upload-edited-docx`,
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        }
+      );
+      
+      setProfessionalReportStatus(prev => ({
+        ...prev,
+        edited_uploaded: true,
+        edited_docx_filename: response.data.filename
+      }));
+      
+      toast.success("Edited report uploaded successfully! You can now submit the final report.");
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to upload edited report");
+    } finally {
+      setUploadingEdited(false);
+    }
+  };
+
+  const handleSubmitFinalReport = async () => {
+    if (!professionalReportStatus.edited_uploaded && !professionalReportStatus.docx_generated) {
+      toast.error("Please generate and/or upload a report first");
+      return;
+    }
+
+    setSubmittingFinal(true);
+    try {
+      const response = await axiosInstance.post(`/training-reports/${selectedSession.id}/submit-final`);
+      
+      setProfessionalReportStatus(prev => ({
+        ...prev,
+        pdf_submitted: true,
+        pdf_filename: response.data.pdf_filename
+      }));
+      
+      toast.success("Final report submitted successfully! PDF has been sent to supervisors and admins.");
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to submit final report");
+    } finally {
+      setSubmittingFinal(false);
+    }
+  };
+
+
   const handleUpdateSession = async () => {
     try {
       await axiosInstance.put(`/sessions/${editingSession.id}`, editingSession);
