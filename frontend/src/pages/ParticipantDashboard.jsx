@@ -25,10 +25,7 @@ const ParticipantDashboard = ({ user, onLogout }) => {
     roadtax_expiry: ""
   });
   
-  // Check if user can access other tabs
-  const [canAccessAllTabs, setCanAccessAllTabs] = useState(false);
-  const [hasVehicleDetails, setHasVehicleDetails] = useState(false);
-  const [hasClockedIn, setHasClockedIn] = useState(false);
+  // Tab restrictions removed - all tabs accessible
 
   useEffect(() => {
     loadData();
