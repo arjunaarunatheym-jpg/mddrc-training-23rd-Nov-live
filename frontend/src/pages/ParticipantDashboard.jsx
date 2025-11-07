@@ -205,12 +205,14 @@ const ParticipantDashboard = ({ user, onLogout }) => {
       if (response.data) {
         setVehicleDetails(prev => ({ ...prev, [sessionId]: response.data }));
         setHasVehicleDetails(true);
+        // Update access immediately
+        setCanAccessAllTabs(true && hasClockedIn);
       }
     } catch (error) {
       console.error("Failed to load vehicle details");
       setHasVehicleDetails(false);
+      setCanAccessAllTabs(false);
     }
-    checkTabAccess();
   };
 
   const loadAttendanceToday = async (sessionId) => {
@@ -221,25 +223,22 @@ const ParticipantDashboard = ({ user, onLogout }) => {
         const today = new Date().toISOString().split('T')[0];
         const todayAttendance = response.data.find(a => a.date === today);
         
-        if (todayAttendance) {
+        if (todayAttendance && todayAttendance.clock_in_time) {
           setAttendanceToday(prev => ({
             ...prev,
             [sessionId]: {
-              clock_in: !!todayAttendance.clock_in_time,
+              clock_in: true,
               clock_out: !!todayAttendance.clock_out_time
             }
           }));
-          setHasClockedIn(!!todayAttendance.clock_in_time);
+          setHasClockedIn(true);
+          // Update access immediately
+          setCanAccessAllTabs(hasVehicleDetails && true);
         }
       }
     } catch (error) {
       console.error("Failed to load attendance");
     }
-    checkTabAccess();
-  };
-  
-  const checkTabAccess = () => {
-    setCanAccessAllTabs(hasVehicleDetails && hasClockedIn);
   };
 
   const handleClockIn = async (sessionId) => {
