@@ -84,9 +84,47 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
       setParticipants(sessionParticipants);
       setAttendance(attendanceRes.data);
       setTestResults(testResultsRes.data);
+      
+      // Load checklist issues
+      loadChecklistIssues(sessionId, sessionParticipants);
     } catch (error) {
       console.error("Failed to load session data", error);
       toast.error("Failed to load session data");
+    }
+  };
+
+  const loadChecklistIssues = async (sessionId, participantsList) => {
+    try {
+      const issues = [];
+      
+      // Get checklists for all participants in this session
+      for (const participant of participantsList) {
+        try {
+          const response = await axiosInstance.get(`/vehicle-checklists/${sessionId}/${participant.id}`);
+          const checklist = response.data;
+          
+          if (checklist && checklist.checklist_items) {
+            const needsRepair = checklist.checklist_items.filter(item => 
+              (item.status || '').toLowerCase() === 'needs_repair'
+            );
+            
+            if (needsRepair.length > 0) {
+              issues.push({
+                participant_name: participant.full_name,
+                participant_id: participant.id,
+                items: needsRepair
+              });
+            }
+          }
+        } catch (err) {
+          // Checklist doesn't exist for this participant, skip
+          continue;
+        }
+      }
+      
+      setChecklistIssues(issues);
+    } catch (error) {
+      console.error("Failed to load checklist issues", error);
     }
   };
 
