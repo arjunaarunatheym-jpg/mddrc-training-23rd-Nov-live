@@ -1026,6 +1026,57 @@ async def get_my_access(session_id: str, current_user: User = Depends(get_curren
     access = await get_or_create_participant_access(current_user.id, session_id)
     return access
 
+@api_router.get("/participant-access/session/{session_id}")
+async def get_session_access(session_id: str, current_user: User = Depends(get_current_user)):
+    """Get all participant access records for a session (for coordinators/admins)"""
+    if current_user.role not in ["coordinator", "admin"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    access_records = await db.participant_access.find({"session_id": session_id}, {"_id": 0}).to_list(1000)
+    return access_records
+
+@api_router.post("/participant-access/session/{session_id}/toggle")
+async def toggle_session_access(session_id: str, access_data: dict, current_user: User = Depends(get_current_user)):
+    """Toggle access for all participants in a session (coordinator/admin)"""
+    if current_user.role not in ["coordinator", "admin"]:
+        raise HTTPException(status_code=403, detail="Only coordinators and admins can control access")
+    
+    # Get session to find all participants
+    session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    access_type = access_data.get("access_type")
+    enabled = access_data.get("enabled", False)
+    
+    # Map access_type to field name
+    field_mapping = {
+        "pre_test": "can_access_pre_test",
+        "post_test": "can_access_post_test",
+        "feedback": "can_access_feedback",
+        "checklist": "can_access_checklist"
+    }
+    
+    if access_type not in field_mapping:
+        raise HTTPException(status_code=400, detail="Invalid access type")
+    
+    field_name = field_mapping[access_type]
+    
+    # Update all participant access records for this session
+    participant_ids = session.get("participant_ids", [])
+    
+    for participant_id in participant_ids:
+        # Ensure access record exists
+        await get_or_create_participant_access(participant_id, session_id)
+        
+        # Update the field
+        await db.participant_access.update_one(
+            {"participant_id": participant_id, "session_id": session_id},
+            {"$set": {field_name: enabled}}
+        )
+    
+    return {"message": f"{access_type} access {'enabled' for 'disabled'} for {len(participant_ids)} participants"}
+
 # Coordinator Control Routes
 @api_router.post("/sessions/{session_id}/release-pre-test")
 async def release_pre_test(session_id: str, current_user: User = Depends(get_current_user)):
