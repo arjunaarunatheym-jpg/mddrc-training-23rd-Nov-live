@@ -67,22 +67,25 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
 
   const loadSessionData = async (sessionId) => {
     try {
-      const [participantsRes, attendanceRes, testResultsRes] = await Promise.all([
+      const session = sessions.find(s => s.id === sessionId) || selectedSession;
+      
+      const [usersRes, attendanceRes, testResultsRes] = await Promise.all([
         axiosInstance.get(`/users`),
         axiosInstance.get(`/attendance/session/${sessionId}`),
         axiosInstance.get(`/tests/results/session/${sessionId}`)
       ]);
       
-      // Filter participants for this session
-      const session = sessions.find(s => s.id === sessionId) || selectedSession;
-      const sessionParticipants = participantsRes.data.filter(u => 
-        session.participant_ids && session.participant_ids.includes(u.id)
+      // Filter participants for THIS specific session
+      const sessionParticipants = usersRes.data.filter(u => 
+        session?.participant_ids && session.participant_ids.includes(u.id)
       );
+      
       setParticipants(sessionParticipants);
       setAttendance(attendanceRes.data);
       setTestResults(testResultsRes.data);
     } catch (error) {
       console.error("Failed to load session data", error);
+      toast.error("Failed to load session data");
     }
   };
 
