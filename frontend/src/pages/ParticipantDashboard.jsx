@@ -113,17 +113,30 @@ const ParticipantDashboard = ({ user, onLogout }) => {
       const response = await axiosInstance.post(`/certificates/generate/${sessionId}/${user.id}`);
       const certificateUrl = response.data.certificate_url;
       
-      // Create a temporary link and click it
+      // Fetch the PDF as blob
+      const pdfResponse = await axiosInstance.get(certificateUrl, {
+        responseType: 'blob'
+      });
+      
+      // Create blob with proper MIME type
+      const blob = new Blob([pdfResponse.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create download link
       const link = document.createElement('a');
-      link.href = `${process.env.REACT_APP_BACKEND_URL}${certificateUrl}`;
+      link.href = url;
       link.download = `certificate_${sessionId}.pdf`;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
+      link.style.display = 'none';
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
       
-      toast.success("Certificate downloading...");
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
+      toast.success("Certificate downloaded! Check your Downloads folder.");
     } catch (error) {
       console.error('Download error:', error);
       toast.error(error.response?.data?.detail || "Failed to download certificate");
@@ -132,17 +145,30 @@ const ParticipantDashboard = ({ user, onLogout }) => {
 
   const handleDownloadExistingCertificate = async (cert) => {
     try {
-      // Create a temporary link and click it
+      // Fetch the PDF as blob
+      const pdfResponse = await axiosInstance.get(cert.certificate_url, {
+        responseType: 'blob'
+      });
+      
+      // Create blob with proper MIME type
+      const blob = new Blob([pdfResponse.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create download link
       const link = document.createElement('a');
-      link.href = `${process.env.REACT_APP_BACKEND_URL}${cert.certificate_url}`;
+      link.href = url;
       link.download = `certificate_${cert.session_id}.pdf`;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
+      link.style.display = 'none';
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
       
-      toast.success("Certificate downloading...");
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
+      toast.success("Certificate downloaded! Check your Downloads folder.");
     } catch (error) {
       console.error('Download error:', error);
       toast.error("Failed to download certificate");
