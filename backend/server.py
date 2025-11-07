@@ -2257,7 +2257,8 @@ async def download_docx_report(session_id: str, current_user: User = Depends(get
     return FileResponse(
         path=str(report_path),
         media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        filename=training_report['docx_filename']
+        filename=training_report['docx_filename'],
+        headers={"Content-Disposition": f"attachment; filename={training_report['docx_filename']}"}
     )
 
 @api_router.post("/training-reports/{session_id}/upload-edited-docx")
