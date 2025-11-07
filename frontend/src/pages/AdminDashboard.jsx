@@ -835,6 +835,18 @@ const AdminDashboard = ({ user, onLogout }) => {
                               Tests
                             </Button>
                             <Button
+                              data-testid={`manage-checklists-${program.id}`}
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setActiveTab("checklists");
+                                setSelectedProgram(program);
+                              }}
+                            >
+                              <ClipboardList className="w-4 h-4 mr-1" />
+                              Checklists
+                            </Button>
+                            <Button
                               data-testid={`manage-feedback-${program.id}`}
                               size="sm"
                               variant="outline"
