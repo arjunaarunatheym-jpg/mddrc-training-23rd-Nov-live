@@ -418,6 +418,71 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
                     </CardContent>
                   </Card>
 
+                  {/* Release Controls */}
+                  <Card className="border-indigo-200">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Clock className="w-5 h-5 text-indigo-600" />
+                        Release Controls
+                      </CardTitle>
+                      <CardDescription>Control when participants can access tests and feedback</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {/* Pre-Test */}
+                        <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+                          <div>
+                            <p className="font-semibold text-gray-900">Pre-Test</p>
+                            <p className="text-sm text-gray-600">Initial assessment before training</p>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              className="sr-only peer"
+                              checked={sessionAccess.some(a => a.can_take_pre_test)}
+                              onChange={(e) => handleToggleAccess('pre_test', e.target.checked)}
+                            />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                          </label>
+                        </div>
+
+                        {/* Post-Test */}
+                        <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+                          <div>
+                            <p className="font-semibold text-gray-900">Post-Test</p>
+                            <p className="text-sm text-gray-600">Final assessment after training</p>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              className="sr-only peer"
+                              checked={sessionAccess.some(a => a.can_take_post_test)}
+                              onChange={(e) => handleToggleAccess('post_test', e.target.checked)}
+                            />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+                          </label>
+                        </div>
+
+                        {/* Feedback */}
+                        <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
+                          <div>
+                            <p className="font-semibold text-gray-900">Feedback Form</p>
+                            <p className="text-sm text-gray-600">Training feedback and evaluation</p>
+                          </div>
+                          <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              className="sr-only peer"
+                              checked={sessionAccess.some(a => a.can_submit_feedback)}
+                              onChange={(e) => handleToggleAccess('feedback', e.target.checked)}
+                            />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                          </label>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
                   {/* Participants */}
                   <Card>
                     <CardHeader>
