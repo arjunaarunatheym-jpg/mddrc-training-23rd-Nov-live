@@ -233,10 +233,8 @@ const ParticipantDashboard = ({ user, onLogout }) => {
   const handleClockIn = async (sessionId) => {
     try {
       await axiosInstance.post("/attendance/clock-in", { session_id: sessionId });
-      toast.success("Clocked in successfully! You can now access all features.");
+      toast.success("Clocked in successfully!");
       setAttendanceToday(prev => ({ ...prev, [sessionId]: { ...prev[sessionId], clock_in: true } }));
-      setHasClockedIn(true);
-      setCanAccessAllTabs(hasVehicleDetails && true);
     } catch (error) {
       toast.error(error.response?.data?.detail || "Failed to clock in");
     }
