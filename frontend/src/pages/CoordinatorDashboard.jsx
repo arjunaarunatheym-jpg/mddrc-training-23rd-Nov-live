@@ -196,8 +196,30 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
     setGeneratingReport(true);
     try {
       const response = await axiosInstance.post(`/training-reports/${selectedSession.id}/generate-ai-report`);
-      setAiGeneratedReport(response.data.generated_report);
-      toast.success("AI report generated successfully!");
+      
+      // Add checklist issues section to the AI report
+      let fullReport = response.data.generated_report;
+      
+      if (checklistIssues.length > 0) {
+        fullReport += "\n\n## VEHICLE INSPECTION ISSUES\n\n";
+        fullReport += "The following vehicle issues requiring attention were identified during trainer inspections:\n\n";
+        
+        checklistIssues.forEach((issue, idx) => {
+          fullReport += `**${idx + 1}. ${issue.participant_name}**\n`;
+          issue.items.forEach(item => {
+            fullReport += `   - ${item.item_name || item.name}: ${item.comments || 'Needs repair'}\n`;
+          });
+          fullReport += "\n";
+        });
+        
+        fullReport += "**Recommendation:** These issues should be addressed before participants use their vehicles on public roads.\n";
+      } else {
+        fullReport += "\n\n## VEHICLE INSPECTION\n\n";
+        fullReport += "All participant vehicles were inspected and found to be in good working condition. No issues requiring immediate attention were identified.\n";
+      }
+      
+      setAiGeneratedReport(fullReport);
+      toast.success("AI report generated successfully with checklist data!");
     } catch (error) {
       toast.error(error.response?.data?.detail || "Failed to generate AI report");
     } finally {
