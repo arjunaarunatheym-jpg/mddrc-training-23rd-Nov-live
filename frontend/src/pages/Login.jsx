@@ -50,6 +50,55 @@ const Login = ({ onLogin }) => {
     }
   };
 
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      await axiosInstance.post("/auth/forgot-password", { email: forgotEmail });
+      toast.success("Password reset instructions sent! Please check your email.");
+      setShowForgotPassword(false);
+      setShowResetPassword(true);
+      setResetEmail(forgotEmail);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to send reset instructions");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await axiosInstance.post("/auth/reset-password", {
+        email: resetEmail,
+        new_password: newPassword
+      });
+      toast.success("Password reset successfully! You can now login with your new password.");
+      setShowResetPassword(false);
+      setNewPassword("");
+      setConfirmPassword("");
+      setResetEmail("");
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to reset password");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const primaryColor = settings?.primary_color || "#3b82f6";
   const secondaryColor = settings?.secondary_color || "#6366f1";
   const companyName = settings?.company_name || "Malaysian Defensive Driving and Riding Centre Sdn Bhd";
