@@ -133,6 +133,20 @@ class Session(BaseModel):
     status: str = "active"  # "active" or "inactive"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class ParticipantData(BaseModel):
+    email: EmailStr
+    password: str
+    full_name: str
+    id_number: str
+    phone_number: Optional[str] = None
+
+class SupervisorData(BaseModel):
+    email: EmailStr
+    password: str
+    full_name: str
+    id_number: str
+    phone_number: Optional[str] = None
+
 class SessionCreate(BaseModel):
     name: str
     program_id: str
@@ -142,6 +156,8 @@ class SessionCreate(BaseModel):
     end_date: str
     supervisor_ids: List[str] = []
     participant_ids: List[str] = []
+    participants: List[ParticipantData] = []  # New participants to create or link
+    supervisors: List[SupervisorData] = []  # New supervisors to create or link
     trainer_assignments: List[dict] = []
     coordinator_id: Optional[str] = None
 
