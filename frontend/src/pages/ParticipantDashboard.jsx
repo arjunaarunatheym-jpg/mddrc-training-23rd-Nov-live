@@ -201,14 +201,9 @@ const ParticipantDashboard = ({ user, onLogout }) => {
       const response = await axiosInstance.get(`/vehicle-details/${sessionId}/${user.id}`);
       if (response.data) {
         setVehicleDetails(prev => ({ ...prev, [sessionId]: response.data }));
-        setHasVehicleDetails(true);
-        // Update access immediately
-        setCanAccessAllTabs(true && hasClockedIn);
       }
     } catch (error) {
       console.error("Failed to load vehicle details");
-      setHasVehicleDetails(false);
-      setCanAccessAllTabs(false);
     }
   };
 
@@ -220,17 +215,14 @@ const ParticipantDashboard = ({ user, onLogout }) => {
         const today = new Date().toISOString().split('T')[0];
         const todayAttendance = response.data.find(a => a.date === today);
         
-        if (todayAttendance && todayAttendance.clock_in_time) {
+        if (todayAttendance) {
           setAttendanceToday(prev => ({
             ...prev,
             [sessionId]: {
-              clock_in: true,
+              clock_in: !!todayAttendance.clock_in_time,
               clock_out: !!todayAttendance.clock_out_time
             }
           }));
-          setHasClockedIn(true);
-          // Update access immediately
-          setCanAccessAllTabs(hasVehicleDetails && true);
         }
       }
     } catch (error) {
