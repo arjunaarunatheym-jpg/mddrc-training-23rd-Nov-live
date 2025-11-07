@@ -128,6 +128,7 @@ class Session(BaseModel):
     participant_ids: List[str] = []
     trainer_assignments: List[dict] = []
     coordinator_id: Optional[str] = None
+    status: str = "active"  # "active" or "inactive"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class SessionCreate(BaseModel):
