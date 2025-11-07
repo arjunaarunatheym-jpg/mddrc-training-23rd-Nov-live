@@ -2313,6 +2313,66 @@ const AdminDashboard = ({ user, onLogout }) => {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Reset Password Dialog */}
+      <Dialog open={resetPasswordDialogOpen} onOpenChange={setResetPasswordDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              Set a new password for {resetPasswordUser?.full_name} ({resetPasswordUser?.email})
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleResetUserPassword} className="space-y-4">
+            <div>
+              <Label htmlFor="new-password">New Password</Label>
+              <Input
+                id="new-password"
+                type="password"
+                placeholder="Enter new password"
+                value={newPasswordForm.newPassword}
+                onChange={(e) => setNewPasswordForm({ ...newPasswordForm, newPassword: e.target.value })}
+                required
+                minLength={6}
+              />
+              <p className="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
+            </div>
+            <div>
+              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                placeholder="Confirm new password"
+                value={newPasswordForm.confirmPassword}
+                onChange={(e) => setNewPasswordForm({ ...newPasswordForm, confirmPassword: e.target.value })}
+                required
+                minLength={6}
+              />
+            </div>
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setResetPasswordDialogOpen(false);
+                  setResetPasswordUser(null);
+                  setNewPasswordForm({ newPassword: "", confirmPassword: "" });
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1"
+                style={{ backgroundColor: primaryColor }}
+              >
+                Reset Password
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
