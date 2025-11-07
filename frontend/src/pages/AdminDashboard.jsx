@@ -127,6 +127,47 @@ const AdminDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const loadSupervisors = async () => {
+    try {
+      const response = await axiosInstance.get("/users?role=pic_supervisor");
+      setSupervisors(response.data);
+    } catch (error) {
+      console.error("Failed to load supervisors:", error);
+    }
+  };
+
+  const handleCreateSupervisor = async (e) => {
+    e.preventDefault();
+    if (!supervisorForm.email || !supervisorForm.password || !supervisorForm.full_name || !supervisorForm.company_id) {
+      toast.error("Please fill all fields");
+      return;
+    }
+    try {
+      await axiosInstance.post("/auth/register", {
+        ...supervisorForm,
+        role: "pic_supervisor"
+      });
+      toast.success("Supervisor created successfully");
+      setSupervisorDialogOpen(false);
+      setSupervisorForm({ email: "", password: "", full_name: "", company_id: "" });
+      loadSupervisors();
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to create supervisor");
+    }
+  };
+
+  const handleDeleteSupervisor = async (supervisorId) => {
+    try {
+      await axiosInstance.delete(`/users/${supervisorId}`);
+      toast.success("Supervisor deleted");
+      loadSupervisors();
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to delete supervisor");
+    }
+  };
+
   const handleCreateCompany = async (e) => {
     e.preventDefault();
     try {
