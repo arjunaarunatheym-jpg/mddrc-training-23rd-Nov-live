@@ -2709,6 +2709,9 @@ async def generate_training_report_content(session_id: str, program_id: str, com
         "session_id": session_id
     }, {"_id": 0}).to_list(100)
     
+    # Create participant ID to name mapping
+    participant_map = {p.get('id'): p.get('full_name') for p in participants}
+    
     # Build comprehensive data structure
     training_data = {
         "session": {
@@ -2726,7 +2729,8 @@ async def generate_training_report_content(session_id: str, program_id: str, com
         },
         "participants": {
             "total": len(participants),
-            "names": [p.get('full_name') for p in participants]
+            "names": [p.get('full_name') for p in participants],
+            "id_map": participant_map
         },
         "pre_test_results": {
             "total_participants": len(pre_tests),
