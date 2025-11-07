@@ -343,37 +343,31 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
     }
 
     try {
-      // Create or find participant
-      const response = await axiosInstance.post("/sessions", {
-        name: selectedSession.name,
-        program_id: selectedSession.program_id,
-        company_id: selectedSession.company_id,
-        location: selectedSession.location,
-        start_date: selectedSession.start_date,
-        end_date: selectedSession.end_date,
-        participant_ids: selectedSession.participant_ids || [],
-        participants: [newParticipant],
-        supervisors: [],
-        supervisor_ids: selectedSession.supervisor_ids || [],
-        trainer_assignments: selectedSession.trainer_assignments || [],
-        coordinator_id: selectedSession.coordinator_id
+      // Create new user
+      const userResponse = await axiosInstance.post("/auth/register", {
+        ...newParticipant,
+        role: "participant",
+        company_id: selectedSession.company_id
       });
 
-      // Update session with new participant
-      const updatedSession = {
-        ...selectedSession,
-        participant_ids: response.data.session.participant_ids
-      };
+      const newUserId = userResponse.data.id;
 
-      await axiosInstance.put(`/sessions/${selectedSession.id}`, updatedSession);
+      // Add to session
+      const updatedParticipantIds = [...(selectedSession.participant_ids || []), newUserId];
+      await axiosInstance.put(`/sessions/${selectedSession.id}`, {
+        ...selectedSession,
+        participant_ids: updatedParticipantIds
+      });
       
-      toast.success("Participant added successfully");
+      toast.success(`Participant ${newParticipant.full_name} added successfully`);
       setAddParticipantDialogOpen(false);
       setNewParticipant({ email: "", password: "", full_name: "", id_number: "", phone_number: "" });
       
       // Reload data
       await loadSessions();
-      await loadSessionData(selectedSession.id);
+      if (selectedSession) {
+        await loadSessionData(selectedSession.id);
+      }
     } catch (error) {
       toast.error(error.response?.data?.detail || "Failed to add participant");
     }
