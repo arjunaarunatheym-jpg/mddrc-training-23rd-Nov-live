@@ -403,6 +403,26 @@ async def get_or_create_participant_access(participant_id: str, session_id: str)
     
     return ParticipantAccess(**access_doc)
 
+# Training Report Models
+class TrainingReport(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    session_id: str
+    program_id: str
+    company_id: str
+    generated_by: str  # coordinator_id
+    content: str  # Markdown content
+    status: str  # "draft" or "published"
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    published_at: Optional[datetime] = None
+    published_to_supervisors: List[str] = []  # List of supervisor IDs
+
+class ReportGenerateRequest(BaseModel):
+    session_id: str
+
+class ReportUpdateRequest(BaseModel):
+    content: str
+
 # ============ ROUTES ============
 
 @api_router.get("/")
