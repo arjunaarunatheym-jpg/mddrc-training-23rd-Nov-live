@@ -52,6 +52,9 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
       const coordinatorSessions = response.data.filter(s => s.coordinator_id === user.id);
       setSessions(coordinatorSessions);
       
+      // Load stats for all sessions
+      await loadAllSessionStats(coordinatorSessions);
+      
       if (coordinatorSessions.length > 0) {
         selectSession(coordinatorSessions[0]);
       }
@@ -60,6 +63,42 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
       toast.error("Failed to load sessions");
       setLoading(false);
     }
+  };
+
+  const loadAllSessionStats = async (sessionsList) => {
+    const stats = {};
+    
+    for (const session of sessionsList) {
+      try {
+        const [testResultsRes, feedbackRes] = await Promise.all([
+          axiosInstance.get(`/tests/results/session/${session.id}`).catch(() => ({ data: [] })),
+          axiosInstance.get(`/feedback/session/${session.id}`).catch(() => ({ data: [] }))
+        ]);
+        
+        const testResults = testResultsRes.data || [];
+        const feedbackResults = feedbackRes.data || [];
+        
+        const preTestResults = testResults.filter(r => r.test_type === 'pre');
+        const postTestResults = testResults.filter(r => r.test_type === 'post');
+        
+        stats[session.id] = {
+          participantCount: session.participant_ids?.length || 0,
+          preTestCompleted: preTestResults.length,
+          postTestCompleted: postTestResults.length,
+          feedbackCompleted: feedbackResults.length
+        };
+      } catch (error) {
+        console.error(`Failed to load stats for session ${session.id}`);
+        stats[session.id] = {
+          participantCount: session.participant_ids?.length || 0,
+          preTestCompleted: 0,
+          postTestCompleted: 0,
+          feedbackCompleted: 0
+        };
+      }
+    }
+    
+    setSessionStats(stats);
   };
 
   const selectSession = async (session) => {
