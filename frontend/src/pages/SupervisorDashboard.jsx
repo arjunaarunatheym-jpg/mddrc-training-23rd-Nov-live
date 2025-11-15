@@ -38,6 +38,40 @@ const SupervisorDashboard = ({ user, onLogout }) => {
       setAttendance(response.data);
     } catch (error) {
       console.error("Failed to load attendance", error);
+
+
+  const loadReports = async () => {
+    setLoadingReports(true);
+    try {
+      const response = await axiosInstance.get("/training-reports/supervisor/sessions");
+      setReports(response.data || []);
+    } catch (error) {
+      console.error("Failed to load reports", error);
+      toast.error("Failed to load reports");
+    } finally {
+      setLoadingReports(false);
+    }
+  };
+
+  const downloadReport = async (report) => {
+    try {
+      const response = await axiosInstance.get(report.pdf_url, {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Training_Report_${report.session_name?.replace(/\s+/g, '_')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Report downloaded!");
+    } catch (error) {
+      toast.error("Failed to download report");
+    }
+  };
+
       toast.error("Failed to load attendance");
     }
   };
