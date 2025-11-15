@@ -186,10 +186,12 @@ const TrainerDashboard = ({ user, onLogout }) => {
               <ClipboardCheck className="w-4 h-4 mr-2" />
               Checklists
             </TabsTrigger>
-            <TabsTrigger value="feedback" data-testid="feedback-tab">
-              <MessageSquare className="w-4 h-4 mr-2" />
-              Chief Trainer Feedback
-            </TabsTrigger>
+            {isChiefTrainerForAnySessions() && (
+              <TabsTrigger value="feedback" data-testid="feedback-tab">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Chief Trainer Feedback
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="sessions">
