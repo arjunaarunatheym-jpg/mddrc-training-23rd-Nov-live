@@ -29,6 +29,16 @@ const SupervisorDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const loadAttendance = async (sessionId) => {
+    try {
+      const response = await axiosInstance.get(`/attendance/session/${sessionId}`);
+      setAttendance(response.data);
+    } catch (error) {
+      console.error("Failed to load attendance", error);
+      toast.error("Failed to load attendance");
+    }
+  };
+
   const handleVerifyChecklist = async (checklistId, status) => {
     try {
       await axiosInstance.post("/checklists/verify", {
