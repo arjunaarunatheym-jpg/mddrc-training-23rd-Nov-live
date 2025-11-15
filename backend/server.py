@@ -3121,7 +3121,11 @@ async def generate_certificate(session_id: str, participant_id: str, current_use
     # Convert to PDF
     pdf_filename = f"certificate_{participant_id}_{session_id}.pdf"
     pdf_path = CERTIFICATE_PDF_DIR / pdf_filename
-    convert_docx_to_pdf(cert_path, pdf_path)
+    
+    # Convert and verify
+    conversion_success = convert_docx_to_pdf(cert_path, pdf_path)
+    if not conversion_success or not pdf_path.exists():
+        raise HTTPException(status_code=500, detail="Failed to convert certificate to PDF. Please contact support.")
     
     # Store certificate record (using PDF URL)
     cert_url = f"/api/static/certificates_pdf/{pdf_filename}"
