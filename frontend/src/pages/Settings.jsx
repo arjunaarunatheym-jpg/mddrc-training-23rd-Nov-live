@@ -317,6 +317,19 @@ const Settings = () => {
               data-testid="footer-text-input"
             />
           </div>
+          <div>
+            <Label htmlFor="max-cert-size">Max Certificate File Size (MB)</Label>
+            <Input
+              id="max-cert-size"
+              type="number"
+              min="1"
+              max="50"
+              value={formData.max_certificate_file_size_mb}
+              onChange={(e) => setFormData({ ...formData, max_certificate_file_size_mb: parseInt(e.target.value) || 5 })}
+              data-testid="max-cert-size-input"
+            />
+            <p className="text-xs text-gray-500 mt-1">Maximum file size for coordinator certificate uploads (1-50 MB)</p>
+          </div>
         </CardContent>
       </Card>
 
