@@ -629,6 +629,42 @@ async def login(user_data: UserLogin):
     
     token = create_access_token({"sub": user_doc['id']})
     
+    # Auto-create attendance for participants when they log in
+    if user_doc.get('role') == 'participant':
+        try:
+            # Find active sessions for this participant
+            active_sessions = await db.sessions.find({
+                "participant_ids": user_doc['id']
+            }, {"_id": 0}).to_list(100)
+            
+            for session in active_sessions:
+                # Check if attendance already exists for today
+                today = datetime.now(timezone.utc).date().isoformat()
+                existing_attendance = await db.attendance.find_one({
+                    "participant_id": user_doc['id'],
+                    "session_id": session['id'],
+                    "date": today
+                })
+                
+                if not existing_attendance:
+                    # Create attendance record with clock-in time
+                    attendance_record = {
+                        "id": str(uuid.uuid4()),
+                        "participant_id": user_doc['id'],
+                        "session_id": session['id'],
+                        "date": today,
+                        "clock_in": datetime.now(timezone.utc).strftime("%H:%M:%S"),
+                        "clock_out": None,
+                        "vehicle_type": None,
+                        "plate_number": None,
+                        "created_at": datetime.now(timezone.utc).isoformat()
+                    }
+                    await db.attendance.insert_one(attendance_record)
+                    logging.info(f"Auto-created attendance for participant {user_doc['id']} in session {session['id']}")
+        except Exception as e:
+            logging.error(f"Failed to auto-create attendance: {str(e)}")
+            # Don't fail login if attendance creation fails
+    
     if isinstance(user_doc.get('created_at'), str):
         user_doc['created_at'] = datetime.fromisoformat(user_doc['created_at'])
     
