@@ -1366,7 +1366,7 @@ async def get_results_summary(session_id: str, current_user: User = Depends(get_
     ).to_list(1000)
     
     # Get feedback for all participants
-    feedbacks = await db.feedbacks.find(
+    feedbacks = await db.course_feedback.find(
         {"session_id": session_id},
         {"_id": 0}
     ).to_list(1000)
