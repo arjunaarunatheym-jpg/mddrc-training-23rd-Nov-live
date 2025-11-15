@@ -66,6 +66,13 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
   const [uploadingCertificates, setUploadingCertificates] = useState({});
   const [certificateStatuses, setCertificateStatuses] = useState({});
 
+  // Coordinator Feedback states
+  const [coordinatorFeedbackTemplate, setCoordinatorFeedbackTemplate] = useState(null);
+  const [coordinatorFeedback, setCoordinatorFeedback] = useState({});
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+
+
 
   useEffect(() => {
     loadSessions();
