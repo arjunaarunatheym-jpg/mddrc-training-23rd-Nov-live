@@ -9,6 +9,8 @@ import { LogOut, ClipboardCheck, Users, CheckCircle, XCircle } from "lucide-reac
 const SupervisorDashboard = ({ user, onLogout }) => {
   const [sessions, setSessions] = useState([]);
   const [pendingChecklists, setPendingChecklists] = useState([]);
+  const [selectedSession, setSelectedSession] = useState(null);
+  const [attendance, setAttendance] = useState([]);
 
   useEffect(() => {
     loadData();
