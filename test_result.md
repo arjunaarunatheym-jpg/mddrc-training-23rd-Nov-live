@@ -379,6 +379,21 @@ frontend:
         agent: "main"
         comment: "Added forgot password and reset password functionality. Backend: Added POST /auth/forgot-password endpoint (sends success message, in production would send email), POST /auth/reset-password endpoint (directly resets password with email verification). Frontend: Added 'Forgot Password?' link on login page, modal for entering email, modal for entering new password and confirmation. Password validation (min 6 chars, must match). Visual feedback with success/error toasts. Ready for testing."
 
+  - task: "Feedback display bug fix"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "USER REPORTED: Participants have submitted feedback but coordinator dashboard shows 0/6 feedback submissions. Feedback not reflecting in results summary."
+      - working: "NA"
+        agent: "main"
+        comment: "FIXED: Line 1369 in server.py was querying wrong collection db.feedbacks instead of db.course_feedback. Changed to correct collection name. This should now show accurate feedback submission counts in coordinator dashboard."
+
   - task: "Admin Dashboard - Session Delete Functionality"
     implemented: true
     working: "NA"
