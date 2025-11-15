@@ -387,7 +387,8 @@ const TrainerDashboard = ({ user, onLogout }) => {
           </TabsContent>
 
 
-          {/* Chief Trainer Feedback Tab */}
+          {/* Chief Trainer Feedback Tab - Only shown for chief trainers */}
+          {isChiefTrainerForAnySessions() && (
           <TabsContent value="feedback">
             <Card className="mb-6">
               <CardHeader>
