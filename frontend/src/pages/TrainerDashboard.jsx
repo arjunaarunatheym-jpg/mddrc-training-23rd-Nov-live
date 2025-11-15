@@ -13,6 +13,13 @@ const TrainerDashboard = ({ user, onLogout }) => {
   const [expandedSession, setExpandedSession] = useState(null);
   const [sessionParticipants, setSessionParticipants] = useState({});
 
+  const [feedbackTemplate, setFeedbackTemplate] = useState(null);
+  const [selectedFeedbackSession, setSelectedFeedbackSession] = useState(null);
+  const [feedback, setFeedback] = useState({});
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+
+
   useEffect(() => {
     loadSessions();
   }, []);
