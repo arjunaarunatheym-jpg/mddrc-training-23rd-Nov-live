@@ -586,8 +586,12 @@ async def root():
 # Auth Routes
 @api_router.post("/auth/register", response_model=User)
 async def register_user(user_data: UserCreate, current_user: User = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can create users")
+    # Admins can create any user, coordinators can only create participants
+    if current_user.role == "coordinator":
+        if user_data.role != "participant":
+            raise HTTPException(status_code=403, detail="Coordinators can only create participants")
+    elif current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Access denied")
     
     existing = await db.users.find_one({"email": user_data.email}, {"_id": 0})
     if existing:
