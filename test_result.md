@@ -441,11 +441,11 @@ frontend:
 
   - task: "Attendance records display issue"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "user"
@@ -453,6 +453,9 @@ frontend:
       - working: "NA"
         agent: "main"
         comment: "Backend endpoint GET /attendance/session/{session_id} at line 1891 looks correct. Frontend is calling correct endpoint. Need testing to verify if attendance is being created when participants clock in/out and if it's displaying properly."
+      - working: false
+        agent: "testing"
+        comment: "❌ ATTENDANCE RECORDS DISPLAY ISSUE IDENTIFIED! Testing completed with 2/3 tests passed. ✅ Test 1: Participant Clock-In - Successfully working via POST /api/attendance/clock-in. ✅ Test 2: Participant Clock-Out - Successfully working via POST /api/attendance/clock-out. ❌ Test 3: Session-Level Attendance Display - CRITICAL ISSUE FOUND: Individual attendance query (GET /api/attendance/{session_id}/{participant_id}) returns records correctly, but session-level query (GET /api/attendance/session/{session_id}) returns 0 records despite MongoDB containing the data. Database investigation shows attendance records exist and session-level MongoDB query works, but the API endpoint is not returning them. Issue appears to be in the participant enrichment logic at lines 1907-1920 in server.py. Attendance records are being created correctly but not displayed in Coordinator/Supervisor portals due to this API endpoint bug."
 
   - task: "Upload PDF not working in Analytics tab"
     implemented: true
