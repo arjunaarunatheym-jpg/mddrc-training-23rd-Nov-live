@@ -1815,6 +1815,224 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
                     </CardContent>
                   </Card>
 
+
+                  {/* Coordinator Feedback Section */}
+                  <Card className="md:col-span-2">
+                    <CardHeader>
+                      <CardTitle>Coordinator Feedback</CardTitle>
+                      <CardDescription>Provide your feedback about the training session</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {coordinatorFeedbackTemplate && (
+                        <div className="space-y-4">
+                          {coordinatorFeedbackTemplate.questions?.map((question) => (
+                            <div key={question.id} className="space-y-2">
+                              <label className="text-sm font-medium text-gray-700">
+                                {question.question}
+                                {question.type === 'rating' && <span className="text-gray-500 ml-1">(Rate 1-{question.scale})</span>}
+                              </label>
+                              {question.type === 'rating' ? (
+                                <div className="flex gap-2">
+                                  {[...Array(question.scale)].map((_, i) => (
+                                    <button
+                                      key={i}
+                                      onClick={() => setCoordinatorFeedback({...coordinatorFeedback, [question.id]: i + 1})}
+                                      className={`w-10 h-10 rounded-full font-bold ${
+                                        coordinatorFeedback[question.id] === i + 1
+                                          ? 'bg-blue-600 text-white'
+                                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                                      }`}
+                                      disabled={feedbackSubmitted}
+                                    >
+                                      {i + 1}
+                                    </button>
+                                  ))}
+                                </div>
+                              ) : (
+                                <textarea
+                                  value={coordinatorFeedback[question.id] || ''}
+                                  onChange={(e) => setCoordinatorFeedback({...coordinatorFeedback, [question.id]: e.target.value})}
+                                  className="w-full p-2 border rounded-md"
+                                  rows={3}
+                                  disabled={feedbackSubmitted}
+                                  placeholder="Enter your response..."
+                                />
+                              )}
+                            </div>
+                          ))}
+                          
+                          <div className="flex items-center gap-2 mt-6">
+                            {feedbackSubmitted ? (
+                              <div className="flex items-center gap-2">
+                                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                                  ✓ Feedback Submitted
+                                </span>
+                                <Button
+                                  onClick={() => setFeedbackSubmitted(false)}
+                                  variant="outline"
+                                  size="sm"
+                                >
+                                  Edit
+                                </Button>
+                              </div>
+                            ) : (
+                              <Button
+                                onClick={handleSubmitCoordinatorFeedback}
+                                disabled={submittingFeedback}
+                                className="bg-blue-600 hover:bg-blue-700"
+                              >
+                                {submittingFeedback ? "Submitting..." : "Submit Feedback"}
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Report Generation Section */}
+                  <Card className="md:col-span-2">
+                    <CardHeader>
+                      <CardTitle>Training Report Generation</CardTitle>
+                      <CardDescription>Generate comprehensive training report with all session data</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <h4 className="font-semibold text-blue-900 mb-2">Report Generation Workflow:</h4>
+                          <ol className="list-decimal list-inside space-y-1 text-sm text-blue-800">
+                            <li>Generate DOCX report with all session data</li>
+                            <li>Download and edit the report offline (add photos, notes, etc.)</li>
+                            <li>Upload the edited report as PDF</li>
+                            <li>Report will be visible in Supervisor and Admin portals</li>
+                          </ol>
+                        </div>
+
+                        <div className="space-y-3">
+                          {/* Step 1: Generate DOCX */}
+                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="flex-1">
+                              <h5 className="font-medium text-gray-900">Step 1: Generate DOCX Report</h5>
+                              <p className="text-sm text-gray-600">Creates a Word document with all session data</p>
+                            </div>
+                            <Button
+                              onClick={async () => {
+                                if (!selectedSession) return;
+                                setGeneratingDOCX(true);
+                                try {
+                                  await axiosInstance.post(`/training-reports/${selectedSession.id}/generate-docx`);
+                                  toast.success("Report generated! Click download to get the file.");
+                                  setProfessionalReportStatus({...professionalReportStatus, docx_generated: true});
+                                } catch (error) {
+                                  toast.error(error.response?.data?.detail || "Failed to generate report");
+                                } finally {
+                                  setGeneratingDOCX(false);
+                                }
+                              }}
+                              disabled={generatingDOCX}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              {generatingDOCX ? "Generating..." : "Generate DOCX"}
+                            </Button>
+                          </div>
+
+                          {/* Step 2: Download DOCX */}
+                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="flex-1">
+                              <h5 className="font-medium text-gray-900">Step 2: Download DOCX</h5>
+                              <p className="text-sm text-gray-600">Download to edit offline</p>
+                            </div>
+                            <Button
+                              onClick={async () => {
+                                if (!selectedSession) return;
+                                try {
+                                  const response = await axiosInstance.get(
+                                    `/training-reports/${selectedSession.id}/download-docx`,
+                                    { responseType: 'blob' }
+                                  );
+                                  const url = window.URL.createObjectURL(new Blob([response.data]));
+                                  const link = document.createElement('a');
+                                  link.href = url;
+                                  link.download = `Training_Report_${selectedSession.name.replace(/\s+/g, '_')}.docx`;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  link.remove();
+                                  window.URL.revokeObjectURL(url);
+                                  toast.success("Report downloaded!");
+                                } catch (error) {
+                                  toast.error("Failed to download report");
+                                }
+                              }}
+                              variant="outline"
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              Download DOCX
+                            </Button>
+                          </div>
+
+                          {/* Step 3: Upload Final PDF */}
+                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="flex-1">
+                              <h5 className="font-medium text-gray-900">Step 3: Upload Final PDF</h5>
+                              <p className="text-sm text-gray-600">After editing, upload the final PDF version</p>
+                            </div>
+                            <label className="cursor-pointer">
+                              <Button variant="outline" as="span" disabled={uploadingEdited}>
+                                <Upload className="w-4 h-4 mr-2" />
+                                {uploadingEdited ? "Uploading..." : "Upload PDF"}
+                              </Button>
+                              <input
+                                type="file"
+                                accept=".pdf"
+                                className="hidden"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file || !selectedSession) return;
+                                  
+                                  if (!file.name.toLowerCase().endsWith('.pdf')) {
+                                    toast.error("Please upload a PDF file");
+                                    return;
+                                  }
+
+                                  setUploadingEdited(true);
+                                  try {
+                                    const formData = new FormData();
+                                    formData.append('file', file);
+                                    
+                                    await axiosInstance.post(
+                                      `/training-reports/${selectedSession.id}/upload-final-pdf`,
+                                      formData,
+                                      { headers: { 'Content-Type': 'multipart/form-data' } }
+                                    );
+                                    
+                                    toast.success("Final report submitted successfully!");
+                                    setProfessionalReportStatus({
+                                      ...professionalReportStatus,
+                                      pdf_submitted: true
+                                    });
+                                  } catch (error) {
+                                    toast.error(error.response?.data?.detail || "Failed to upload report");
+                                  } finally {
+                                    setUploadingEdited(false);
+                                  }
+                                  e.target.value = null;
+                                }}
+                              />
+                            </label>
+                          </div>
+
+                          {professionalReportStatus.pdf_submitted && (
+                            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                              <p className="text-green-800 font-medium">✓ Final report submitted successfully!</p>
+                              <p className="text-sm text-green-700 mt-1">Report is now available in Supervisor and Admin portals.</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+
             </TabsContent>
           </Tabs>
         )}
