@@ -4326,7 +4326,7 @@ async def get_session_attendance(session_id: str, current_user: User = Depends(g
         raise HTTPException(status_code=403, detail="Unauthorized")
     
     # Get attendance records
-    attendance = await db.attendance_records.find({
+    attendance = await db.attendance.find({
         "session_id": session_id
     }, {"_id": 0}).to_list(100)
     
@@ -4334,8 +4334,11 @@ async def get_session_attendance(session_id: str, current_user: User = Depends(g
     for record in attendance:
         participant = await db.users.find_one({"id": record['participant_id']}, {"_id": 0, "password": 0})
         if participant:
-            record['participant_name'] = participant.get('full_name')
-            record['participant_email'] = participant.get('email')
+            record['participant_name'] = participant.get('full_name', 'Unknown')
+            record['participant_email'] = participant.get('email', '')
+        else:
+            record['participant_name'] = f"Participant {record['participant_id']}"
+            record['participant_email'] = ''
     
     return attendance
 
