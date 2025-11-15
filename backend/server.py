@@ -2675,6 +2675,78 @@ async def upload_edited_docx(
         logging.error(f"Failed to upload edited report: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to upload report: {str(e)}")
 
+
+
+@api_router.post("/training-reports/{session_id}/upload-final-pdf")
+async def upload_final_pdf_report(
+    session_id: str,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload final edited PDF report"""
+    
+    if current_user.role not in ["coordinator", "admin"]:
+        raise HTTPException(status_code=403, detail="Only coordinators and admins can upload reports")
+    
+    # Validate file type
+    if not file.filename.lower().endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="Only PDF files are accepted")
+    
+    # Check file size (max 20MB)
+    file.file.seek(0, 2)
+    file_size = file.file.tell()
+    file.file.seek(0)
+    
+    max_size = 20 * 1024 * 1024  # 20MB
+    if file_size > max_size:
+        raise HTTPException(status_code=400, detail="File size exceeds 20MB limit")
+    
+    try:
+        # Save final PDF
+        pdf_filename = f"Training_Report_{session_id}_final_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.pdf"
+        pdf_path = REPORT_PDF_DIR / pdf_filename
+        
+        with open(pdf_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Get session and program details
+        session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+        program = None
+        company = None
+        if session:
+            if session.get('program_id'):
+                program = await db.programs.find_one({"id": session['program_id']}, {"_id": 0})
+            if session.get('company_id'):
+                company = await db.companies.find_one({"id": session['company_id']}, {"_id": 0})
+        
+        # Update database with submitted status
+        await db.training_reports.update_one(
+            {"session_id": session_id},
+            {"$set": {
+                "final_pdf_filename": pdf_filename,
+                "pdf_url": f"/api/static/reports_pdf/{pdf_filename}",
+                "status": "submitted",
+                "submitted_at": datetime.now(timezone.utc).isoformat(),
+                "submitted_by": current_user.id,
+                "program_id": program.get('id') if program else None,
+                "company_id": company.get('id') if company else None,
+                "session_name": session.get('name') if session else None,
+                "session_start_date": session.get('start_date') if session else None,
+                "session_end_date": session.get('end_date') if session else None
+            }},
+            upsert=True
+        )
+        
+        return {
+            "message": "Final report submitted successfully",
+            "filename": pdf_filename,
+            "pdf_url": f"/api/static/reports_pdf/{pdf_filename}"
+        }
+        
+    except Exception as e:
+        logging.error(f"Failed to upload final PDF: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload report: {str(e)}")
+
 @api_router.post("/training-reports/{session_id}/submit-final")
 async def submit_final_report(session_id: str, current_user: User = Depends(get_current_user)):
     """Submit final report - converts to PDF and notifies supervisor/admin"""
