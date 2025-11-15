@@ -2336,8 +2336,20 @@ async def generate_docx_report(session_id: str, current_user: User = Depends(get
         
         doc.add_page_break()
         
+        # CHIEF TRAINER COMMENTS
+        doc.add_heading('8. CHIEF TRAINER COMMENTS', 1)
+        chief_comments = session.get('chief_trainer_comments')
+        if chief_comments:
+            chief_name = session.get('chief_trainer_name', 'Chief Trainer')
+            doc.add_paragraph(f"Comments by {chief_name}:", style='Heading 3')
+            doc.add_paragraph(chief_comments)
+        else:
+            doc.add_paragraph("[Chief trainer comments pending]")
+        
+        doc.add_page_break()
+        
         # COORDINATOR COMMENTS
-        doc.add_heading('8. COORDINATOR COMMENTS & OBSERVATIONS', 1)
+        doc.add_heading('9. COORDINATOR COMMENTS & OBSERVATIONS', 1)
         doc.add_paragraph("[Please add your comments and observations here]")
         doc.add_paragraph()
         doc.add_paragraph()
