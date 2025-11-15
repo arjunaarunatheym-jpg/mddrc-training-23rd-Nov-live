@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { LogOut, ClipboardCheck, Users, CheckCircle, XCircle } from "lucide-react";
+import { LogOut, ClipboardCheck, Users, CheckCircle, XCircle, FileText, Download } from "lucide-react";
 
 const SupervisorDashboard = ({ user, onLogout }) => {
   const [sessions, setSessions] = useState([]);
