@@ -506,6 +506,7 @@ const TrainerDashboard = ({ user, onLogout }) => {
               </Card>
             )}
           </TabsContent>
+          )}
 
         </Tabs>
       </main>
