@@ -3117,6 +3117,207 @@ async def upload_certificate_template(file: UploadFile = File(...), current_user
     
     return {"template_url": template_url, "message": "Certificate template uploaded successfully"}
 
+# Upload Certificate for Participant
+@api_router.post("/certificates/upload/{session_id}/{participant_id}")
+async def upload_participant_certificate(
+    session_id: str, 
+    participant_id: str,
+    file: UploadFile = File(...), 
+    current_user: User = Depends(get_current_user)
+):
+    """Upload certificate PDF for a specific participant in a session."""
+    # Only coordinators assigned to the session or admins can upload
+    if current_user.role == "coordinator":
+        session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        if session.get("coordinator_id") != current_user.id:
+            raise HTTPException(status_code=403, detail="You can only upload certificates for your assigned sessions")
+    elif current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Only coordinators and admins can upload certificates")
+    
+    # Validate file type
+    if not file.filename.lower().endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="Only PDF files are accepted")
+    
+    # Get max file size from settings
+    settings = await db.settings.find_one({"id": "app_settings"}, {"_id": 0})
+    max_size_mb = settings.get('max_certificate_file_size_mb', 5) if settings else 5
+    max_size_bytes = max_size_mb * 1024 * 1024
+    
+    # Check file size
+    file.file.seek(0, 2)  # Seek to end
+    file_size = file.file.tell()
+    file.file.seek(0)  # Reset to beginning
+    
+    if file_size > max_size_bytes:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"File size exceeds maximum allowed size of {max_size_mb}MB"
+        )
+    
+    # Create unique filename
+    file_extension = ".pdf"
+    unique_filename = f"{session_id}_{participant_id}_{uuid.uuid4().hex[:8]}{file_extension}"
+    file_path = CERTIFICATE_PDF_DIR / unique_filename
+    
+    # Save file
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    certificate_url = f"/api/static/certificates_pdf/{unique_filename}"
+    
+    # Update participant access record with certificate info
+    await db.participant_access.update_one(
+        {"participant_id": participant_id, "session_id": session_id},
+        {
+            "$set": {
+                "certificate_url": certificate_url,
+                "certificate_uploaded_at": datetime.now(timezone.utc).isoformat(),
+                "certificate_uploaded_by": current_user.id
+            }
+        },
+        upsert=True
+    )
+    
+    return {
+        "certificate_url": certificate_url,
+        "message": "Certificate uploaded successfully",
+        "file_size_mb": round(file_size / (1024 * 1024), 2)
+    }
+
+# Download Certificate for Participant
+@api_router.get("/certificates/download/{session_id}/{participant_id}")
+async def download_participant_certificate(
+    session_id: str, 
+    participant_id: str, 
+    current_user: User = Depends(get_current_user)
+):
+    """Download certificate for a participant. Only accessible if participant has submitted feedback and clocked out."""
+    
+    # Check if user is the participant or admin/coordinator
+    if current_user.id != participant_id and current_user.role not in ["admin", "coordinator"]:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    # Get session
+    session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Check if session is active (participants can only access if session is active)
+    if current_user.id == participant_id and session.get("status") != "active":
+        raise HTTPException(status_code=403, detail="Certificate access is not available. Session is not active.")
+    
+    # Get participant access
+    access = await db.participant_access.find_one(
+        {"participant_id": participant_id, "session_id": session_id},
+        {"_id": 0}
+    )
+    
+    if not access:
+        raise HTTPException(status_code=404, detail="No certificate found")
+    
+    # Check if certificate exists
+    certificate_url = access.get('certificate_url')
+    if not certificate_url:
+        raise HTTPException(status_code=404, detail="No certificate uploaded for this participant")
+    
+    # For participants, check eligibility (feedback + clock out)
+    if current_user.id == participant_id:
+        # Check feedback submission
+        if not access.get('feedback_submitted', False):
+            raise HTTPException(
+                status_code=403, 
+                detail="Certificate not available. Please submit your feedback first."
+            )
+        
+        # Check if clocked out
+        attendance = await db.attendance.find_one(
+            {
+                "participant_id": participant_id,
+                "session_id": session_id,
+                "clock_out_time": {"$ne": None}
+            },
+            {"_id": 0}
+        )
+        
+        if not attendance:
+            raise HTTPException(
+                status_code=403,
+                detail="Certificate not available. Please clock out first."
+            )
+    
+    # Get file path
+    filename = certificate_url.split('/')[-1]
+    file_path = CERTIFICATE_PDF_DIR / filename
+    
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Certificate file not found")
+    
+    # Get participant name for filename
+    participant = await db.users.find_one({"id": participant_id}, {"_id": 0})
+    participant_name = participant.get('full_name', 'participant').replace(' ', '_') if participant else 'participant'
+    
+    return FileResponse(
+        file_path,
+        media_type="application/pdf",
+        filename=f"{participant_name}_certificate.pdf"
+    )
+
+# Check Certificate Eligibility
+@api_router.get("/certificates/eligibility/{session_id}/{participant_id}")
+async def check_certificate_eligibility(
+    session_id: str,
+    participant_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Check if participant is eligible to view certificate."""
+    
+    # Only the participant themselves or admin/coordinator can check
+    if current_user.id != participant_id and current_user.role not in ["admin", "coordinator"]:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    # Get session
+    session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Get participant access
+    access = await db.participant_access.find_one(
+        {"participant_id": participant_id, "session_id": session_id},
+        {"_id": 0}
+    )
+    
+    # Check conditions
+    has_certificate = bool(access and access.get('certificate_url'))
+    feedback_submitted = bool(access and access.get('feedback_submitted', False))
+    
+    # Check clock out
+    attendance = await db.attendance.find_one(
+        {
+            "participant_id": participant_id,
+            "session_id": session_id,
+            "clock_out_time": {"$ne": None}
+        },
+        {"_id": 0}
+    )
+    clocked_out = bool(attendance)
+    
+    session_active = session.get("status") == "active"
+    
+    eligible = has_certificate and feedback_submitted and clocked_out and session_active
+    
+    return {
+        "eligible": eligible,
+        "has_certificate": has_certificate,
+        "feedback_submitted": feedback_submitted,
+        "clocked_out": clocked_out,
+        "session_active": session_active,
+        "certificate_url": access.get('certificate_url') if access else None,
+        "message": "Eligible to download certificate" if eligible else "Not yet eligible for certificate"
+    }
+
+
 # Generate Certificate
 @api_router.post("/certificates/generate/{session_id}/{participant_id}")
 async def generate_certificate(session_id: str, participant_id: str, current_user: User = Depends(get_current_user)):
