@@ -3641,7 +3641,7 @@ async def download_participant_certificate(
             {
                 "participant_id": participant_id,
                 "session_id": session_id,
-                "clock_out_time": {"$ne": None}
+                "clock_out": {"$ne": None}
             },
             {"_id": 0}
         )
