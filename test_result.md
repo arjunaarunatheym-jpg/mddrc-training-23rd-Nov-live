@@ -406,6 +406,51 @@ frontend:
         agent: "main"
         comment: "Added Delete button to Sessions tab. Updated handleConfirmDelete to handle session deletion via DELETE /api/sessions/{session_id}. Sessions can now be deleted from admin dashboard."
 
+  - task: "Chief Trainer tab access control and session filtering"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/TrainerDashboard.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "USER REPORTED: Chief trainer tab showing for all trainers including regular trainers. Tab showing all sessions including past sessions. Should only show for users assigned as chief trainer and only show current/ongoing sessions."
+      - working: "NA"
+        agent: "main"
+        comment: "FIXED: 1) Added session date filtering in loadSessions() to only show current/upcoming sessions (filters out past sessions based on end_date). 2) Added isChiefTrainerForAnySessions() function to check if user is chief trainer for any session. 3) Added getChiefTrainerSessions() function to filter only sessions where user is chief. 4) Wrapped Chief Trainer Feedback tab trigger in conditional to only show if isChiefTrainerForAnySessions() returns true. 5) Wrapped entire feedback TabsContent in same conditional. 6) Updated session dropdown to only show chief trainer sessions using getChiefTrainerSessions(). Now regular trainers won't see this tab at all."
+
+  - task: "Attendance records display issue"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "USER REPORTED: Attendance records not showing in Coordinator and Supervisor portals. Need to verify clock-in/out flow is working and displaying correctly."
+      - working: "NA"
+        agent: "main"
+        comment: "Backend endpoint GET /attendance/session/{session_id} at line 1891 looks correct. Frontend is calling correct endpoint. Need testing to verify if attendance is being created when participants clock in/out and if it's displaying properly."
+
+  - task: "Upload PDF not working in Analytics tab"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py, /app/frontend/src/pages/CoordinatorDashboard.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "USER REPORTED: Analytics tab - Generate report and download report working but upload PDF not working."
+      - working: "NA"
+        agent: "main"
+        comment: "Backend endpoint POST /training-reports/{session_id}/upload-final-pdf at line 2647 looks correct. Frontend code at line 2003 also looks correct. Need testing to identify the actual issue - may be file size, permission, or network issue."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
