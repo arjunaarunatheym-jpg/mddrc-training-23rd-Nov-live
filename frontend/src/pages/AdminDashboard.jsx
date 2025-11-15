@@ -600,6 +600,48 @@ const AdminDashboard = ({ user, onLogout }) => {
     }
   };
 
+
+  // Certificates Repository functions
+  const loadAllCertificates = async () => {
+    setLoadingCertificates(true);
+    try {
+      const response = await axiosInstance.get("/certificates/repository");
+      setAllCertificates(response.data || []);
+    } catch (error) {
+      console.error("Failed to load certificates:", error);
+      toast.error(error.response?.data?.detail || "Failed to load certificates");
+    } finally {
+      setLoadingCertificates(false);
+    }
+  };
+
+  const handleDownloadCertificate = async (certificateUrl, participantName) => {
+    try {
+      // Extract session_id and participant_id from URL if needed, or use direct URL
+      const response = await axiosInstance.get(certificateUrl, {
+        responseType: 'blob'
+      });
+      
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${participantName.replace(/\s+/g, '_')}_certificate.pdf`;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("Certificate downloaded!");
+    } catch (error) {
+      toast.error("Failed to download certificate");
+    }
+  };
+
+
   const handleDownloadReportPDF = async (sessionId) => {
     try {
       const response = await axiosInstance.get(`/training-reports/${sessionId}/download-pdf`, {
