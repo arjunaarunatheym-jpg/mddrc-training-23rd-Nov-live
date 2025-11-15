@@ -398,7 +398,7 @@ const TrainerDashboard = ({ user, onLogout }) => {
                 <select
                   value={selectedFeedbackSession?.id || ""}
                   onChange={(e) => {
-                    const session = sessions.find(s => s.id === e.target.value);
+                    const session = getChiefTrainerSessions().find(s => s.id === e.target.value);
                     if (session) {
                       setSelectedFeedbackSession(session);
                       loadFeedback(session.id);
@@ -407,9 +407,9 @@ const TrainerDashboard = ({ user, onLogout }) => {
                   className="w-full p-2 border rounded-md"
                 >
                   <option value="">Select a session...</option>
-                  {sessions.map((session) => (
+                  {getChiefTrainerSessions().map((session) => (
                     <option key={session.id} value={session.id}>
-                      {session.name} - {getMyRole(session)}
+                      {session.name} - {session.start_date ? new Date(session.start_date).toLocaleDateString() : 'Date TBD'}
                     </option>
                   ))}
                 </select>
