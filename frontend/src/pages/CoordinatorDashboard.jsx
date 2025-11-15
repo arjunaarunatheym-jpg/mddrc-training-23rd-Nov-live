@@ -857,6 +857,7 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
                                 <th className="text-center p-3 font-semibold">Pre-Test</th>
                                 <th className="text-center p-3 font-semibold">Post-Test</th>
                                 <th className="text-center p-3 font-semibold">Feedback</th>
+                                <th className="text-center p-3 font-semibold">Certificate</th>
                               </tr>
                             </thead>
                             <tbody>
