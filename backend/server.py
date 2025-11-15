@@ -3318,6 +3318,66 @@ async def check_certificate_eligibility(
     }
 
 
+# Get All Certificates (Admin Only)
+@api_router.get("/certificates/repository")
+async def get_certificates_repository(current_user: User = Depends(get_current_user)):
+    """Get all uploaded certificates for admin repository."""
+    
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can access certificate repository")
+    
+    # Get all participant access records that have certificates
+    certificates = await db.participant_access.find(
+        {"certificate_url": {"$exists": True, "$ne": None}},
+        {"_id": 0}
+    ).to_list(length=None)
+    
+    # Enrich with participant, session, and program details
+    enriched_certificates = []
+    
+    for cert in certificates:
+        participant_id = cert.get('participant_id')
+        session_id = cert.get('session_id')
+        
+        # Get participant details
+        participant = await db.users.find_one({"id": participant_id}, {"_id": 0})
+        
+        # Get session details
+        session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+        
+        # Get program details if session has program_id
+        program = None
+        if session and session.get('program_id'):
+            program = await db.programs.find_one({"id": session['program_id']}, {"_id": 0})
+        
+        # Get company details if session has company_id
+        company = None
+        if session and session.get('company_id'):
+            company = await db.companies.find_one({"id": session['company_id']}, {"_id": 0})
+        
+        enriched_certificates.append({
+            "certificate_url": cert.get('certificate_url'),
+            "uploaded_at": cert.get('certificate_uploaded_at'),
+            "uploaded_by": cert.get('certificate_uploaded_by'),
+            "participant_id": participant_id,
+            "participant_name": participant.get('full_name') if participant else 'Unknown',
+            "participant_id_number": participant.get('id_number') if participant else 'N/A',
+            "participant_email": participant.get('email') if participant else 'N/A',
+            "session_id": session_id,
+            "session_name": session.get('name') if session else 'Unknown Session',
+            "session_start_date": session.get('start_date') if session else None,
+            "session_end_date": session.get('end_date') if session else None,
+            "program_name": program.get('name') if program else 'N/A',
+            "company_name": company.get('name') if company else 'N/A',
+            "feedback_submitted": cert.get('feedback_submitted', False),
+        })
+    
+    # Sort by upload date (most recent first)
+    enriched_certificates.sort(key=lambda x: x.get('uploaded_at') or '', reverse=True)
+    
+    return enriched_certificates
+
+
 # Generate Certificate
 @api_router.post("/certificates/generate/{session_id}/{participant_id}")
 async def generate_certificate(session_id: str, participant_id: str, current_user: User = Depends(get_current_user)):
