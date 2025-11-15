@@ -62,6 +62,11 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
     phone_number: ""
   });
 
+  // Certificate upload states
+  const [uploadingCertificates, setUploadingCertificates] = useState({});
+  const [certificateStatuses, setCertificateStatuses] = useState({});
+
+
   useEffect(() => {
     loadSessions();
   }, []);
