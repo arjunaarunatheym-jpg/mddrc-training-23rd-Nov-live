@@ -1878,12 +1878,6 @@ async def clock_out(attendance_data: AttendanceClockOut, current_user: User = De
 @api_router.get("/attendance/session/{session_id}")
 async def get_session_attendance(session_id: str, current_user: User = Depends(get_current_user)):
     """Get all attendance records for a session (for supervisors/coordinators)"""
-    # TEST: Return dummy data to verify this endpoint is being executed
-    return [{"test": "This is the correct endpoint", "session_id": session_id}]
-    
-    print(f"=== ATTENDANCE ENDPOINT CALLED FOR SESSION: {session_id} ===")
-    logging.info(f"=== ATTENDANCE ENDPOINT CALLED FOR SESSION: {session_id} ===")
-    
     if current_user.role not in ["pic_supervisor", "coordinator", "admin"]:
         raise HTTPException(status_code=403, detail="Access denied")
     
