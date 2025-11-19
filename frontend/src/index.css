@@ -113,3 +113,53 @@ code {
         border-bottom-color: inherit;
     }
 }
+
+/* Mobile-friendly improvements */
+@layer components {
+    /* Better touch targets on mobile */
+    @media (max-width: 768px) {
+        button, a, input, select, textarea {
+            min-height: 44px;
+        }
+        
+        /* Make cards more compact on mobile */
+        .card {
+            padding: 1rem;
+        }
+        
+        /* Improve form spacing */
+        form input, form select, form textarea {
+            font-size: 16px; /* Prevents zoom on iOS */
+        }
+        
+        /* Better table responsiveness */
+        table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Improve modal sizing on mobile */
+        [role="dialog"] {
+            max-width: 95vw !important;
+            margin: 1rem;
+        }
+    }
+    
+    /* Improve button spacing and size */
+    .btn-mobile {
+        @apply px-4 py-3 text-base;
+    }
+    
+    /* Responsive grid improvements */
+    .grid-mobile-stack > * {
+        @apply w-full;
+    }
+    
+    @media (min-width: 768px) {
+        .grid-mobile-stack {
+            @apply grid;
+        }
+    }
+}
