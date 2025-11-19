@@ -352,6 +352,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "✅ TRAINER ASSIGNMENT BUG FIX FULLY TESTED AND WORKING! Comprehensive testing completed with 3/3 tests passed. Created bug_fix_test.py to test trainer assignment with different participant counts. ✅ Test 1 (6 participants): Chief trainer assigned 1 participant (~17%, close to 30% target with integer division), Regular trainer 1 assigned 3 participants, Regular trainer 2 assigned 2 participants. Total: 6/6 participants assigned (no missing participants). ✅ Test 2 (10 participants): Chief trainer assigned 3 participants (30%), Regular trainer 1 assigned 4 participants, Regular trainer 2 assigned 3 participants. Total: 10/10 participants assigned. ✅ Test 3 (15 participants): Chief trainer assigned 4 participants (~27%), Regular trainer 1 assigned 6 participants, Regular trainer 2 assigned 5 participants. Total: 15/15 participants assigned. The bug fix is working correctly - all participants are now assigned with proper distribution between chief and regular trainers. No participants are missing. Formula working as expected with 30% to chief trainers and 70% split among regular trainers."
+      - working: "NA"
+        agent: "main"
+        comment: "USER REQUESTED CHANGE: Changed allocation from 40% chief / 60% regular to EQUAL distribution among ALL trainers. Simplified logic at lines 2998-3045 to divide participants equally regardless of trainer role. New formula: participants_per_trainer = total_participants // total_trainers, with remainder distributed to first N trainers. Example: 6 participants with 1 chief + 1 regular = 3 each. 10 participants with 3 trainers = 4, 3, 3. Backend restarted. Ready for testing."
 
   - task: "Post-test review question order fix"
     implemented: true
