@@ -1891,6 +1891,9 @@ async def get_attendance(session_id: str, participant_id: str, current_user: Use
 @api_router.get("/attendance/session/{session_id}")
 async def get_session_attendance(session_id: str, current_user: User = Depends(get_current_user)):
     """Get all attendance records for a session (for supervisors/coordinators)"""
+    print(f"=== ATTENDANCE ENDPOINT CALLED FOR SESSION: {session_id} ===")
+    logging.info(f"=== ATTENDANCE ENDPOINT CALLED FOR SESSION: {session_id} ===")
+    
     if current_user.role not in ["pic_supervisor", "coordinator", "admin"]:
         raise HTTPException(status_code=403, detail="Access denied")
     
@@ -1900,8 +1903,10 @@ async def get_session_attendance(session_id: str, current_user: User = Depends(g
         raise HTTPException(status_code=404, detail="Session not found")
     
     # Get all attendance records for the session
+    print(f"Querying attendance for session_id: {session_id}")
     logging.info(f"Querying attendance for session_id: {session_id}")
     attendance_records = await db.attendance.find({"session_id": session_id}, {"_id": 0}).to_list(1000)
+    print(f"Found {len(attendance_records)} attendance records")
     logging.info(f"Found {len(attendance_records)} attendance records")
     
     # Get participant details only if we have attendance records
