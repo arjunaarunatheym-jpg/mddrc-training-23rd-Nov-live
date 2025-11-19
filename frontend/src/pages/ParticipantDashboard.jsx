@@ -372,15 +372,15 @@ const ParticipantDashboard = ({ user, onLogout }) => {
                           data-testid={`participant-session-${session.id}`}
                           className="p-4 bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg border-2 border-teal-200"
                         >
-                          <div className="flex justify-between items-start">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                             <div className="flex-1">
-                              <h3 className="font-semibold text-gray-900">{session.name}</h3>
+                              <h3 className="font-semibold text-gray-900 text-base">{session.name}</h3>
                               <p className="text-sm text-gray-600 mt-1">Location: {session.location}</p>
                               <p className="text-sm text-gray-600">
                                 {session.start_date} to {session.end_date}
                               </p>
                             </div>
-                            <div className="flex flex-col gap-2">
+                            <div className="flex flex-row sm:flex-col gap-2 flex-wrap">
                               {canAccessFeedback && !feedbackSubmitted && (
                                 <Button
                                   size="sm"
