@@ -216,12 +216,12 @@ const TrainerDashboard = ({ user, onLogout }) => {
                       return (
                         <Card key={session.id} className="border-2">
                           <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50">
-                            <div className="flex justify-between items-start">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                               <div className="flex-1">
                                 <div className="flex items-center gap-3">
                                   <button
                                     onClick={() => toggleSessionExpand(session.id)}
-                                    className="p-1 hover:bg-gray-200 rounded"
+                                    className="p-1 hover:bg-gray-200 rounded min-h-[44px] min-w-[44px] flex items-center justify-center"
                                   >
                                     {isExpanded ? (
                                       <ChevronDown className="w-5 h-5 text-gray-600" />
@@ -230,7 +230,7 @@ const TrainerDashboard = ({ user, onLogout }) => {
                                     )}
                                   </button>
                                   <div>
-                                    <CardTitle className="text-xl">{session.name}</CardTitle>
+                                    <CardTitle className="text-lg sm:text-xl">{session.name}</CardTitle>
                                     <div className="mt-2 text-sm text-gray-600 space-y-1">
                                       <p>Location: {session.location}</p>
                                       <p>Duration: {session.start_date} to {session.end_date}</p>
@@ -238,7 +238,7 @@ const TrainerDashboard = ({ user, onLogout }) => {
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex flex-col gap-2 items-end">
+                              <div className="flex flex-row sm:flex-col gap-2 sm:items-end items-start">
                                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                                   isChief 
                                     ? 'bg-purple-100 text-purple-800' 
