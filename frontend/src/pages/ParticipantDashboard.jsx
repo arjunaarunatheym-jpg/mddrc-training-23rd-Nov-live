@@ -631,7 +631,7 @@ const ParticipantDashboard = ({ user, onLogout }) => {
                           <h3 className="font-semibold text-gray-900 mb-3">Vehicle Details</h3>
                           {vehicleInfo ? (
                             <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                              <div className="grid grid-cols-3 gap-4">
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
                                   <p className="text-sm text-gray-600">Vehicle Model</p>
                                   <p className="font-medium">{vehicleInfo.vehicle_model}</p>
@@ -649,7 +649,7 @@ const ParticipantDashboard = ({ user, onLogout }) => {
                           ) : (
                             <div className="space-y-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
                               <p className="text-sm text-yellow-800 mb-3">Please provide your vehicle details</p>
-                              <div className="grid grid-cols-3 gap-4">
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
                                   <Label htmlFor="vehicle_model">Vehicle Model</Label>
                                   <Input
