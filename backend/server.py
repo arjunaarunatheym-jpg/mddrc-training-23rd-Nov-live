@@ -4315,7 +4315,7 @@ async def get_supervisor_sessions(current_user: User = Depends(get_current_user)
     return sessions
 
 @api_router.get("/supervisor/attendance/{session_id}")
-async def get_session_attendance(session_id: str, current_user: User = Depends(get_current_user)):
+async def get_supervisor_session_attendance(session_id: str, current_user: User = Depends(get_current_user)):
     """Get attendance for session (Supervisor)"""
     if current_user.role != "pic_supervisor":
         raise HTTPException(status_code=403, detail="Only supervisors can access this")
