@@ -300,26 +300,26 @@ const ParticipantDashboard = ({ user, onLogout }) => {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8">
-            <TabsTrigger value="overview" data-testid="overview-tab">
+          <TabsList className="flex flex-wrap w-full mb-8 h-auto justify-start gap-2 bg-gray-100 p-2 rounded-lg md:grid md:grid-cols-5">
+            <TabsTrigger value="overview" data-testid="overview-tab" className="flex-1 min-w-[120px] md:min-w-0">
               <FileText className="w-4 h-4 mr-2" />
-              Overview
+              <span className="text-sm">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="details" data-testid="details-tab">
+            <TabsTrigger value="details" data-testid="details-tab" className="flex-1 min-w-[120px] md:min-w-0">
               <Users className="w-4 h-4 mr-2" />
-              My Details
+              <span className="text-sm">My Details</span>
             </TabsTrigger>
-            <TabsTrigger value="certificates" data-testid="certificates-tab">
+            <TabsTrigger value="certificates" data-testid="certificates-tab" className="flex-1 min-w-[120px] md:min-w-0">
               <Award className="w-4 h-4 mr-2" />
-              Certificates
+              <span className="text-sm">Certificates</span>
             </TabsTrigger>
-            <TabsTrigger value="tests" data-testid="tests-tab">
+            <TabsTrigger value="tests" data-testid="tests-tab" className="flex-1 min-w-[120px] md:min-w-0">
               <ClipboardCheck className="w-4 h-4 mr-2" />
-              Tests
+              <span className="text-sm">Tests</span>
             </TabsTrigger>
-            <TabsTrigger value="checklists" data-testid="checklists-tab">
+            <TabsTrigger value="checklists" data-testid="checklists-tab" className="flex-1 min-w-[120px] md:min-w-0">
               <ClipboardCheck className="w-4 h-4 mr-2" />
-              Checklists
+              <span className="text-sm">Checklists</span>
             </TabsTrigger>
           </TabsList>
 
