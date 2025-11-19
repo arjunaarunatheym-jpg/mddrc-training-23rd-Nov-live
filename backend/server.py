@@ -1875,6 +1875,57 @@ async def clock_out(attendance_data: AttendanceClockOut, current_user: User = De
     
     return {"message": "Clocked out successfully", "time": now}
 
+@api_router.get("/attendance/session/{session_id}")
+async def get_session_attendance(session_id: str, current_user: User = Depends(get_current_user)):
+    """Get all attendance records for a session (for supervisors/coordinators)"""
+    # TEST: Return dummy data to verify this endpoint is being executed
+    return [{"test": "This is the correct endpoint", "session_id": session_id}]
+    
+    print(f"=== ATTENDANCE ENDPOINT CALLED FOR SESSION: {session_id} ===")
+    logging.info(f"=== ATTENDANCE ENDPOINT CALLED FOR SESSION: {session_id} ===")
+    
+    if current_user.role not in ["pic_supervisor", "coordinator", "admin"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Get session to verify access
+    session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Get all attendance records for the session
+    print(f"Querying attendance for session_id: {session_id}")
+    logging.info(f"Querying attendance for session_id: {session_id}")
+    attendance_records = await db.attendance.find({"session_id": session_id}, {"_id": 0}).to_list(1000)
+    print(f"Found {len(attendance_records)} attendance records")
+    logging.info(f"Found {len(attendance_records)} attendance records")
+    
+    # Get participant details only if we have attendance records
+    participant_map = {}
+    if attendance_records:
+        participant_ids = list(set([r['participant_id'] for r in attendance_records]))
+        logging.info(f"Looking up {len(participant_ids)} unique participants")
+        
+        if participant_ids:  # Only query if we have IDs to look up
+            participants = await db.users.find({"id": {"$in": participant_ids}}, {"_id": 0}).to_list(1000)
+            participant_map = {p['id']: p for p in participants}
+            logging.info(f"Found {len(participants)} participant records")
+    
+    # Enrich attendance records with participant info
+    for record in attendance_records:
+        if isinstance(record.get('created_at'), str):
+            record['created_at'] = datetime.fromisoformat(record['created_at'])
+        participant = participant_map.get(record['participant_id'])
+        if participant:
+            record['participant_name'] = participant.get('full_name', 'Unknown')
+            record['participant_email'] = participant.get('email', '')
+        else:
+            # Still include record even if participant not found
+            record['participant_name'] = f"Participant {record['participant_id']}"
+            record['participant_email'] = ''
+            logging.warning(f"Could not find participant info for ID: {record['participant_id']}")
+    
+    return attendance_records
+
 @api_router.get("/attendance/{session_id}/{participant_id}")
 async def get_attendance(session_id: str, participant_id: str, current_user: User = Depends(get_current_user)):
     attendance_records = await db.attendance.find({
@@ -1887,12 +1938,6 @@ async def get_attendance(session_id: str, participant_id: str, current_user: Use
             record['created_at'] = datetime.fromisoformat(record['created_at'])
     
     return attendance_records
-
-@api_router.get("/attendance/session/{session_id}")
-async def get_session_attendance(session_id: str, current_user: User = Depends(get_current_user)):
-    """Get all attendance records for a session (for supervisors/coordinators)"""
-    # TEST: Return dummy data to verify this endpoint is being executed
-    return [{"test": "This is the correct endpoint", "session_id": session_id}]
     
     print(f"=== ATTENDANCE ENDPOINT CALLED FOR SESSION: {session_id} ===")
     logging.info(f"=== ATTENDANCE ENDPOINT CALLED FOR SESSION: {session_id} ===")
