@@ -1891,6 +1891,9 @@ async def get_attendance(session_id: str, participant_id: str, current_user: Use
 @api_router.get("/attendance/session/{session_id}")
 async def get_session_attendance(session_id: str, current_user: User = Depends(get_current_user)):
     """Get all attendance records for a session (for supervisors/coordinators)"""
+    # TEST: Return dummy data to verify this endpoint is being executed
+    return [{"test": "This is the correct endpoint", "session_id": session_id}]
+    
     print(f"=== ATTENDANCE ENDPOINT CALLED FOR SESSION: {session_id} ===")
     logging.info(f"=== ATTENDANCE ENDPOINT CALLED FOR SESSION: {session_id} ===")
     
