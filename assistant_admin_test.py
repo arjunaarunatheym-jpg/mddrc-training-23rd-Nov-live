@@ -431,14 +431,17 @@ class AssistantAdminTestRunner:
         """Test assistant_admin cannot delete users (admin-only permission)"""
         self.log("Testing assistant_admin cannot delete users (admin-only permission)...")
         
-        if not self.assistant_admin_token or not self.test_participant_id:
-            self.log("❌ Missing assistant admin token or test participant ID", "ERROR")
+        if not self.assistant_admin_token:
+            self.log("❌ Missing assistant admin token", "ERROR")
             return False
             
         headers = {'Authorization': f'Bearer {self.assistant_admin_token}'}
         
+        # Use test participant ID if available, otherwise use dummy ID (test should fail with 403 anyway)
+        test_user_id = self.test_participant_id if self.test_participant_id else "dummy-user-id-for-delete-test"
+        
         try:
-            response = self.session.delete(f"{BASE_URL}/users/{self.test_participant_id}", headers=headers)
+            response = self.session.delete(f"{BASE_URL}/users/{test_user_id}", headers=headers)
             
             if response.status_code == 403:
                 self.log("✅ Assistant admin correctly denied permission to delete users (403 Forbidden)")
