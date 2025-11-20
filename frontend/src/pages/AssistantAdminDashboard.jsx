@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { useTheme } from "../context/ThemeContext";
 import { Plus, Users, LogOut, Calendar, BookOpen, ClipboardList, ClipboardCheck, MessageSquare } from "lucide-react";
 import TestManagement from "./TestManagement";
 import ChecklistManagement from "./ChecklistManagement";
