@@ -578,9 +578,9 @@ const AdminDashboard = ({ user, onLogout }) => {
       } else if (type === "session") {
         await axiosInstance.delete(`/sessions/${item.id}`);
         toast.success("Session deleted successfully");
-      } else if (type === "trainer" || type === "coordinator" || type === "user") {
+      } else if (type === "trainer" || type === "coordinator" || type === "assistant_admin" || type === "user") {
         await axiosInstance.delete(`/users/${item.id}`);
-        toast.success(`${type} deleted successfully`);
+        toast.success(`${type.replace('_', ' ')} deleted successfully`);
       }
       
       setDeleteConfirmOpen(false);
