@@ -32,15 +32,19 @@ const TrainerDashboard = ({ user, onLogout }) => {
         session.trainer_assignments && session.trainer_assignments.some(t => t.trainer_id === user.id)
       );
       
-      // Filter out past sessions (only show current/upcoming sessions)
+      // Filter out old sessions (only exclude sessions ended more than 30 days ago)
+      // Trainers need to see recent past sessions to complete checklists
       const now = new Date();
-      const currentSessions = mySessions.filter(session => {
+      const thirtyDaysAgo = new Date(now);
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const relevantSessions = mySessions.filter(session => {
         if (!session.end_date) return true; // Include if no end date
         const endDate = new Date(session.end_date);
-        return endDate >= now; // Include if end date is today or in the future
+        return endDate >= thirtyDaysAgo; // Include if ended within last 30 days
       });
       
-      setSessions(currentSessions);
+      setSessions(relevantSessions);
       
       // Load participants for each session
       for (const session of currentSessions) {
