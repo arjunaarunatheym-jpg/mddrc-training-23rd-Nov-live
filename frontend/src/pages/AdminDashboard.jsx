@@ -836,18 +836,6 @@ const AdminDashboard = ({ user, onLogout }) => {
               <BookOpen className="w-4 h-4 mr-2" />
               Programs
             </TabsTrigger>
-            <TabsTrigger value="tests" data-testid="tests-tab">
-              <ClipboardList className="w-4 h-4 mr-2" />
-              Tests
-            </TabsTrigger>
-            <TabsTrigger value="checklists" data-testid="checklists-tab">
-              <ClipboardList className="w-4 h-4 mr-2" />
-              Checklists
-            </TabsTrigger>
-            <TabsTrigger value="feedback" data-testid="feedback-tab">
-              <MessageSquare className="w-4 h-4 mr-2" />
-              Feedback
-            </TabsTrigger>
             <TabsTrigger value="companies" data-testid="companies-tab">
               <Building2 className="w-4 h-4 mr-2" />
               Companies
