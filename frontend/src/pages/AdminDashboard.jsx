@@ -126,6 +126,14 @@ const AdminDashboard = ({ user, onLogout }) => {
   });
   const [coordinatorDialogOpen, setCoordinatorDialogOpen] = useState(false);
 
+  const [assistantAdminForm, setAssistantAdminForm] = useState({
+    email: "",
+    password: "",
+    full_name: "",
+    id_number: "",
+  });
+  const [assistantAdminDialogOpen, setAssistantAdminDialogOpen] = useState(false);
+
   // Edit states
   const [editingProgram, setEditingProgram] = useState(null);
   const [editProgramDialogOpen, setEditProgramDialogOpen] = useState(false);
