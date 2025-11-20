@@ -746,16 +746,20 @@ async def register_user(user_data: UserCreate, current_user: User = Depends(get_
         if not email:
             email = f"{user_data.id_number}@mddrc.com"
     
-    # Check if user exists by email OR IC number
+    # Check if user exists by email (if provided) OR IC number
+    query_conditions = [{"id_number": user_data.id_number}]
+    if email:
+        query_conditions.append({"email": email})
+    
     existing = await db.users.find_one({
-        "$or": [
-            {"email": email},
-            {"id_number": user_data.id_number}
-        ]
+        "$or": query_conditions
     }, {"_id": 0})
     
     if existing:
-        raise HTTPException(status_code=400, detail=f"User already exists with this {'email' if existing.get('email') == email else 'IC number'}")
+        if existing.get('id_number') == user_data.id_number:
+            raise HTTPException(status_code=400, detail="User already exists with this IC number")
+        else:
+            raise HTTPException(status_code=400, detail="User already exists with this email")
     
     hashed_pw = hash_password(password)
     user_obj = User(
