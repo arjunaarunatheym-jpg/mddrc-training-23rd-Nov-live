@@ -188,6 +188,16 @@ function App() {
             }
           />
           <Route
+            path="/assistant-admin"
+            element={
+              user && user.role === "assistant_admin" ? (
+                <AssistantAdminDashboard user={user} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
             path="/take-test/:testId/:sessionId"
             element={
               user && user.role === "participant" ? (
