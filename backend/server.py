@@ -1764,8 +1764,8 @@ async def get_participant_results(participant_id: str, current_user: User = Depe
 
 @api_router.get("/tests/results/session/{session_id}")
 async def get_session_test_results(session_id: str, current_user: User = Depends(get_current_user)):
-    """Get all test results for a session (for coordinators/admins)"""
-    if current_user.role not in ["coordinator", "admin"]:
+    """Get all test results for a session (for coordinators/admins/trainers)"""
+    if current_user.role not in ["coordinator", "admin", "trainer"]:
         raise HTTPException(status_code=403, detail="Access denied")
     
     results = await db.test_results.find({"session_id": session_id}, {"_id": 0}).to_list(1000)
