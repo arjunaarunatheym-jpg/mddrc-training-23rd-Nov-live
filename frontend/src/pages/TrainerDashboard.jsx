@@ -10,6 +10,7 @@ import { LogOut, Calendar, ClipboardCheck, Users, FileText, ChevronDown, Chevron
 
 const TrainerDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
+  const { primaryColor, secondaryColor, companyName, logoUrl } = useTheme();
   const [sessions, setSessions] = useState([]);
   const [expandedSession, setExpandedSession] = useState(null);
   const [sessionParticipants, setSessionParticipants] = useState({});
