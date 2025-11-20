@@ -360,16 +360,16 @@ const AssistantAdminDashboard = ({ user, onLogout }) => {
                         <Card className="mt-2 border-l-4 border-blue-500">
                           <CardContent className="pt-6">
                             <Tabs defaultValue="tests" className="w-full">
-                              <TabsList className="grid w-full grid-cols-3 mb-4">
-                                <TabsTrigger value="tests">
+                              <TabsList className="flex flex-wrap w-full grid-cols-3 mb-4 h-auto justify-start gap-2 bg-gray-100 p-2 rounded-lg sm:grid sm:grid-cols-3">
+                                <TabsTrigger value="tests" className="flex-1 min-w-[100px] sm:min-w-0">
                                   <ClipboardList className="w-4 h-4 mr-2" />
                                   Tests
                                 </TabsTrigger>
-                                <TabsTrigger value="checklists">
+                                <TabsTrigger value="checklists" className="flex-1 min-w-[100px] sm:min-w-0">
                                   <ClipboardCheck className="w-4 h-4 mr-2" />
                                   Checklists
                                 </TabsTrigger>
-                                <TabsTrigger value="feedback">
+                                <TabsTrigger value="feedback" className="flex-1 min-w-[100px] sm:min-w-0">
                                   <MessageSquare className="w-4 h-4 mr-2" />
                                   Feedback
                                 </TabsTrigger>
