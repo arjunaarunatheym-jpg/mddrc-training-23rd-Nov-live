@@ -1031,37 +1031,6 @@ const AdminDashboard = ({ user, onLogout }) => {
           </TabsContent>
 
           {/* Tests Tab */}
-          <TabsContent value="tests">
-            {!selectedProgram ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Test Management</CardTitle>
-                  <CardDescription>Select a program to manage its tests</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12">
-                    <ClipboardList className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                    <p className="text-gray-500">Please select a program from the Programs tab to manage its tests.</p>
-                    <Button
-                      className="mt-4"
-                      onClick={() => setActiveTab("programs")}
-                      variant="outline"
-                    >
-                      Go to Programs
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <TestManagement 
-                program={selectedProgram} 
-                onBack={() => {
-                  setActiveTab("programs");
-                  setSelectedProgram(null);
-                }}
-              />
-            )}
-          </TabsContent>
           {/* Companies Tab */}
           <TabsContent value="companies">
             <Card>
