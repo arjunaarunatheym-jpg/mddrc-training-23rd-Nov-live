@@ -438,7 +438,7 @@ class Settings(BaseModel):
     footer_text: str = ""
     certificate_template_url: Optional[str] = None
     max_certificate_file_size_mb: int = 5  # Max certificate file size in MB
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=get_malaysia_time)
 
 class SettingsUpdate(BaseModel):
     company_name: Optional[str] = None
@@ -485,7 +485,7 @@ class CoordinatorFeedbackTemplate(BaseModel):
             "type": "text"
         }
     ]
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=get_malaysia_time)
 
 class ChiefTrainerFeedbackTemplate(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -525,7 +525,7 @@ class ChiefTrainerFeedbackTemplate(BaseModel):
             "type": "text"
         }
     ]
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=get_malaysia_time)
 
 class CoordinatorFeedback(BaseModel):
     model_config = ConfigDict(extra="ignore")
