@@ -112,14 +112,28 @@ const AssistantAdminDashboard = ({ user, onLogout }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div 
+      className="min-h-screen"
+      style={{
+        background: `linear-gradient(to bottom right, ${primaryColor}10, ${secondaryColor}10, ${primaryColor}05)`
+      }}
+    >
       {/* Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Assistant Admin Portal</h1>
-              <p className="text-sm text-gray-600">Add participants to training sessions</p>
+            <div className="flex items-center gap-4">
+              {logoUrl && (
+                <img 
+                  src={logoUrl} 
+                  alt={companyName}
+                  className="h-10 w-auto object-contain"
+                />
+              )}
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Assistant Admin Portal</h1>
+                <p className="text-sm text-gray-600">Add participants to training sessions</p>
+              </div>
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">{user.full_name}</span>
