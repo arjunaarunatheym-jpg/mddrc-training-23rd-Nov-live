@@ -3809,8 +3809,8 @@ async def verify_checklist(verification: ChecklistVerify, current_user: User = D
 # Feedback Template Routes
 @api_router.post("/feedback-templates", response_model=FeedbackTemplate)
 async def create_feedback_template(template_data: FeedbackTemplateCreate, current_user: User = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can create feedback templates")
+    if current_user.role not in ["admin", "assistant_admin"]:
+        raise HTTPException(status_code=403, detail="Only admins and assistant admins can create feedback templates")
     
     # Delete existing template for this program
     await db.feedback_templates.delete_many({"program_id": template_data.program_id})
