@@ -532,10 +532,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "TrainerDashboard session results access for regular trainers"
+    - "Attendance records display issue"
   stuck_tasks: 
     - "Attendance records display issue"
-    - "TrainerDashboard session results access for regular trainers"
   test_all: false
   test_priority: "high_first"
 
