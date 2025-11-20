@@ -30,6 +30,7 @@ const AssistantAdminDashboard = ({ user, onLogout }) => {
   useEffect(() => {
     loadSessions();
     loadCompanies();
+    loadPrograms();
   }, []);
 
   const loadSessions = async () => {
