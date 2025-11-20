@@ -72,9 +72,18 @@ const SupervisorDashboard = ({ user, onLogout }) => {
       {/* Header */}
       <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Supervisor Portal</h1>
-            <p className="text-sm text-gray-600">Welcome, {user.full_name}</p>
+          <div className="flex items-center gap-4">
+            {logoUrl && (
+              <img 
+                src={logoUrl} 
+                alt={companyName}
+                className="h-10 w-auto object-contain"
+              />
+            )}
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Supervisor Portal</h1>
+              <p className="text-sm text-gray-600">Welcome, {user.full_name}</p>
+            </div>
           </div>
           <Button
             onClick={onLogout}
