@@ -1462,22 +1462,8 @@ async def get_session_status(session_id: str, current_user: User = Depends(get_c
 @api_router.get("/sessions/{session_id}/results-summary")
 async def get_results_summary(session_id: str, current_user: User = Depends(get_current_user)):
     # Check if user has permission (admin, coordinator, or chief trainer)
-    if current_user.role not in ["admin", "coordinator"]:
-        # Check if trainer is chief trainer for this session
-        if current_user.role == "trainer":
-            session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
-            if not session:
-                raise HTTPException(status_code=404, detail="Session not found")
-            
-            # Check if user is a chief trainer in this session
-            is_chief = any(
-                t.get('trainer_id') == current_user.id and t.get('role') == 'chief'
-                for t in session.get('trainer_assignments', [])
-            )
-            if not is_chief:
-                raise HTTPException(status_code=403, detail="Only chief trainers can view results")
-        else:
-            raise HTTPException(status_code=403, detail="Unauthorized")
+    if current_user.role not in ["admin", "coordinator", "trainer"]:
+        raise HTTPException(status_code=403, detail="Unauthorized")
     
     # Get all participants in the session
     session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
