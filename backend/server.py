@@ -89,7 +89,7 @@ class User(BaseModel):
     company_id: Optional[str] = None
     location: Optional[str] = None
     phone_number: Optional[str] = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=get_malaysia_time)
     is_active: bool = True
 
 class UserCreate(BaseModel):
@@ -115,7 +115,7 @@ class Company(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=get_malaysia_time)
 
 class CompanyCreate(BaseModel):
     name: str
@@ -129,7 +129,7 @@ class Program(BaseModel):
     name: str
     description: Optional[str] = None
     pass_percentage: float = 70.0
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=get_malaysia_time)
 
 class ProgramCreate(BaseModel):
     name: str
@@ -155,7 +155,7 @@ class Session(BaseModel):
     trainer_assignments: List[dict] = []
     coordinator_id: Optional[str] = None
     status: str = "active"  # "active" or "inactive"
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=get_malaysia_time)
 
 class ParticipantData(BaseModel):
     email: EmailStr
@@ -221,7 +221,7 @@ class Test(BaseModel):
     program_id: str
     test_type: str
     questions: List[TestQuestion] = []
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=get_malaysia_time)
 
 class TestCreate(BaseModel):
     program_id: str
@@ -254,7 +254,7 @@ class ChecklistTemplate(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     program_id: str
     items: List[str] = []
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=get_malaysia_time)
 
 class ChecklistTemplateCreate(BaseModel):
     program_id: str
@@ -290,7 +290,7 @@ class VehicleDetails(BaseModel):
     vehicle_model: str
     registration_number: str
     roadtax_expiry: str
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=get_malaysia_time)
 
 class VehicleDetailsSubmit(BaseModel):
     session_id: str
@@ -311,7 +311,7 @@ class TrainingReport(BaseModel):
     practical_photo_3: Optional[str] = None
     additional_notes: Optional[str] = None
     status: str = "draft"  # draft, submitted
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=get_malaysia_time)
     submitted_at: Optional[datetime] = None
 
 class TrainingReportCreate(BaseModel):
@@ -333,7 +333,7 @@ class Attendance(BaseModel):
     date: str
     clock_in: Optional[str] = None
     clock_out: Optional[str] = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=get_malaysia_time)
 
 class AttendanceClockIn(BaseModel):
     session_id: str
@@ -399,7 +399,7 @@ class FeedbackTemplate(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     program_id: str
     questions: List[FeedbackQuestion]
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=get_malaysia_time)
 
 class FeedbackTemplateCreate(BaseModel):
     program_id: str
@@ -690,7 +690,7 @@ class TrainingReport(BaseModel):
     generated_by: str  # coordinator_id
     content: str  # Markdown content
     status: str  # "draft" or "published"
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=get_malaysia_time)
     published_at: Optional[datetime] = None
     published_to_supervisors: List[str] = []  # List of supervisor IDs
 
