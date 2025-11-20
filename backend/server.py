@@ -2649,23 +2649,15 @@ async def generate_docx_report(session_id: str, current_user: User = Depends(get
         
         # PRE-POST EVALUATION SUMMARY
         doc.add_heading('5. PRE-POST EVALUATION SUMMARY', 1)
-        doc.add_paragraph("Individual participant test results showing pre-test, post-test, and improvement:")
+        # Summary statistics
+        doc.add_paragraph(f"Pre-Test Pass Rate: {pre_pass_count}/{len(participants)} participants ({(pre_pass_count/len(participants)*100):.0f}%)")
+        doc.add_paragraph(f"Post-Test Pass Rate: {post_pass_count}/{len(participants)} participants ({(post_pass_count/len(participants)*100):.0f}%)")
+        doc.add_paragraph(f"Participants Showing Improvement: {improved_count}/{len(participants)} ({(improved_count/len(participants)*100):.0f}%)")
+        doc.add_paragraph(f"Average Score Change: {improvement:+.1f}%")
         doc.add_paragraph()
         
-        for idx, p in enumerate(participants, 1):
-            doc.add_paragraph(f"{idx}. {p['name']} (ID: {p['id_number']})", style='Heading 3')
-            perf_text = f"   Pre-Test: {p['pre_test_score']:.0f}% {'✅ PASS' if p['pre_test_passed'] else '❌ FAIL'} | "
-            perf_text += f"Post-Test: {p['post_test_score']:.0f}% {'✅ PASS' if p['post_test_passed'] else '❌ FAIL'} | "
-            perf_text += f"Improvement: {p['improvement']:+.0f}%"
-            if p['improvement'] > 0:
-                perf_text += " 📈"
-            doc.add_paragraph(perf_text)
-            doc.add_paragraph()
-        
-        doc.add_page_break()
-        
-        # PERFORMANCE SUMMARY TABLE
-        doc.add_heading('4. TEST RESULTS SUMMARY', 1)
+        # Performance Summary Table
+        doc.add_paragraph("TABULATED RESULTS:", style='Heading 3')
         table = doc.add_table(rows=1, cols=6)
         table.style = 'Light Grid Accent 1'
         hdr_cells = table.rows[0].cells
