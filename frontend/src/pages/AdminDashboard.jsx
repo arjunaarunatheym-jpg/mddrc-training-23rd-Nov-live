@@ -2362,6 +2362,51 @@ const AdminDashboard = ({ user, onLogout }) => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Edit Staff Dialog */}
+            <Dialog open={editStaffDialogOpen} onOpenChange={setEditStaffDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Staff Member</DialogTitle>
+                  <DialogDescription>
+                    Update staff member details
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleUpdateStaff} className="space-y-4">
+                  <div>
+                    <Label htmlFor="edit-staff-name">Full Name *</Label>
+                    <Input
+                      id="edit-staff-name"
+                      value={editStaffForm.full_name}
+                      onChange={(e) => setEditStaffForm({ ...editStaffForm, full_name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-staff-email">Email *</Label>
+                    <Input
+                      id="edit-staff-email"
+                      type="email"
+                      value={editStaffForm.email}
+                      onChange={(e) => setEditStaffForm({ ...editStaffForm, email: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-staff-id">ID Number *</Label>
+                    <Input
+                      id="edit-staff-id"
+                      value={editStaffForm.id_number}
+                      onChange={(e) => setEditStaffForm({ ...editStaffForm, id_number: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <Button type="submit" className="w-full">
+                    Update Staff Member
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           {/* Trainers Tab */}
