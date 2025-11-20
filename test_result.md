@@ -498,7 +498,8 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Admin Dashboard - Unified Staff Management Tab"
   stuck_tasks: 
     - "Attendance records display issue"
   test_all: false
