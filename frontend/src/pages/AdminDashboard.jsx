@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { LogOut, Building2, Users, Calendar, MessageSquare, BookOpen, Plus, Trash2, Edit, UserPlus, UserCog, ClipboardList, Settings as SettingsIcon, FileText, Download, Search, Book, Award } from "lucide-react";
+import { LogOut, Building2, Users, Calendar, MessageSquare, BookOpen, Plus, Trash2, Edit, UserPlus, UserCog, ClipboardList, ClipboardCheck, Settings as SettingsIcon, FileText, Download, Search, Book, Award } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import TestManagement from "./TestManagement";
 import FeedbackManagement from "./FeedbackManagement";
