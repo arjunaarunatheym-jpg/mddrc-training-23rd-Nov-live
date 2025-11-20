@@ -1540,8 +1540,8 @@ async def get_user(user_id: str, current_user: User = Depends(get_current_user))
 # Test Routes
 @api_router.post("/tests", response_model=Test)
 async def create_test(test_data: TestCreate, current_user: User = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can create tests")
+    if current_user.role not in ["admin", "assistant_admin"]:
+        raise HTTPException(status_code=403, detail="Only admins and assistant admins can create tests")
     
     test_obj = Test(**test_data.model_dump())
     doc = test_obj.model_dump()
