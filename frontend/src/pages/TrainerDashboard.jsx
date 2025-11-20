@@ -317,17 +317,15 @@ const TrainerDashboard = ({ user, onLogout }) => {
                                   <Users className="w-4 h-4" />
                                   <span>{participants.length} Participants</span>
                                 </div>
-                                {isChief && (
-                                  <Button
-                                    onClick={() => handleViewResults(session.id)}
-                                    size="sm"
-                                    variant="outline"
-                                    data-testid={`view-results-${session.id}`}
-                                  >
-                                    <FileText className="w-4 h-4 mr-2" />
-                                    View Results
-                                  </Button>
-                                )}
+                                <Button
+                                  onClick={() => loadSessionResults(session)}
+                                  size="sm"
+                                  variant="outline"
+                                  data-testid={`view-results-${session.id}`}
+                                >
+                                  <FileText className="w-4 h-4 mr-2" />
+                                  View Results
+                                </Button>
                               </div>
                             </div>
                           </CardHeader>
