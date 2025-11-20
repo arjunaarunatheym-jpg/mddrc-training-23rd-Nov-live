@@ -105,6 +105,18 @@
 user_problem_statement: "Defensive Driving/Riding Training Management System with test question management. Admin can create pre/post test questions (same questions, post-test shuffles them), define correct answers, and participants see immediate results."
 
 backend:
+  - task: "TrainerDashboard session results access for regular trainers"
+    implemented: false
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRITICAL ISSUE FOUND: Backend API endpoints are blocking regular trainers from accessing session results data. Frontend may have been updated to show 'View Results' buttons for all trainers, but backend endpoints still restrict access to chief trainers only. SPECIFIC ISSUES: 1) GET /api/attendance/session/{session_id} (line 2016) - only allows pic_supervisor, coordinator, admin (trainers excluded). 2) GET /api/sessions/{session_id}/results-summary (line 1465-1478) - only allows admin, coordinator, or chief trainers (regular trainers excluded). 3) GET /api/feedback/session/{session_id} (line 3930) - only allows admin, supervisor, coordinator (trainers excluded). All three endpoints return 403 Forbidden for regular trainers. Backend needs to be updated to allow trainer role access to these endpoints."
+
   - task: "DELETE endpoint for test questions"
     implemented: true
     working: true
