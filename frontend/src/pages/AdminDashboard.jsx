@@ -12,6 +12,7 @@ import { LogOut, Building2, Users, Calendar, MessageSquare, BookOpen, Plus, Tras
 import { Textarea } from "@/components/ui/textarea";
 import TestManagement from "./TestManagement";
 import FeedbackManagement from "./FeedbackManagement";
+import ChecklistManagement from "./ChecklistManagement";
 import Settings from "./Settings";
 import { useTheme } from "../context/ThemeContext";
 
