@@ -321,6 +321,10 @@ const ParticipantDashboard = ({ user, onLogout }) => {
               <ClipboardCheck className="w-4 h-4 mr-2" />
               <span className="text-sm">Checklists</span>
             </TabsTrigger>
+            <TabsTrigger value="settings" data-testid="settings-tab" className="flex-1 min-w-[120px] md:min-w-0">
+              <Settings className="w-4 h-4 mr-2" />
+              <span className="text-sm">Settings</span>
+            </TabsTrigger>
           </TabsList>
 
           {/* Overview */}
