@@ -43,14 +43,18 @@ load_dotenv(ROOT_DIR / '.env')
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
-db_name = os.environ.get('DB_NAME', 'driving_training_db')
+db_name = os.environ.get('DB_NAME')
+if not db_name:
+    raise ValueError("DB_NAME environment variable is required")
 db = client[db_name]
 logging.info(f"🔥🔥🔥 CONNECTED TO DATABASE: {db_name} 🔥🔥🔥")
 
 # Security
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
-SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY or SECRET_KEY == 'your-secret-key-change-in-production':
+    raise ValueError("SECRET_KEY environment variable must be set to a secure random value")
 ALGORITHM = "HS256"
 
 # Create the main app
