@@ -734,7 +734,7 @@ async def register_user(user_data: UserCreate, current_user: User = Depends(get_
     elif current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Access denied")
     
-    # For participants: use default credentials if not provided
+    # For participants: use default password if not provided
     password = user_data.password
     email = user_data.email
     
@@ -742,13 +742,12 @@ async def register_user(user_data: UserCreate, current_user: User = Depends(get_
         # Default password: mddrc1
         if not password:
             password = "mddrc1"
-        # Default email: IC@mddrc.com
-        if not email:
-            email = f"{user_data.id_number}@mddrc.com"
+        # Email is truly optional - leave blank if not provided
+        # No auto-generation
     
     # Check if user exists by email (if provided) OR IC number
     query_conditions = [{"id_number": user_data.id_number}]
-    if email:
+    if email:  # Only check email if provided
         query_conditions.append({"email": email})
     
     existing = await db.users.find_one({
