@@ -2011,7 +2011,7 @@ async def create_training_report(report_data: TrainingReportCreate, current_user
         # Update existing report
         update_data = report_data.model_dump()
         if update_data['status'] == 'submitted':
-            update_data['submitted_at'] = datetime.now(timezone.utc).isoformat()
+            update_data['submitted_at'] = get_malaysia_time().isoformat()
         
         await db.training_reports.update_one(
             {"session_id": report_data.session_id},
@@ -2639,7 +2639,7 @@ async def generate_docx_report(session_id: str, current_user: User = Depends(get
         # Update training report record with DOCX filename
         await db.training_reports.update_one(
             {"session_id": session_id},
-            {"$set": {"docx_filename": report_filename, "generated_at": datetime.now(timezone.utc).isoformat()}},
+            {"$set": {"docx_filename": report_filename, "generated_at": get_malaysia_time().isoformat()}},
             upsert=True
         )
         
@@ -2705,7 +2705,7 @@ async def upload_edited_docx(
             {"session_id": session_id},
             {"$set": {
                 "edited_docx_filename": edited_filename,
-                "uploaded_at": datetime.now(timezone.utc).isoformat()
+                "uploaded_at": get_malaysia_time().isoformat()
             }},
             upsert=True
         )
@@ -2770,7 +2770,7 @@ async def upload_final_pdf_report(
                 "final_pdf_filename": pdf_filename,
                 "pdf_url": f"/api/static/reports_pdf/{pdf_filename}",
                 "status": "submitted",
-                "submitted_at": datetime.now(timezone.utc).isoformat(),
+                "submitted_at": get_malaysia_time().isoformat(),
                 "submitted_by": current_user.id,
                 "program_id": program.get('id') if program else None,
                 "company_id": company.get('id') if company else None,
@@ -2874,7 +2874,7 @@ async def submit_final_report(session_id: str, current_user: User = Depends(get_
             {"$set": {
                 "pdf_filename": pdf_filename,
                 "status": "submitted",
-                "submitted_at": datetime.now(timezone.utc).isoformat(),
+                "submitted_at": get_malaysia_time().isoformat(),
                 "submitted_by": current_user.id
             }}
         )
@@ -2892,7 +2892,7 @@ async def submit_final_report(session_id: str, current_user: User = Depends(get_
                     "message": f"Training report for {session.get('name')} has been submitted",
                     "session_id": session_id,
                     "read": False,
-                    "created_at": datetime.now(timezone.utc).isoformat()
+                    "created_at": get_malaysia_time().isoformat()
                 })
         
         # Notify all admins
@@ -2905,7 +2905,7 @@ async def submit_final_report(session_id: str, current_user: User = Depends(get_
                 "message": f"Training report for {session.get('name')} has been submitted by {current_user.full_name}",
                 "session_id": session_id,
                 "read": False,
-                "created_at": datetime.now(timezone.utc).isoformat()
+                "created_at": get_malaysia_time().isoformat()
             })
         
         return {
@@ -2983,7 +2983,7 @@ async def submit_trainer_checklist(checklist_data: TrainerChecklistSubmit, curre
                         "chief_trainer_comments": checklist_data.chief_trainer_comments,
                         "chief_trainer_id": current_user.id,
                         "chief_trainer_name": current_user.full_name,
-                        "comments_submitted_at": datetime.now(timezone.utc).isoformat()
+                        "comments_submitted_at": get_malaysia_time().isoformat()
                     }}
                 )
     
@@ -3159,7 +3159,7 @@ async def verify_checklist(verification: ChecklistVerify, current_user: User = D
             "$set": {
                 "verification_status": verification.status,
                 "verified_by": current_user.id,
-                "verified_at": datetime.now(timezone.utc).isoformat()
+                "verified_at": get_malaysia_time().isoformat()
             }
         }
     )
@@ -3309,7 +3309,7 @@ async def update_coordinator_feedback_template(
         {
             "$set": {
                 "questions": template_update.questions,
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "updated_at": get_malaysia_time().isoformat()
             }
         },
         upsert=True
@@ -3345,7 +3345,7 @@ async def update_chief_trainer_feedback_template(
         {
             "$set": {
                 "questions": template_update.questions,
-                "updated_at": datetime.now(timezone.utc).isoformat()
+                "updated_at": get_malaysia_time().isoformat()
             }
         },
         upsert=True
@@ -3483,7 +3483,7 @@ async def upload_logo(file: UploadFile = File(...), current_user: User = Depends
     
     await db.settings.update_one(
         {"id": "app_settings"},
-        {"$set": {"logo_url": logo_url, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        {"$set": {"logo_url": logo_url, "updated_at": get_malaysia_time().isoformat()}},
         upsert=True
     )
     
@@ -3495,7 +3495,7 @@ async def update_settings(settings_data: SettingsUpdate, current_user: User = De
         raise HTTPException(status_code=403, detail="Only admins can update settings")
     
     update_data = {k: v for k, v in settings_data.model_dump().items() if v is not None}
-    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    update_data['updated_at'] = get_malaysia_time().isoformat()
     
     await db.settings.update_one(
         {"id": "app_settings"},
@@ -3527,7 +3527,7 @@ async def upload_certificate_template(file: UploadFile = File(...), current_user
     
     await db.settings.update_one(
         {"id": "app_settings"},
-        {"$set": {"certificate_template_url": template_url, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        {"$set": {"certificate_template_url": template_url, "updated_at": get_malaysia_time().isoformat()}},
         upsert=True
     )
     
@@ -3589,7 +3589,7 @@ async def upload_participant_certificate(
         {
             "$set": {
                 "certificate_url": certificate_url,
-                "certificate_uploaded_at": datetime.now(timezone.utc).isoformat(),
+                "certificate_uploaded_at": get_malaysia_time().isoformat(),
                 "certificate_uploaded_by": current_user.id
             }
         },
@@ -3896,7 +3896,7 @@ async def generate_certificate(session_id: str, participant_id: str, current_use
             {"id": existing_cert['id']},
             {"$set": {
                 "certificate_url": cert_url,
-                "issue_date": datetime.now(timezone.utc).isoformat()
+                "issue_date": get_malaysia_time().isoformat()
             }}
         )
         cert_id = existing_cert['id']
@@ -4433,7 +4433,7 @@ async def setup_admin_account():
                 "phone_number": "",
                 "role": "admin",
                 "company_id": None,
-                "created_at": datetime.now(timezone.utc).isoformat()
+                "created_at": get_malaysia_time().isoformat()
             }
             await db.users.insert_one(admin_doc)
             logging.info(f"✅ Admin account created: {admin_email}")
