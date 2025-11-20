@@ -467,7 +467,7 @@ class AssistantAdminTestRunner:
             ("Assistant Admin Cannot Create Admins", self.test_assistant_admin_permissions_create_admin),
             ("Assistant Admin Cannot Create Programs", self.test_assistant_admin_permissions_create_programs),
             ("Assistant Admin Cannot Create Companies", self.test_assistant_admin_permissions_create_companies),
-            ("Assistant Admin Can View Users", self.test_assistant_admin_permissions_view_users),
+            ("Assistant Admin Cannot View Users", self.test_assistant_admin_permissions_view_users),
             ("Assistant Admin Cannot Delete Users", self.test_assistant_admin_permissions_delete_users),
         ]
         
