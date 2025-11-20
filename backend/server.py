@@ -2500,8 +2500,136 @@ async def generate_docx_report(session_id: str, current_user: User = Depends(get
         
         doc.add_page_break()
         
+        # TRAINING OBJECTIVES
+        doc.add_heading('2. TRAINING OBJECTIVES', 1)
+        doc.add_paragraph(
+            "This training program was designed with the following core objectives to enhance workplace safety and reduce accident risks:"
+        )
+        doc.add_paragraph()
+        
+        if is_motorcycle:
+            objectives = [
+                "• Improve rider safety awareness and hazard recognition on Malaysian roads",
+                "• Reinforce defensive riding techniques for daily commuting",
+                "• Reduce motorcycle-related accidents and injuries among employees",
+                "• Promote proper Personal Protective Equipment (PPE) usage and motorcycle maintenance",
+                "• Align riding behavior with company safety values and policies",
+                "• Develop emergency response skills for critical road situations"
+            ]
+        elif is_truck:
+            objectives = [
+                "• Enhance heavy vehicle safety awareness and load management",
+                "• Reinforce defensive driving techniques for commercial vehicles",
+                "• Reduce delivery delays caused by accidents and vehicle breakdowns",
+                "• Improve vehicle pre-trip inspection and maintenance practices",
+                "• Minimize company liability and insurance costs through safer driving",
+                "• Align driving behavior with company safety standards and regulations"
+            ]
+        else:  # Car/general driving
+            objectives = [
+                "• Improve driver safety awareness and hazard perception",
+                "• Reinforce defensive driving techniques for daily operations",
+                "• Reduce vehicle-related accidents and associated costs",
+                "• Promote proper vehicle maintenance and pre-drive safety checks",
+                "• Align driving behavior with company safety policies",
+                "• Develop emergency response and accident avoidance skills"
+            ]
+        
+        for objective in objectives:
+            doc.add_paragraph(objective)
+        doc.add_paragraph()
+        doc.add_paragraph(
+            "These objectives support the organization's commitment to employee welfare and operational excellence "
+            "through enhanced road safety practices."
+        )
+        doc.add_page_break()
+        
+        # TRAINING AGENDA
+        doc.add_heading('3. TRAINING AGENDA', 1)
+        doc.add_paragraph(
+            f"The training was conducted over a {2 if is_motorcycle else 2}-day period, combining theoretical instruction "
+            f"with practical hands-on sessions:"
+        )
+        doc.add_paragraph()
+        
+        # DAY 1
+        doc.add_heading('DAY 1 - Theory & Foundation', 2)
+        if is_motorcycle:
+            day1_items = [
+                ('08:00 - 08:30', 'Registration & Welcome Briefing'),
+                ('08:30 - 10:00', 'Hazard Recognition & Road Awareness'),
+                ('10:00 - 10:15', 'Break'),
+                ('10:15 - 12:00', 'Safe Distance Management & Speed Control'),
+                ('12:00 - 13:00', 'Lunch'),
+                ('13:00 - 14:30', 'Traffic Law & Regulations Review'),
+                ('14:30 - 14:45', 'Break'),
+                ('14:45 - 16:30', 'Fatigue Management & Weather Conditions'),
+                ('16:30 - 17:00', 'Pre-Test Assessment & Day 1 Review')
+            ]
+        else:
+            day1_items = [
+                ('08:00 - 08:30', 'Registration & Welcome Briefing'),
+                ('08:30 - 10:00', 'Defensive Driving Principles & Hazard Recognition'),
+                ('10:00 - 10:15', 'Break'),
+                ('10:15 - 12:00', 'Safe Following Distance & Speed Management'),
+                ('12:00 - 13:00', 'Lunch'),
+                ('13:00 - 14:30', 'Traffic Law & Road Safety Regulations'),
+                ('14:30 - 14:45', 'Break'),
+                ('14:45 - 16:30', 'Driver Fatigue & Weather Driving Conditions'),
+                ('16:30 - 17:00', 'Pre-Test Assessment & Day 1 Summary')
+            ]
+        
+        agenda_table_day1 = doc.add_table(rows=len(day1_items)+1, cols=2)
+        agenda_table_day1.style = 'Light Grid Accent 1'
+        agenda_table_day1.rows[0].cells[0].text = 'Time'
+        agenda_table_day1.rows[0].cells[1].text = 'Activity'
+        for idx, (time, activity) in enumerate(day1_items, 1):
+            agenda_table_day1.rows[idx].cells[0].text = time
+            agenda_table_day1.rows[idx].cells[1].text = activity
+        
+        doc.add_paragraph()
+        
+        # DAY 2
+        doc.add_heading('DAY 2 - Practical Skills & Assessment', 2)
+        if is_motorcycle:
+            day2_items = [
+                ('08:00 - 08:30', 'Day 2 Safety Briefing & PPE Check'),
+                ('08:30 - 10:00', 'Emergency Braking Techniques (Practical)'),
+                ('10:00 - 10:15', 'Break'),
+                ('10:15 - 12:00', 'Obstacle Avoidance & Swerving Maneuvers'),
+                ('12:00 - 13:00', 'Lunch'),
+                ('13:00 - 14:30', 'Cornering Techniques & Body Positioning'),
+                ('14:30 - 14:45', 'Break'),
+                ('14:45 - 16:00', 'Left Lane Riding & Traffic Integration'),
+                ('16:00 - 16:45', 'Post-Test Assessment'),
+                ('16:45 - 17:00', 'Certificate Presentation & Closing')
+            ]
+        else:
+            day2_items = [
+                ('08:00 - 08:30', 'Day 2 Safety Briefing & Vehicle Check'),
+                ('08:30 - 10:00', 'Emergency Braking & Stopping Techniques'),
+                ('10:00 - 10:15', 'Break'),
+                ('10:15 - 12:00', 'Obstacle Avoidance & Lane Change Maneuvers'),
+                ('12:00 - 13:00', 'Lunch'),
+                ('13:00 - 14:30', 'Cornering & Vehicle Control Exercises'),
+                ('14:30 - 14:45', 'Break'),
+                ('14:45 - 16:00', 'Traffic Integration & Road Scenarios'),
+                ('16:00 - 16:45', 'Post-Test Assessment & Performance Review'),
+                ('16:45 - 17:00', 'Certificate Presentation & Program Closure')
+            ]
+        
+        agenda_table_day2 = doc.add_table(rows=len(day2_items)+1, cols=2)
+        agenda_table_day2.style = 'Light Grid Accent 1'
+        agenda_table_day2.rows[0].cells[0].text = 'Time'
+        agenda_table_day2.rows[0].cells[1].text = 'Activity'
+        for idx, (time, activity) in enumerate(day2_items, 1):
+            agenda_table_day2.rows[idx].cells[0].text = time
+            agenda_table_day2.rows[idx].cells[1].text = activity
+        
+        doc.add_page_break()
+        
         # TRAINING DETAILS
-        doc.add_heading('2. TRAINING DETAILS', 1)
+        doc.add_heading('4. TRAINING DETAILS', 1)
         doc.add_paragraph(f"Program: {program.get('name', 'N/A')}")
         doc.add_paragraph(f"Location: {session.get('location', 'N/A')}")
         doc.add_paragraph(f"Dates: {session.get('start_date', 'N/A')} to {session.get('end_date', 'N/A')}")
