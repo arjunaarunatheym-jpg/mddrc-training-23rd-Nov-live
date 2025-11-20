@@ -15,10 +15,10 @@ from datetime import datetime
 # Configuration
 BASE_URL = "https://saferide-mgmt.preview.emergentagent.com/api"
 
-# Existing trainer credentials from review request
+# Existing trainer credentials (corrected passwords)
 TRAINER_CREDENTIALS = [
-    {"email": "vijay@mddrc.com.my", "password": "password123"},
-    {"email": "Dheena8983@gmail.com", "password": "password123"}
+    {"email": "vijay@mddrc.com.my", "password": "mddrc1"},
+    {"email": "Dheena8983@gmail.com", "password": "mddrc1"}
 ]
 
 class TrainerAccessTester:
