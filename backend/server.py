@@ -86,7 +86,7 @@ CHECKLIST_PHOTOS_DIR.mkdir(exist_ok=True)
 class User(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    email: EmailStr
+    email: Optional[str] = None  # Optional - auto-generated for participants
     full_name: str
     id_number: str
     role: str
