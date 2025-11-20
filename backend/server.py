@@ -2437,14 +2437,67 @@ async def generate_docx_report(session_id: str, current_user: User = Depends(get
         footer_text.alignment = 1
         doc.add_page_break()
         
-        # EXECUTIVE SUMMARY
+        # EXECUTIVE SUMMARY - COMPREHENSIVE
         doc.add_heading('1. EXECUTIVE SUMMARY', 1)
         pre_avg = sum([p['pre_test_score'] for p in participants]) / len(participants) if participants else 0
         post_avg = sum([p['post_test_score'] for p in participants]) / len(participants) if participants else 0
-        doc.add_paragraph(f"This report summarizes the Defensive Driving Training conducted for {company.get('name', 'N/A')} from {session.get('start_date', 'N/A')} to {session.get('end_date', 'N/A')}. A total of {len(participants)} participants completed the training program.")
-        doc.add_paragraph(f"Pre-training assessment average: {pre_avg:.1f}%")
-        doc.add_paragraph(f"Post-training assessment average: {post_avg:.1f}%") 
-        doc.add_paragraph(f"Overall improvement: {(post_avg - pre_avg):.1f}%")
+        improvement = post_avg - pre_avg
+        
+        # Count pass/fail statistics
+        pre_pass_count = sum([1 for p in participants if p['pre_test_passed']])
+        post_pass_count = sum([1 for p in participants if p['post_test_passed']])
+        improved_count = sum([1 for p in participants if p['improvement'] > 0])
+        
+        doc.add_paragraph(
+            f"This comprehensive report documents the Defensive {'Riding' if is_motorcycle else 'Driving'} Training "
+            f"conducted for {company.get('name', 'N/A')} at {session.get('location', 'N/A')} from "
+            f"{session.get('start_date', 'N/A')} to {session.get('end_date', 'N/A')}. The program was designed to "
+            f"enhance safety awareness, reinforce defensive {'riding' if is_motorcycle else 'driving'} techniques, "
+            f"and reduce commuting-related accidents, aligning with the company's commitment to employee safety."
+        )
+        doc.add_paragraph()
+        
+        doc.add_paragraph(
+            f"The training program successfully engaged {len(participants)} participants through a structured "
+            f"curriculum combining theoretical instruction and practical hands-on sessions. Participants demonstrated "
+            f"high engagement levels and openness to feedback, contributing to a positive learning environment."
+        )
+        doc.add_paragraph()
+        
+        # KEY OUTCOMES heading
+        doc.add_paragraph("KEY OUTCOMES:", style='Heading 3')
+        outcomes = [
+            f"• Total Participants: {len(participants)}",
+            f"• Pre-Training Assessment Average: {pre_avg:.1f}%",
+            f"• Post-Training Assessment Average: {post_avg:.1f}%",
+            f"• Overall Improvement: {improvement:+.1f}%",
+            f"• Pre-Test Pass Rate: {pre_pass_count}/{len(participants)} ({(pre_pass_count/len(participants)*100):.0f}% if len(participants) > 0 else 0)",
+            f"• Post-Test Pass Rate: {post_pass_count}/{len(participants)} ({(post_pass_count/len(participants)*100):.0f}% if len(participants) > 0 else 0)",
+            f"• Participants Showing Improvement: {improved_count}/{len(participants)} ({(improved_count/len(participants)*100):.0f}% if len(participants) > 0 else 0)"
+        ]
+        for outcome in outcomes:
+            doc.add_paragraph(outcome)
+        doc.add_paragraph()
+        
+        # TRAINING IMPACT
+        doc.add_paragraph("TRAINING IMPACT:", style='Heading 3')
+        doc.add_paragraph(
+            f"The training successfully enhanced participants' understanding of hazard awareness, proper braking control, "
+            f"and {'balance techniques' if is_motorcycle else 'vehicle control'}. Participants demonstrated improved ability "
+            f"to identify potential road hazards and apply defensive {'riding' if is_motorcycle else 'driving'} principles. "
+            f"The program fostered a culture of safety discipline and mutual learning among participants."
+        )
+        doc.add_paragraph()
+        
+        # SAFETY OBSERVATIONS (if vehicle issues found)
+        if vehicle_issues:
+            doc.add_paragraph("SAFETY OBSERVATIONS:", style='Heading 3')
+            doc.add_paragraph(
+                f"Vehicle inspections revealed {len(vehicle_issues)} {'motorcycles' if is_motorcycle else 'vehicles'} "
+                f"with safety concerns requiring immediate attention. Detailed recommendations for addressing these issues "
+                f"are provided in Section 9 of this report."
+            )
+        
         doc.add_page_break()
         
         # TRAINING DETAILS
