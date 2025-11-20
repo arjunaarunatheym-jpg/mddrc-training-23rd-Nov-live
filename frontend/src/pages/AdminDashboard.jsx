@@ -832,7 +832,7 @@ const AdminDashboard = ({ user, onLogout }) => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-11 mb-8">
+          <TabsList className="grid w-full grid-cols-9 mb-8">
             <TabsTrigger value="programs" data-testid="programs-tab">
               <BookOpen className="w-4 h-4 mr-2" />
               Programs
@@ -849,13 +849,9 @@ const AdminDashboard = ({ user, onLogout }) => {
               <FileText className="w-4 h-4 mr-2" />
               Reports
             </TabsTrigger>
-            <TabsTrigger value="trainers" data-testid="trainers-tab">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Trainers
-            </TabsTrigger>
-            <TabsTrigger value="coordinators" data-testid="coordinators-tab">
+            <TabsTrigger value="staff" data-testid="staff-tab">
               <UserCog className="w-4 h-4 mr-2" />
-              Coordinators
+              Staff
             </TabsTrigger>
             <TabsTrigger value="users" data-testid="users-tab">
               <Users className="w-4 h-4 mr-2" />
