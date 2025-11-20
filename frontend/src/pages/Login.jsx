@@ -9,6 +9,7 @@ import { useTheme } from "../context/ThemeContext";
 import { Shield, Lock, Mail } from "lucide-react";
 
 const Login = ({ onLogin }) => {
+  const { primaryColor, secondaryColor, companyName, logoUrl } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
