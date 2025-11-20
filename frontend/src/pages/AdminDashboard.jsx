@@ -481,6 +481,7 @@ const AdminDashboard = ({ user, onLogout }) => {
 
   const trainers = users.filter((u) => u.role === "trainer");
   const coordinators = users.filter((u) => u.role === "coordinator");
+  const assistantAdmins = users.filter((u) => u.role === "assistant_admin");
 
   const getTrainerName = (trainerId) => {
     const trainer = trainers.find(t => t.id === trainerId);
