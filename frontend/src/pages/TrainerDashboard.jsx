@@ -51,7 +51,8 @@ const TrainerDashboard = ({ user, onLogout }) => {
         loadSessionParticipants(session.id);
       }
     } catch (error) {
-      toast.error("Failed to load sessions");
+      console.error("Failed to load sessions:", error);
+      toast.error("Failed to load sessions: " + (error.response?.data?.detail || error.message));
     }
   };
 
