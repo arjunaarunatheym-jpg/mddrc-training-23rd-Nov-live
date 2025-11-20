@@ -16,7 +16,9 @@ import FeedbackManagement from "./FeedbackManagement";
 const AssistantAdminDashboard = ({ user, onLogout }) => {
   const [sessions, setSessions] = useState([]);
   const [companies, setCompanies] = useState([]);
+  const [programs, setPrograms] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
+  const [selectedProgram, setSelectedProgram] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [participantForm, setParticipantForm] = useState({
