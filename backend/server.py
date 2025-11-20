@@ -3927,7 +3927,7 @@ async def submit_feedback(feedback_data: FeedbackSubmit, current_user: User = De
 
 @api_router.get("/feedback/session/{session_id}", response_model=List[CourseFeedback])
 async def get_session_feedback(session_id: str, current_user: User = Depends(get_current_user)):
-    if current_user.role not in ["admin", "supervisor", "coordinator"]:
+    if current_user.role not in ["admin", "supervisor", "coordinator", "trainer"]:
         raise HTTPException(status_code=403, detail="Unauthorized")
     
     feedback = await db.course_feedback.find({"session_id": session_id}, {"_id": 0}).to_list(100)
