@@ -1815,8 +1815,8 @@ async def get_checklist_template(program_id: str, current_user: User = Depends(g
 @api_router.put("/checklist-templates/{template_id}", response_model=ChecklistTemplate)
 async def update_checklist_template(template_id: str, template_data: ChecklistTemplateCreate, current_user: User = Depends(get_current_user)):
     """Update a checklist template"""
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can update checklist templates")
+    if current_user.role not in ["admin", "assistant_admin"]:
+        raise HTTPException(status_code=403, detail="Only admins and assistant admins can update checklist templates")
     
     existing = await db.checklist_templates.find_one({"id": template_id}, {"_id": 0})
     if not existing:
