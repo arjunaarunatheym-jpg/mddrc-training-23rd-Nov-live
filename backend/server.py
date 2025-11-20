@@ -2958,10 +2958,16 @@ async def generate_docx_report(session_id: str, current_user: User = Depends(get
         
         doc.add_page_break()
         
-        # COORDINATOR FEEDBACK
-        doc.add_heading('8. COORDINATOR FEEDBACK', 1)
+        # COORDINATOR FEEDBACK (Enhanced)
+        doc.add_heading('11. COORDINATOR FEEDBACK', 1)
         coordinator_feedback = await db.coordinator_feedback.find_one({"session_id": session_id}, {"_id": 0})
         if coordinator_feedback:
+            doc.add_paragraph(
+                "The training coordinator provided comprehensive observations on logistics, participant engagement, "
+                "and overall program execution. Key observations and recommendations are detailed below:"
+            )
+            doc.add_paragraph()
+            
             responses = coordinator_feedback.get('responses', {})
             for question_id, answer in responses.items():
                 # Get question text from template
@@ -2976,8 +2982,16 @@ async def generate_docx_report(session_id: str, current_user: User = Depends(get
                             else:
                                 doc.add_paragraph(f"   {answer}")
                             doc.add_paragraph()
+            
+            # Add formal closing
+            doc.add_paragraph()
+            doc.add_paragraph(
+                f"The coordinator acknowledges the strong collaboration between {company.get('name', 'the company')}, "
+                "MDDRC training team, and participants throughout the program. Participants demonstrated excellent "
+                "discipline and commitment to learning, contributing to the overall success of the training initiative."
+            )
         else:
-            doc.add_paragraph("[Coordinator feedback pending]")
+            doc.add_paragraph("[Coordinator feedback pending submission]")
         
         doc.add_page_break()
         
