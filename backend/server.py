@@ -240,7 +240,7 @@ class TestResult(BaseModel):
     total_questions: int = 0
     correct_answers: int = 0
     passed: bool = False
-    submitted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    submitted_at: datetime = Field(default_factory=get_malaysia_time)
     question_indices: Optional[List[int]] = None  # Store original question order for shuffled tests
 
 class TestSubmit(BaseModel):
@@ -267,7 +267,7 @@ class VehicleChecklist(BaseModel):
     session_id: str
     interval: str
     checklist_items: List[dict] = []
-    submitted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    submitted_at: datetime = Field(default_factory=get_malaysia_time)
     verified_by: Optional[str] = None
     verified_at: Optional[datetime] = None
     verification_status: str = "pending"
@@ -412,7 +412,7 @@ class CourseFeedback(BaseModel):
     session_id: str
     program_id: str
     responses: List[dict]  # [{"question": str, "answer": str/int}]
-    submitted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    submitted_at: datetime = Field(default_factory=get_malaysia_time)
 
 class FeedbackSubmit(BaseModel):
     session_id: str
@@ -533,7 +533,7 @@ class CoordinatorFeedback(BaseModel):
     session_id: str
     coordinator_id: str
     responses: dict = {}
-    submitted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    submitted_at: datetime = Field(default_factory=get_malaysia_time)
 
 class ChiefTrainerFeedback(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -541,7 +541,7 @@ class ChiefTrainerFeedback(BaseModel):
     session_id: str
     trainer_id: str
     responses: dict = {}
-    submitted_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    submitted_at: datetime = Field(default_factory=get_malaysia_time)
 
 class FeedbackTemplateUpdate(BaseModel):
     questions: List[dict]
