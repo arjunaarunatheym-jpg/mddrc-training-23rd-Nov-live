@@ -2809,20 +2809,52 @@ async def generate_docx_report(session_id: str, current_user: User = Depends(get
                     else:
                         text_questions.append(response['question'])
             
-            # Display star ratings summary
+            # PART 1: QUANTITATIVE FEEDBACK
             if star_questions:
-                doc.add_paragraph("Rating Summary (5-Star Scale):", style='Heading 3')
+                doc.add_paragraph("A. QUANTITATIVE FEEDBACK (Rating Scores):", style='Heading 3')
+                doc.add_paragraph("Average ratings across all participants on a 5-point scale:")
+                doc.add_paragraph()
+                
                 for question in star_questions:
                     ratings = [r['answer'] for fb in feedback_data for r in fb['responses'] if r['question'] == question and isinstance(r['answer'], int)]
                     if ratings:
                         avg_rating = sum(ratings) / len(ratings)
                         stars = '⭐' * int(round(avg_rating))
-                        doc.add_paragraph(f"{question}: {stars} ({avg_rating:.1f}/5.0)")
+                        doc.add_paragraph(f"• {question}: {stars} ({avg_rating:.1f}/5.0)")
+                
+                # Overall satisfaction calculation
+                all_ratings = [r['answer'] for fb in feedback_data for r in fb['responses'] if isinstance(r['answer'], int)]
+                if all_ratings:
+                    overall_avg = sum(all_ratings) / len(all_ratings)
+                    doc.add_paragraph()
+                    doc.add_paragraph(f"OVERALL SATISFACTION: {'⭐' * int(round(overall_avg))} ({overall_avg:.1f}/5.0)", style='Heading 3')
                 doc.add_paragraph()
             
-            # Display comments and suggestions
+            # PART 2: QUALITATIVE FEEDBACK THEMES
             if text_questions:
-                doc.add_paragraph("Comments & Suggestions:", style='Heading 3')
+                doc.add_paragraph("B. QUALITATIVE FEEDBACK (Key Themes):", style='Heading 3')
+                
+                # Collect all text responses
+                all_text_responses = []
+                for fb in feedback_data:
+                    for response in fb['responses']:
+                        if not isinstance(response['answer'], int):
+                            all_text_responses.append(response['answer'])
+                
+                # Analyze common themes (simple keyword matching)
+                positive_keywords = ['good', 'excellent', 'great', 'helpful', 'informative', 'clear', 'effective']
+                improvement_keywords = ['more', 'extend', 'longer', 'additional', 'better', 'improve']
+                
+                positive_count = sum(1 for resp in all_text_responses if any(kw in str(resp).lower() for kw in positive_keywords))
+                improvement_count = sum(1 for resp in all_text_responses if any(kw in str(resp).lower() for kw in improvement_keywords))
+                
+                doc.add_paragraph(f"• Positive Remarks: {positive_count} participants expressed satisfaction with training delivery and content")
+                if improvement_count > 0:
+                    doc.add_paragraph(f"• Improvement Suggestions: {improvement_count} participants suggested enhancements (e.g., extended duration, additional videos)")
+                doc.add_paragraph()
+                
+                # PART 3: INDIVIDUAL RESPONSES (Detailed)
+                doc.add_paragraph("C. DETAILED INDIVIDUAL RESPONSES:", style='Heading 3')
                 for idx, fb in enumerate(feedback_data, 1):
                     doc.add_paragraph(f"{idx}. {fb['participant_name']}", style='Heading 4')
                     for response in fb['responses']:
