@@ -2632,7 +2632,7 @@ async def generate_docx_report(session_id: str, current_user: User = Depends(get
         doc.add_paragraph(f"Date: ________________")
         
         # Save DOCX
-        report_filename = f"Training_Report_{session_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.docx"
+        report_filename = f"Training_Report_{session_id}_{get_malaysia_time().strftime('%Y%m%d_%H%M%S')}.docx"
         report_path = REPORT_DIR / report_filename
         doc.save(str(report_path))
         
@@ -2694,7 +2694,7 @@ async def upload_edited_docx(
     
     try:
         # Save edited DOCX
-        edited_filename = f"Training_Report_{session_id}_edited_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.docx"
+        edited_filename = f"Training_Report_{session_id}_edited_{get_malaysia_time().strftime('%Y%m%d_%H%M%S')}.docx"
         edited_path = REPORT_DIR / edited_filename
         
         with open(edited_path, "wb") as buffer:
@@ -2747,7 +2747,7 @@ async def upload_final_pdf_report(
     
     try:
         # Save final PDF
-        pdf_filename = f"Training_Report_{session_id}_final_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.pdf"
+        pdf_filename = f"Training_Report_{session_id}_final_{get_malaysia_time().strftime('%Y%m%d_%H%M%S')}.pdf"
         pdf_path = REPORT_PDF_DIR / pdf_filename
         
         with open(pdf_path, "wb") as buffer:
