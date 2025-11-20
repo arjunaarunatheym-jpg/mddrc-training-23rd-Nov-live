@@ -1829,8 +1829,9 @@ async def clock_in(attendance_data: AttendanceClockIn, current_user: User = Depe
     if current_user.role != "participant":
         raise HTTPException(status_code=403, detail="Only participants can clock in")
     
-    today = datetime.now(timezone.utc).date().isoformat()
-    now = datetime.now(timezone.utc).strftime("%H:%M:%S")
+    # Use Malaysian time
+    today = get_malaysia_date().isoformat()
+    now = get_malaysia_time_str()
     
     # Check if already clocked in today
     existing = await db.attendance.find_one({
