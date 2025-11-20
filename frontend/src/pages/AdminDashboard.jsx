@@ -139,6 +139,13 @@ const AdminDashboard = ({ user, onLogout }) => {
   const [editProgramDialogOpen, setEditProgramDialogOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState(null);
   const [editCompanyDialogOpen, setEditCompanyDialogOpen] = useState(false);
+  const [editingStaff, setEditingStaff] = useState(null);
+  const [editStaffDialogOpen, setEditStaffDialogOpen] = useState(false);
+  const [editStaffForm, setEditStaffForm] = useState({
+    full_name: "",
+    email: "",
+    id_number: "",
+  });
   
   // Delete confirmation states
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
