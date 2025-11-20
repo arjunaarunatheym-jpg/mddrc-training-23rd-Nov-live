@@ -2399,19 +2399,42 @@ async def generate_docx_report(session_id: str, current_user: User = Depends(get
                 "responses": feedback.get('responses', [])
             })
         
-        # Create DOCX document
+        # Determine vehicle type from program name for objectives
+        program_name_lower = program.get('name', '').lower()
+        is_motorcycle = 'motor' in program_name_lower or 'bike' in program_name_lower or 'rider' in program_name_lower
+        is_truck = 'truck' in program_name_lower or 'lorry' in program_name_lower or 'heavy' in program_name_lower
+        
+        # Create DOCX document with enhanced formatting
         doc = Document()
         
         # COVER PAGE
-        doc.add_heading('DEFENSIVE DRIVING TRAINING', 0)
-        doc.add_heading('COMPLETION REPORT', 0)
+        title = doc.add_heading('DEFENSIVE DRIVING/RIDING TRAINING', 0)
+        title.alignment = 1  # Center alignment
+        subtitle = doc.add_heading('COMPREHENSIVE COMPLETION REPORT', 0)
+        subtitle.alignment = 1
         doc.add_paragraph()
-        doc.add_paragraph(f"Program: {program.get('name', 'N/A')}")
-        doc.add_paragraph(f"Company: {company.get('name', 'N/A')}")
-        doc.add_paragraph(f"Location: {session.get('location', 'N/A')}")
-        doc.add_paragraph(f"Training Period: {session.get('start_date', 'N/A')} to {session.get('end_date', 'N/A')}")
-        doc.add_paragraph(f"Submitted by: {current_user.full_name}")
-        doc.add_paragraph(f"Date: {get_malaysia_time().strftime('%Y-%m-%d')}")
+        doc.add_paragraph()
+        
+        # Cover details in a cleaner format
+        cover_table = doc.add_table(rows=7, cols=2)
+        cover_table.style = 'Light List Accent 1'
+        cover_details = [
+            ('Program:', program.get('name', 'N/A')),
+            ('Company:', company.get('name', 'N/A')),
+            ('Location:', session.get('location', 'N/A')),
+            ('Training Period:', f"{session.get('start_date', 'N/A')} to {session.get('end_date', 'N/A')}"),
+            ('Participants:', str(len(participants))),
+            ('Submitted by:', current_user.full_name),
+            ('Date:', get_malaysia_time().strftime('%Y-%m-%d'))
+        ]
+        for idx, (label, value) in enumerate(cover_details):
+            cover_table.rows[idx].cells[0].text = label
+            cover_table.rows[idx].cells[1].text = value
+        
+        doc.add_paragraph()
+        doc.add_paragraph()
+        footer_text = doc.add_paragraph('Prepared by: MDDRC (Malaysian Defensive Driving & Riding Centre)')
+        footer_text.alignment = 1
         doc.add_page_break()
         
         # EXECUTIVE SUMMARY
