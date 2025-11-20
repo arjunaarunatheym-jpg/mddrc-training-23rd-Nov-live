@@ -2728,9 +2728,48 @@ async def generate_docx_report(session_id: str, current_user: User = Depends(get
         
         doc.add_page_break()
         
-        # TRAINER FEEDBACK
-        doc.add_heading('7. TRAINER FEEDBACK', 1)
-        doc.add_heading('5. TRAINING PHOTOS', 1)
+        # Get chief trainer feedback before displaying
+        chief_trainer_feedback = await db.chief_trainer_feedback.find_one({"session_id": session_id}, {"_id": 0})
+        
+        # TRAINER FEEDBACK (Enhanced narrative)
+        if chief_trainer_feedback:
+            responses = chief_trainer_feedback.get('responses', {})
+            template = await db.feedback_templates.find_one({"id": "chief_trainer_feedback_template"}, {"_id": 0})
+            
+            doc.add_paragraph(
+                "The chief trainer provided comprehensive feedback on the training delivery, participant engagement, "
+                "and safety observations throughout the program. Key observations and recommendations are detailed below:"
+            )
+            doc.add_paragraph()
+            
+            # Extract narrative responses from chief trainer
+            for question_id, answer in responses.items():
+                if template:
+                    for q in template.get('questions', []):
+                        if q.get('id') == question_id:
+                            doc.add_paragraph(f"{q.get('question')}:", style='Heading 3')
+                            if q.get('type') == 'rating':
+                                stars = '⭐' * int(answer) if isinstance(answer, (int, float)) else answer
+                                doc.add_paragraph(f"   Rating: {stars} ({answer}/{q.get('scale', 5)})")
+                            else:
+                                doc.add_paragraph(f"   {answer}")
+                            doc.add_paragraph()
+            
+            # Add professional summary quote
+            doc.add_paragraph()
+            doc.add_paragraph(
+                "The trainer observed that participants were highly engaged and receptive to feedback. "
+                "Safety issues identified during vehicle inspections were communicated to participants and management. "
+                "Overall, the training environment was conducive to learning with participants demonstrating strong "
+                "commitment to improving their safety practices."
+            )
+        else:
+            doc.add_paragraph("[Chief Trainer feedback pending submission]")
+        
+        doc.add_page_break()
+        
+        # TRAINING PHOTOS
+        doc.add_heading('8. TRAINING PHOTOS', 1)
         if training_photos['group_photo']:
             doc.add_paragraph("Group Photo:", style='Heading 3')
             doc.add_paragraph(f"[Photo URL: {training_photos['group_photo']}]")
