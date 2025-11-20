@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional
 import uuid
 from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 from passlib.context import CryptContext
 import jwt
 import random
@@ -20,6 +21,21 @@ from docx import Document
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 import json
 import asyncio
+
+# Malaysian Timezone (UTC+8)
+MALAYSIA_TZ = ZoneInfo("Asia/Kuala_Lumpur")
+
+def get_malaysia_time():
+    """Get current time in Malaysian timezone"""
+    return datetime.now(MALAYSIA_TZ)
+
+def get_malaysia_date():
+    """Get current date in Malaysian timezone"""
+    return get_malaysia_time().date()
+
+def get_malaysia_time_str():
+    """Get current time as string in HH:MM:SS format (Malaysian timezone)"""
+    return get_malaysia_time().strftime("%H:%M:%S")
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
