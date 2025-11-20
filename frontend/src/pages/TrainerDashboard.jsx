@@ -47,7 +47,7 @@ const TrainerDashboard = ({ user, onLogout }) => {
       setSessions(relevantSessions);
       
       // Load participants for each session
-      for (const session of currentSessions) {
+      for (const session of relevantSessions) {
         loadSessionParticipants(session.id);
       }
     } catch (error) {
