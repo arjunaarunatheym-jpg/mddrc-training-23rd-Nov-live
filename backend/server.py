@@ -2647,8 +2647,8 @@ async def generate_docx_report(session_id: str, current_user: User = Depends(get
             row_cells[1].text = str(p['id_number'])
         doc.add_page_break()
         
-        # INDIVIDUAL PARTICIPANT PERFORMANCE (DETAILED)
-        doc.add_heading('3. PARTICIPANT PERFORMANCE (Detailed)', 1)
+        # PRE-POST EVALUATION SUMMARY
+        doc.add_heading('5. PRE-POST EVALUATION SUMMARY', 1)
         doc.add_paragraph("Individual participant test results showing pre-test, post-test, and improvement:")
         doc.add_paragraph()
         
