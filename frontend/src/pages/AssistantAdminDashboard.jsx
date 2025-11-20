@@ -51,6 +51,15 @@ const AssistantAdminDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const loadPrograms = async () => {
+    try {
+      const response = await axiosInstance.get("/programs");
+      setPrograms(response.data);
+    } catch (error) {
+      toast.error("Failed to load programs");
+    }
+  };
+
   const loadParticipants = async (sessionId) => {
     try {
       const response = await axiosInstance.get(`/sessions/${sessionId}/participants`);
