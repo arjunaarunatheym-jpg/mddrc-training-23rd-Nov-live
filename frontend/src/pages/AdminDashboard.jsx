@@ -287,6 +287,22 @@ const AdminDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const handleCreateAssistantAdmin = async (e) => {
+    e.preventDefault();
+    try {
+      await axiosInstance.post("/auth/register", {
+        ...assistantAdminForm,
+        role: "assistant_admin",
+      });
+      toast.success("Assistant Admin created successfully");
+      setAssistantAdminForm({ email: "", password: "", full_name: "", id_number: "" });
+      setAssistantAdminDialogOpen(false);
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to create assistant admin");
+    }
+  };
+
   const handleAddParticipant = () => {
     if (!newParticipant.email || !newParticipant.password || !newParticipant.full_name || !newParticipant.id_number) {
       toast.error("Please fill all required fields (name, email, password, ID number)");
