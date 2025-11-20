@@ -780,11 +780,15 @@ async def register_user(user_data: UserCreate, current_user: User = Depends(get_
 @api_router.post("/auth/login", response_model=TokenResponse)
 async def login(user_data: UserLogin):
     # Allow login with email OR IC number
+    # Build query dynamically to handle users without email
+    query_conditions = [{"id_number": user_data.email}]  # Always allow IC as username
+    
+    # Only check email if the input looks like an email (contains @)
+    if "@" in user_data.email:
+        query_conditions.append({"email": user_data.email})
+    
     user_doc = await db.users.find_one({
-        "$or": [
-            {"email": user_data.email},
-            {"id_number": user_data.email}  # Allow IC as username
-        ]
+        "$or": query_conditions
     }, {"_id": 0})
     if not user_doc:
         raise HTTPException(status_code=401, detail="Invalid credentials")
