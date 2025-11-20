@@ -67,12 +67,12 @@ const AssistantAdminDashboard = ({ user, onLogout }) => {
     }
 
     try {
-      // Register participant with default credentials
+      // Register participant with default credentials (email optional - auto-generated)
       await axiosInstance.post("/auth/register", {
         full_name: participantForm.full_name,
         id_number: participantForm.id_number,
-        email: `${participantForm.id_number}@mddrc.com`, // Auto-generated
-        password: "mddrc1", // Default password
+        // email: not required - will be auto-generated as IC@mddrc.com
+        // password: not required - defaults to mddrc1
         role: "participant",
         company_id: participantForm.company_id,
         location: ""
