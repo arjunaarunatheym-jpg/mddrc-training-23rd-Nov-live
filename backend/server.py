@@ -1770,8 +1770,8 @@ async def get_test_result_detail(result_id: str, current_user: User = Depends(ge
 # Checklist Template Routes
 @api_router.post("/checklist-templates", response_model=ChecklistTemplate)
 async def create_checklist_template(template_data: ChecklistTemplateCreate, current_user: User = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can create checklist templates")
+    if current_user.role not in ["admin", "assistant_admin"]:
+        raise HTTPException(status_code=403, detail="Only admins and assistant admins can create checklist templates")
     
     existing = await db.checklist_templates.find_one({"program_id": template_data.program_id}, {"_id": 0})
     if existing:
