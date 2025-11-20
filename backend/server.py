@@ -97,8 +97,8 @@ class User(BaseModel):
     is_active: bool = True
 
 class UserCreate(BaseModel):
-    email: EmailStr
-    password: str
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
     full_name: str
     id_number: str
     role: str
