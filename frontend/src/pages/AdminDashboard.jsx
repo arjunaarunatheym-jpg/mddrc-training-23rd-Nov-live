@@ -40,7 +40,7 @@ const AdminDashboard = ({ user, onLogout }) => {
   });
   const [supervisorDialogOpen, setSupervisorDialogOpen] = useState(false);
 
-  const [companyName, setCompanyName] = useState("");
+  const [companyFormName, setCompanyFormName] = useState("");
   const [companyDialogOpen, setCompanyDialogOpen] = useState(false);
 
   const [programForm, setProgramForm] = useState({ name: "", description: "", pass_percentage: 70 });
