@@ -724,20 +724,42 @@ async def root():
 # Auth Routes
 @api_router.post("/auth/register", response_model=User)
 async def register_user(user_data: UserCreate, current_user: User = Depends(get_current_user)):
-    # Admins can create any user, coordinators can only create participants
-    if current_user.role == "coordinator":
+    # Role-based access control:
+    # - Admins can create any user
+    # - Coordinators can only create participants
+    # - Assistant Admins can only create participants
+    if current_user.role == "coordinator" or current_user.role == "assistant_admin":
         if user_data.role != "participant":
-            raise HTTPException(status_code=403, detail="Coordinators can only create participants")
+            raise HTTPException(status_code=403, detail="You can only create participants")
     elif current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Access denied")
     
-    existing = await db.users.find_one({"email": user_data.email}, {"_id": 0})
-    if existing:
-        raise HTTPException(status_code=400, detail="User already exists")
+    # For participants: use default credentials if not provided
+    password = user_data.password
+    email = user_data.email
     
-    hashed_pw = hash_password(user_data.password)
+    if user_data.role == "participant":
+        # Default password: mddrc1
+        if not password:
+            password = "mddrc1"
+        # Default email: IC@mddrc.com
+        if not email:
+            email = f"{user_data.id_number}@mddrc.com"
+    
+    # Check if user exists by email OR IC number
+    existing = await db.users.find_one({
+        "$or": [
+            {"email": email},
+            {"id_number": user_data.id_number}
+        ]
+    }, {"_id": 0})
+    
+    if existing:
+        raise HTTPException(status_code=400, detail=f"User already exists with this {'email' if existing.get('email') == email else 'IC number'}")
+    
+    hashed_pw = hash_password(password)
     user_obj = User(
-        email=user_data.email,
+        email=email,
         full_name=user_data.full_name,
         id_number=user_data.id_number,
         role=user_data.role,
