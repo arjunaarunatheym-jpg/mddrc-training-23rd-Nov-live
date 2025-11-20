@@ -1976,12 +1976,9 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
                               <h5 className="font-medium text-gray-900">Step 3: Upload Final PDF</h5>
                               <p className="text-sm text-gray-600">After editing, upload the final PDF version</p>
                             </div>
-                            <label className="cursor-pointer">
-                              <Button variant="outline" as="span" disabled={uploadingEdited}>
-                                <Upload className="w-4 h-4 mr-2" />
-                                {uploadingEdited ? "Uploading..." : "Upload PDF"}
-                              </Button>
+                            <div>
                               <input
+                                id={`upload-report-pdf-${selectedSession?.id}`}
                                 type="file"
                                 accept=".pdf"
                                 className="hidden"
@@ -2011,6 +2008,7 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
                                       pdf_submitted: true
                                     });
                                   } catch (error) {
+                                    console.error("Upload error:", error);
                                     toast.error(error.response?.data?.detail || "Failed to upload report");
                                   } finally {
                                     setUploadingEdited(false);
@@ -2018,7 +2016,15 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
                                   e.target.value = null;
                                 }}
                               />
-                            </label>
+                              <Button 
+                                variant="outline" 
+                                disabled={uploadingEdited}
+                                onClick={() => document.getElementById(`upload-report-pdf-${selectedSession?.id}`)?.click()}
+                              >
+                                <Upload className="w-4 h-4 mr-2" />
+                                {uploadingEdited ? "Uploading..." : "Upload PDF"}
+                              </Button>
+                            </div>
                           </div>
 
                           {professionalReportStatus.pdf_submitted && (
