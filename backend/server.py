@@ -107,7 +107,7 @@ class UserCreate(BaseModel):
     phone_number: Optional[str] = None
 
 class UserLogin(BaseModel):
-    email: EmailStr
+    email: str  # Can be email or IC number
     password: str
 
 class TokenResponse(BaseModel):
