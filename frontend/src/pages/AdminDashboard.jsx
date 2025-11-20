@@ -1956,6 +1956,353 @@ const AdminDashboard = ({ user, onLogout }) => {
             </Dialog>
           </TabsContent>
 
+          {/* Staff Tab - Unified Staff Management */}
+          <TabsContent value="staff">
+            <Card>
+              <CardHeader>
+                <CardTitle>Staff Management</CardTitle>
+                <CardDescription>Manage all staff members (Coordinators, Assistant Admins, Trainers)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  
+                  {/* Coordinators Section */}
+                  <Card className="border-2 border-purple-200">
+                    <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <CardTitle className="text-lg">Coordinators</CardTitle>
+                          <CardDescription>Manage training coordinators ({coordinators.length} total)</CardDescription>
+                        </div>
+                        <Dialog open={coordinatorDialogOpen} onOpenChange={setCoordinatorDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button size="sm" data-testid="create-coordinator-button">
+                              <UserCog className="w-4 h-4 mr-2" />
+                              Add Coordinator
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Create New Coordinator</DialogTitle>
+                              <DialogDescription>
+                                Add a coordinator account
+                              </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleCreateCoordinator} className="space-y-4">
+                              <div>
+                                <Label htmlFor="coordinator-name">Full Name *</Label>
+                                <Input
+                                  id="coordinator-name"
+                                  data-testid="coordinator-name-input"
+                                  value={coordinatorForm.full_name}
+                                  onChange={(e) => setCoordinatorForm({ ...coordinatorForm, full_name: e.target.value })}
+                                  required
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="coordinator-id">ID Number *</Label>
+                                <Input
+                                  id="coordinator-id"
+                                  data-testid="coordinator-id-input"
+                                  value={coordinatorForm.id_number}
+                                  onChange={(e) => setCoordinatorForm({ ...coordinatorForm, id_number: e.target.value })}
+                                  required
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="coordinator-email">Email *</Label>
+                                <Input
+                                  id="coordinator-email"
+                                  data-testid="coordinator-email-input"
+                                  type="email"
+                                  value={coordinatorForm.email}
+                                  onChange={(e) => setCoordinatorForm({ ...coordinatorForm, email: e.target.value })}
+                                  required
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="coordinator-password">Password *</Label>
+                                <Input
+                                  id="coordinator-password"
+                                  data-testid="coordinator-password-input"
+                                  type="password"
+                                  value={coordinatorForm.password}
+                                  onChange={(e) => setCoordinatorForm({ ...coordinatorForm, password: e.target.value })}
+                                  required
+                                />
+                              </div>
+                              <Button data-testid="submit-coordinator-button" type="submit" className="w-full">
+                                Create Coordinator
+                              </Button>
+                            </form>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <div className="space-y-2">
+                        {coordinators.length === 0 ? (
+                          <p className="text-gray-500 text-center py-8">No coordinators yet</p>
+                        ) : (
+                          coordinators.map((coordinator) => (
+                            <div
+                              key={coordinator.id}
+                              data-testid={`coordinator-item-${coordinator.id}`}
+                              className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg hover:bg-purple-100 transition-colors flex justify-between items-start"
+                            >
+                              <div>
+                                <h3 className="font-semibold text-gray-900">{coordinator.full_name}</h3>
+                                <p className="text-sm text-gray-600">{coordinator.email}</p>
+                                <div className="flex gap-2 mt-2">
+                                  <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                                    Coordinator
+                                  </span>
+                                  <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
+                                    ID: {coordinator.id_number}
+                                  </span>
+                                </div>
+                              </div>
+                              <Button
+                                data-testid={`delete-coordinator-${coordinator.id}`}
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDeleteClick("coordinator", coordinator)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Assistant Admins Section */}
+                  <Card className="border-2 border-blue-200">
+                    <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <CardTitle className="text-lg">Assistant Admins</CardTitle>
+                          <CardDescription>Manage assistant administrators ({assistantAdmins.length} total)</CardDescription>
+                        </div>
+                        <Dialog open={assistantAdminDialogOpen} onOpenChange={setAssistantAdminDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button size="sm" data-testid="create-assistant-admin-button">
+                              <UserPlus className="w-4 h-4 mr-2" />
+                              Add Assistant Admin
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Create New Assistant Admin</DialogTitle>
+                              <DialogDescription>
+                                Add an assistant admin account
+                              </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleCreateAssistantAdmin} className="space-y-4">
+                              <div>
+                                <Label htmlFor="assistant-admin-name">Full Name *</Label>
+                                <Input
+                                  id="assistant-admin-name"
+                                  data-testid="assistant-admin-name-input"
+                                  value={assistantAdminForm.full_name}
+                                  onChange={(e) => setAssistantAdminForm({ ...assistantAdminForm, full_name: e.target.value })}
+                                  required
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="assistant-admin-id">ID Number *</Label>
+                                <Input
+                                  id="assistant-admin-id"
+                                  data-testid="assistant-admin-id-input"
+                                  value={assistantAdminForm.id_number}
+                                  onChange={(e) => setAssistantAdminForm({ ...assistantAdminForm, id_number: e.target.value })}
+                                  required
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="assistant-admin-email">Email *</Label>
+                                <Input
+                                  id="assistant-admin-email"
+                                  data-testid="assistant-admin-email-input"
+                                  type="email"
+                                  value={assistantAdminForm.email}
+                                  onChange={(e) => setAssistantAdminForm({ ...assistantAdminForm, email: e.target.value })}
+                                  required
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="assistant-admin-password">Password *</Label>
+                                <Input
+                                  id="assistant-admin-password"
+                                  data-testid="assistant-admin-password-input"
+                                  type="password"
+                                  value={assistantAdminForm.password}
+                                  onChange={(e) => setAssistantAdminForm({ ...assistantAdminForm, password: e.target.value })}
+                                  required
+                                />
+                              </div>
+                              <Button data-testid="submit-assistant-admin-button" type="submit" className="w-full">
+                                Create Assistant Admin
+                              </Button>
+                            </form>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <div className="space-y-2">
+                        {assistantAdmins.length === 0 ? (
+                          <p className="text-gray-500 text-center py-8">No assistant admins yet</p>
+                        ) : (
+                          assistantAdmins.map((assistantAdmin) => (
+                            <div
+                              key={assistantAdmin.id}
+                              data-testid={`assistant-admin-item-${assistantAdmin.id}`}
+                              className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg hover:bg-blue-100 transition-colors flex justify-between items-start"
+                            >
+                              <div>
+                                <h3 className="font-semibold text-gray-900">{assistantAdmin.full_name}</h3>
+                                <p className="text-sm text-gray-600">{assistantAdmin.email}</p>
+                                <div className="flex gap-2 mt-2">
+                                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                    Assistant Admin
+                                  </span>
+                                  <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
+                                    ID: {assistantAdmin.id_number}
+                                  </span>
+                                </div>
+                              </div>
+                              <Button
+                                data-testid={`delete-assistant-admin-${assistantAdmin.id}`}
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDeleteClick("assistant_admin", assistantAdmin)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Trainers Section */}
+                  <Card className="border-2 border-orange-200">
+                    <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <CardTitle className="text-lg">Trainers</CardTitle>
+                          <CardDescription>Create trainer accounts (roles assigned per session) ({trainers.length} total)</CardDescription>
+                        </div>
+                        <Dialog open={trainerDialogOpen} onOpenChange={setTrainerDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button size="sm" data-testid="create-trainer-button">
+                              <UserPlus className="w-4 h-4 mr-2" />
+                              Add Trainer
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Create New Trainer</DialogTitle>
+                              <DialogDescription>
+                                Add a trainer account
+                              </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleCreateTrainer} className="space-y-4">
+                              <div>
+                                <Label htmlFor="trainer-name">Full Name *</Label>
+                                <Input
+                                  id="trainer-name"
+                                  data-testid="trainer-name-input"
+                                  value={trainerForm.full_name}
+                                  onChange={(e) => setTrainerForm({ ...trainerForm, full_name: e.target.value })}
+                                  required
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="trainer-id">ID Number *</Label>
+                                <Input
+                                  id="trainer-id"
+                                  data-testid="trainer-id-input"
+                                  value={trainerForm.id_number}
+                                  onChange={(e) => setTrainerForm({ ...trainerForm, id_number: e.target.value })}
+                                  required
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="trainer-email">Email *</Label>
+                                <Input
+                                  id="trainer-email"
+                                  data-testid="trainer-email-input"
+                                  type="email"
+                                  value={trainerForm.email}
+                                  onChange={(e) => setTrainerForm({ ...trainerForm, email: e.target.value })}
+                                  required
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="trainer-password">Password *</Label>
+                                <Input
+                                  id="trainer-password"
+                                  data-testid="trainer-password-input"
+                                  type="password"
+                                  value={trainerForm.password}
+                                  onChange={(e) => setTrainerForm({ ...trainerForm, password: e.target.value })}
+                                  required
+                                />
+                              </div>
+                              <Button data-testid="submit-trainer-button" type="submit" className="w-full">
+                                Create Trainer
+                              </Button>
+                            </form>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <div className="space-y-2">
+                        {trainers.length === 0 ? (
+                          <p className="text-gray-500 text-center py-8">No trainers yet</p>
+                        ) : (
+                          trainers.map((trainer) => (
+                            <div
+                              key={trainer.id}
+                              data-testid={`trainer-item-${trainer.id}`}
+                              className="p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg hover:bg-orange-100 transition-colors flex justify-between items-start"
+                            >
+                              <div>
+                                <h3 className="font-semibold text-gray-900">{trainer.full_name}</h3>
+                                <p className="text-sm text-gray-600">{trainer.email}</p>
+                                <div className="flex gap-2 mt-2">
+                                  <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                                    Trainer
+                                  </span>
+                                  <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
+                                    ID: {trainer.id_number}
+                                  </span>
+                                </div>
+                              </div>
+                              <Button
+                                data-testid={`delete-trainer-${trainer.id}`}
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDeleteClick("trainer", trainer)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Trainers Tab */}
           <TabsContent value="trainers">
