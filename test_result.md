@@ -398,6 +398,18 @@ frontend:
         agent: "main"
         comment: "Added forgot password and reset password functionality. Backend: Added POST /auth/forgot-password endpoint (sends success message, in production would send email), POST /auth/reset-password endpoint (directly resets password with email verification). Frontend: Added 'Forgot Password?' link on login page, modal for entering email, modal for entering new password and confirmation. Password validation (min 6 chars, must match). Visual feedback with success/error toasts. Ready for testing."
 
+  - task: "Admin Dashboard - Unified Staff Management Tab"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminDashboard.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "ADMIN DASHBOARD UI REFACTOR - Consolidated separate Coordinators and Trainers tabs into single unified Staff tab. Created three color-coded sections within Staff tab: 1) Coordinators (purple/pink theme) - manage training coordinators, 2) Assistant Admins (blue/cyan theme) - manage assistant administrators, 3) Trainers (orange/amber theme) - manage trainers. Each section displays count, has dedicated 'Add' button opening create dialog with all required fields (Full Name, ID Number, Email, Password), shows list of existing staff with role badge and delete button. Added assistantAdmins filter from users, assistantAdminForm state, assistantAdminDialogOpen state, and handleCreateAssistantAdmin handler function. Removed old separate TabsContent sections for trainers and coordinators (lines 2308-2531). TabsList updated to show Staff tab instead of separate Trainers/Coordinators tabs. UI verified with screenshots - clean, organized interface following same pattern as Programs tab consolidation. No linting errors. Frontend changes only - no backend modifications needed as assistant_admin role already supported. Ready for frontend testing."
+
   - task: "Feedback display bug fix"
     implemented: true
     working: true
