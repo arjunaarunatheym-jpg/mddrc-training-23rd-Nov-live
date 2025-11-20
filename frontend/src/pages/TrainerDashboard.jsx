@@ -21,6 +21,13 @@ const TrainerDashboard = ({ user, onLogout }) => {
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
+  // Session Results states
+  const [selectedResultsSession, setSelectedResultsSession] = useState(null);
+  const [sessionStats, setSessionStats] = useState({});
+  const [attendance, setAttendance] = useState([]);
+  const [testResults, setTestResults] = useState([]);
+  const [courseFeedback, setCourseFeedback] = useState([]);
+
 
   useEffect(() => {
     loadSessions();
