@@ -1013,6 +1013,45 @@ async def delete_user(user_id: str, current_user: User = Depends(get_current_use
     
     return {"message": "User deleted successfully"}
 
+# User Update Route
+@api_router.put("/users/{user_id}", response_model=User)
+async def update_user(user_id: str, user_data: dict, current_user: User = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can update users")
+    
+    # Find existing user
+    existing_user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not existing_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Check if email is being changed and if it conflicts with another user
+    if user_data.get("email") and user_data["email"] != existing_user.get("email"):
+        email_exists = await db.users.find_one({"email": user_data["email"], "id": {"$ne": user_id}}, {"_id": 0})
+        if email_exists:
+            raise HTTPException(status_code=400, detail="Email already in use by another user")
+    
+    # Update allowed fields
+    update_data = {}
+    if "full_name" in user_data:
+        update_data["full_name"] = user_data["full_name"]
+    if "email" in user_data:
+        update_data["email"] = user_data["email"]
+    if "id_number" in user_data:
+        update_data["id_number"] = user_data["id_number"]
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No valid fields to update")
+    
+    # Update user
+    await db.users.update_one({"id": user_id}, {"$set": update_data})
+    
+    # Fetch and return updated user
+    updated_user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if isinstance(updated_user.get('created_at'), str):
+        updated_user['created_at'] = datetime.fromisoformat(updated_user['created_at'])
+    
+    return User(**updated_user)
+
 # Check if user exists
 @api_router.post("/users/check-exists")
 async def check_user_exists(
