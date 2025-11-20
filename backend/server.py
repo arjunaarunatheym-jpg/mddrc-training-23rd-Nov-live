@@ -2867,18 +2867,94 @@ async def generate_docx_report(session_id: str, current_user: User = Depends(get
         
         doc.add_page_break()
         
-        # VEHICLE INSPECTION ISSUES
-        doc.add_heading('7. VEHICLE INSPECTION ISSUES', 1)
+        # MOTORCYCLE/VEHICLE CONDITION & EMPLOYER RECOMMENDATIONS (Enhanced)
+        doc.add_heading('10. VEHICLE CONDITION ASSESSMENT & EMPLOYER RECOMMENDATIONS', 1)
+        
         if vehicle_issues:
+            doc.add_paragraph(
+                f"During the training program, pre-ride safety inspections were conducted on all participant "
+                f"{'motorcycles' if is_motorcycle else 'vehicles'}. The inspections revealed {len(vehicle_issues)} "
+                f"{'motorcycles' if is_motorcycle else 'vehicles'} with safety concerns that require immediate attention."
+            )
+            doc.add_paragraph()
+            
+            # PART A: SAFETY ISSUES IDENTIFIED
+            doc.add_paragraph("A. SAFETY ISSUES IDENTIFIED:", style='Heading 3')
             for vehicle_issue in vehicle_issues:
-                doc.add_paragraph(f"{vehicle_issue['participant_name']}", style='Heading 3')
+                doc.add_paragraph(f"Participant: {vehicle_issue['participant_name']}", style='Heading 4')
                 for issue in vehicle_issue['issues']:
-                    doc.add_paragraph(f"   - {issue['item']}: {issue['comment']}")
+                    doc.add_paragraph(f"   • {issue['item']}: {issue['comment']}")
                     if issue['photo_url']:
-                        doc.add_paragraph(f"     [Photo: {issue['photo_url']}]")
+                        doc.add_paragraph(f"     [Photo Evidence: {issue['photo_url']}]")
                 doc.add_paragraph()
+            
+            # PART B: SAFETY IMPLICATIONS
+            doc.add_paragraph("B. SAFETY IMPLICATIONS:", style='Heading 3')
+            common_issues = {}
+            for vehicle_issue in vehicle_issues:
+                for issue in vehicle_issue['issues']:
+                    item_category = issue['item'].lower()
+                    if 'tyre' in item_category or 'tire' in item_category:
+                        common_issues['worn_tyres'] = common_issues.get('worn_tyres', 0) + 1
+                    elif 'lamp' in item_category or 'light' in item_category:
+                        common_issues['faulty_lamps'] = common_issues.get('faulty_lamps', 0) + 1
+                    elif 'chain' in item_category:
+                        common_issues['loose_chains'] = common_issues.get('loose_chains', 0) + 1
+                    elif 'mirror' in item_category:
+                        common_issues['missing_mirrors'] = common_issues.get('missing_mirrors', 0) + 1
+                    elif 'ppe' in item_category or 'helmet' in item_category or 'jacket' in item_category:
+                        common_issues['ppe_issues'] = common_issues.get('ppe_issues', 0) + 1
+            
+            if common_issues:
+                for issue_type, count in common_issues.items():
+                    if issue_type == 'worn_tyres':
+                        doc.add_paragraph(f"• Worn Tyres ({count} cases): Increased risk of skidding and loss of control, especially in wet conditions")
+                    elif issue_type == 'faulty_lamps':
+                        doc.add_paragraph(f"• Faulty Lamps/Lights ({count} cases): Reduced visibility at night, increased accident risk")
+                    elif issue_type == 'loose_chains':
+                        doc.add_paragraph(f"• Loose Chains ({count} cases): Risk of chain breakage leading to loss of control")
+                    elif issue_type == 'missing_mirrors':
+                        doc.add_paragraph(f"• Missing/Damaged Mirrors ({count} cases): Impaired situational awareness and blind spot monitoring")
+                    elif issue_type == 'ppe_issues':
+                        doc.add_paragraph(f"• PPE Non-Compliance ({count} cases): Increased severity of injuries in case of accidents")
+            doc.add_paragraph()
+            
+            # PART C: RECOMMENDATIONS FOR EMPLOYER
+            doc.add_paragraph("C. RECOMMENDATIONS FOR EMPLOYER:", style='Heading 3')
+            recommendations = [
+                "1. IMMEDIATE ACTION REQUIRED:",
+                f"   • Conduct immediate safety inspections on all {len(vehicle_issues)} flagged {'motorcycles' if is_motorcycle else 'vehicles'}",
+                "   • Ground vehicles until critical safety issues are resolved",
+                "   • Provide temporary alternative transportation if needed",
+                "",
+                "2. ESTABLISH REGULAR MAINTENANCE PROTOCOL:",
+                f"   • Implement monthly pre-ride safety inspection checklist for all {'motorcycles' if is_motorcycle else 'vehicles'}",
+                "   • Assign designated personnel for routine maintenance verification",
+                "   • Maintain detailed maintenance logs for each vehicle",
+                "",
+                "3. PPE COMPLIANCE:",
+                "   • Enforce mandatory PPE usage policy (helmet, jacket, gloves, boots)",
+                "   • Provide company-issued PPE if necessary",
+                "   • Conduct regular PPE condition checks",
+                "",
+                "4. INTEGRATE INTO SAFETY SOP:",
+                "   • Include vehicle inspection as part of daily work routine",
+                "   • Establish clear reporting channels for safety issues",
+                "   • Implement consequences for non-compliance",
+                "",
+                "5. SUPPLEMENTARY TRAINING:",
+                "   • Conduct basic vehicle maintenance workshop for employees",
+                "   • Provide refresher training on pre-ride safety checks"
+            ]
+            for rec in recommendations:
+                doc.add_paragraph(rec)
         else:
-            doc.add_paragraph("✓ No vehicle issues reported. All vehicles inspected are in good condition.")
+            doc.add_paragraph("✓ EXCELLENT RESULT: All vehicles inspected were found to be in good working condition with no safety concerns identified.")
+            doc.add_paragraph()
+            doc.add_paragraph(
+                "This indicates strong commitment to vehicle maintenance and safety standards. We recommend "
+                "continuing current maintenance practices and conducting regular quarterly safety inspections."
+            )
         
         doc.add_page_break()
         
