@@ -2269,7 +2269,7 @@ Assessment Pass Rate: {passed_tests} out of {len(test_results)} passed
 
 ---
 Report Prepared By: Training Coordinator
-Date: {datetime.now(timezone.utc).strftime('%Y-%m-%d')}
+Date: {get_malaysia_time().strftime('%Y-%m-%d')}
 
 Please generate this report professionally with proper formatting, specific details based on the data provided, and maintain a formal tone suitable for official documentation.
 """
@@ -2411,7 +2411,7 @@ async def generate_docx_report(session_id: str, current_user: User = Depends(get
         doc.add_paragraph(f"Location: {session.get('location', 'N/A')}")
         doc.add_paragraph(f"Training Period: {session.get('start_date', 'N/A')} to {session.get('end_date', 'N/A')}")
         doc.add_paragraph(f"Submitted by: {current_user.full_name}")
-        doc.add_paragraph(f"Date: {datetime.now(timezone.utc).strftime('%Y-%m-%d')}")
+        doc.add_paragraph(f"Date: {get_malaysia_time().strftime('%Y-%m-%d')}")
         doc.add_page_break()
         
         # EXECUTIVE SUMMARY
