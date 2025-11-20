@@ -840,6 +840,36 @@ async def forgot_password(request: ForgotPasswordRequest):
     # In production: Generate token, send email with reset link
     return {"message": "If an account exists with this email, password reset instructions have been sent"}
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+@api_router.post("/auth/change-password")
+async def change_password(request: ChangePasswordRequest, current_user: User = Depends(get_current_user)):
+    """
+    Change password for logged-in user
+    """
+    # Verify current password
+    user_doc = await db.users.find_one({"id": current_user.id}, {"_id": 0})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if not verify_password(request.current_password, user_doc["password"]):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    
+    # Minimum password length
+    if len(request.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    
+    # Hash and update new password
+    hashed_password = hash_password(request.new_password)
+    await db.users.update_one(
+        {"id": current_user.id},
+        {"$set": {"password": hashed_password}}
+    )
+    
+    return {"message": "Password changed successfully"}
+
 @api_router.post("/auth/reset-password")
 async def reset_password(request: ResetPasswordRequest):
     """
