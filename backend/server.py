@@ -425,7 +425,7 @@ class Certificate(BaseModel):
     participant_id: str
     session_id: str
     program_name: str
-    issue_date: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    issue_date: datetime = Field(default_factory=get_malaysia_time)
     certificate_url: Optional[str] = None
 
 class Settings(BaseModel):
