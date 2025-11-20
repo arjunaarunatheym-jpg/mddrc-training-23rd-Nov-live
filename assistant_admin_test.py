@@ -404,8 +404,8 @@ class AssistantAdminTestRunner:
             return False
     
     def test_assistant_admin_permissions_view_users(self):
-        """Test assistant_admin can view users (allowed permission)"""
-        self.log("Testing assistant_admin can view users (allowed permission)...")
+        """Test assistant_admin cannot view users (restricted permission)"""
+        self.log("Testing assistant_admin cannot view users (restricted permission)...")
         
         if not self.assistant_admin_token:
             self.log("❌ Missing assistant admin token", "ERROR")
@@ -416,16 +416,15 @@ class AssistantAdminTestRunner:
         try:
             response = self.session.get(f"{BASE_URL}/users", headers=headers)
             
-            if response.status_code == 200:
-                data = response.json()
-                self.log(f"✅ Assistant admin successfully retrieved users. Count: {len(data)}")
+            if response.status_code == 403:
+                self.log("✅ Assistant admin correctly denied permission to view users (403 Forbidden)")
                 return True
             else:
-                self.log(f"❌ Assistant admin view users failed: {response.status_code} - {response.text}", "ERROR")
+                self.log(f"❌ Expected 403 for user viewing, got: {response.status_code} - {response.text}", "ERROR")
                 return False
                 
         except Exception as e:
-            self.log(f"❌ Assistant admin view users error: {str(e)}", "ERROR")
+            self.log(f"❌ Assistant admin view users test error: {str(e)}", "ERROR")
             return False
     
     def test_assistant_admin_permissions_delete_users(self):
