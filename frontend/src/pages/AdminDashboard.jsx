@@ -1188,8 +1188,8 @@ const AdminDashboard = ({ user, onLogout }) => {
                           <Input
                             id="company-name"
                             data-testid="company-name-input"
-                            value={companyName}
-                            onChange={(e) => setCompanyName(e.target.value)}
+                            value={companyFormName}
+                            onChange={(e) => setCompanyFormName(e.target.value)}
                             required
                           />
                         </div>
