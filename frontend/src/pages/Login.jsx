@@ -116,12 +116,12 @@ const Login = ({ onLogin }) => {
       
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          {settings?.logo_url ? (
+          {logoUrl ? (
             <div className="inline-flex items-center justify-center mb-4">
               <img
-                src={`${process.env.REACT_APP_BACKEND_URL}${settings.logo_url}`}
-                alt="Company Logo"
-                className="h-20 object-contain"
+                src={logoUrl}
+                alt={companyName}
+                className="h-20 w-auto object-contain"
               />
             </div>
           ) : (
