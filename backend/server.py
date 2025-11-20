@@ -2679,7 +2679,57 @@ async def generate_docx_report(session_id: str, current_user: User = Depends(get
         
         doc.add_page_break()
         
-        # TRAINING PHOTOS
+        # DETAILED PERFORMANCE ANALYSIS WITH INSIGHTS
+        doc.add_heading('6. DETAILED PERFORMANCE ANALYSIS', 1)
+        doc.add_paragraph("Individual participant performance with remarks and recommendations:")
+        doc.add_paragraph()
+        
+        for idx, p in enumerate(participants, 1):
+            doc.add_paragraph(f"{idx}. {p['name']} (ID: {p['id_number']})", style='Heading 3')
+            perf_text = f"   Pre-Test: {p['pre_test_score']:.0f}% | Post-Test: {p['post_test_score']:.0f}% | Change: {p['improvement']:+.0f}%"
+            doc.add_paragraph(perf_text)
+            
+            # Generate performance remarks based on improvement
+            if p['improvement'] >= 20:
+                remark = "EXCELLENT IMPROVEMENT - Participant demonstrated exceptional learning and engagement. Strong grasp of defensive techniques."
+            elif p['improvement'] >= 10:
+                remark = "GOOD IMPROVEMENT - Participant showed solid progress and understanding of safety principles."
+            elif p['improvement'] >= 0:
+                remark = "SATISFACTORY PROGRESS - Participant maintained or slightly improved performance. Continue practicing learned techniques."
+            elif p['improvement'] >= -10:
+                remark = "NEEDS ATTENTION - Minor score decrease observed. Recommend follow-up coaching and review of key concepts."
+            else:
+                remark = "REQUIRES IMMEDIATE SUPPORT - Significant score decrease. Recommend one-on-one coaching session and practical refresher."
+            
+            # Pass/Fail status remark
+            if not p['pre_test_passed'] and p['post_test_passed']:
+                remark += " Successfully progressed from FAIL to PASS status."
+            elif not p['post_test_passed']:
+                remark += " Did not achieve passing score - recommend additional training."
+            
+            doc.add_paragraph(f"   Remark: {remark}")
+            doc.add_paragraph()
+        
+        # Overall Performance Insights
+        doc.add_paragraph("OVERALL PERFORMANCE INSIGHTS:", style='Heading 3')
+        high_performers = [p for p in participants if p['improvement'] >= 15]
+        needs_support = [p for p in participants if p['improvement'] < 0]
+        
+        insights = []
+        if high_performers:
+            insights.append(f"• {len(high_performers)} participant(s) demonstrated excellent improvement (≥15% gain), indicating strong training absorption.")
+        if needs_support:
+            insights.append(f"• {len(needs_support)} participant(s) showed score decrease and require targeted follow-up support.")
+        insights.append(f"• Average improvement of {improvement:+.1f}% indicates {'effective' if improvement > 5 else 'moderate'} training impact.")
+        insights.append(f"• Post-test pass rate of {(post_pass_count/len(participants)*100):.0f}% {'meets' if post_pass_count/len(participants) >= 0.8 else 'is below'} target standards.")
+        
+        for insight in insights:
+            doc.add_paragraph(insight)
+        
+        doc.add_page_break()
+        
+        # TRAINER FEEDBACK
+        doc.add_heading('7. TRAINER FEEDBACK', 1)
         doc.add_heading('5. TRAINING PHOTOS', 1)
         if training_photos['group_photo']:
             doc.add_paragraph("Group Photo:", style='Heading 3')
