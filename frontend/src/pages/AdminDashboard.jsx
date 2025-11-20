@@ -609,6 +609,29 @@ const AdminDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const handleEditStaff = (staff) => {
+    setEditingStaff(staff);
+    setEditStaffForm({
+      full_name: staff.full_name,
+      email: staff.email,
+      id_number: staff.id_number,
+    });
+    setEditStaffDialogOpen(true);
+  };
+
+  const handleUpdateStaff = async (e) => {
+    e.preventDefault();
+    try {
+      await axiosInstance.put(`/users/${editingStaff.id}`, editStaffForm);
+      toast.success(`${editingStaff.role.replace('_', ' ')} updated successfully`);
+      setEditStaffDialogOpen(false);
+      setEditingStaff(null);
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to update staff member");
+    }
+  };
+
 
 
   // Reports Archive functions
