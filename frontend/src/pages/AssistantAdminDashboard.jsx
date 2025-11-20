@@ -6,8 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Plus, Users, LogOut, Calendar } from "lucide-react";
+import { Plus, Users, LogOut, Calendar, BookOpen, ClipboardList, ClipboardCheck, MessageSquare } from "lucide-react";
+import TestManagement from "./TestManagement";
+import ChecklistManagement from "./ChecklistManagement";
+import FeedbackManagement from "./FeedbackManagement";
 
 const AssistantAdminDashboard = ({ user, onLogout }) => {
   const [sessions, setSessions] = useState([]);
