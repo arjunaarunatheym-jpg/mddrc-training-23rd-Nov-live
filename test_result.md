@@ -525,9 +525,11 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "TrainerDashboard session results access for regular trainers"
   stuck_tasks: 
     - "Attendance records display issue"
+    - "TrainerDashboard session results access for regular trainers"
   test_all: false
   test_priority: "high_first"
 
