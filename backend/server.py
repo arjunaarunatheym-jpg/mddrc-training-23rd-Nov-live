@@ -664,7 +664,17 @@ async def find_or_create_user(user_data: dict, role: str, company_id: str) -> di
         }
     else:
         # User not found - create new
-        hashed_password = pwd_context.hash(user_data.get("password"))
+        # For participants: use default password 'mddrc1' if no password provided
+        password = user_data.get("password")
+        if role == "participant" and not password:
+            password = "mddrc1"  # Default password for participants
+        
+        hashed_password = pwd_context.hash(password)
+        
+        # For participants: email defaults to IC@mddrc.com if not provided
+        if role == "participant" and not email:
+            email = f"{user_data.get('id_number')}@mddrc.com"
+        
         new_user = User(
             email=email,
             full_name=full_name,
