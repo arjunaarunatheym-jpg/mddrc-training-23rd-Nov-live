@@ -2334,14 +2334,24 @@ const AdminDashboard = ({ user, onLogout }) => {
                                   </span>
                                 </div>
                               </div>
-                              <Button
-                                data-testid={`delete-trainer-${trainer.id}`}
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => handleDeleteClick("trainer", trainer)}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                              <div className="flex gap-2">
+                                <Button
+                                  data-testid={`edit-trainer-${trainer.id}`}
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleEditStaff(trainer)}
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  data-testid={`delete-trainer-${trainer.id}`}
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleDeleteClick("trainer", trainer)}
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
                             </div>
                           ))
                         )}
