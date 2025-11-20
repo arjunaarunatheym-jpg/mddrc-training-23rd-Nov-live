@@ -4956,9 +4956,9 @@ logger = logging.getLogger(__name__)
 async def setup_admin_account():
     """Create or update admin account on startup"""
     try:
-        # Admin credentials
-        admin_email = "arjuna@mddrc.com.my"
-        admin_password = "Dana102229"
+        # Admin credentials from environment variables
+        admin_email = os.environ.get('ADMIN_EMAIL', 'admin@example.com')
+        admin_password = os.environ.get('ADMIN_PASSWORD', 'changeme123')
         admin_name = "System Administrator"
         admin_id_number = "ADMIN001"
         
