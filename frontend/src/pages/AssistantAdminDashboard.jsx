@@ -290,6 +290,127 @@ const AssistantAdminDashboard = ({ user, onLogout }) => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Program Content Management Section */}
+        <div className="mt-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <BookOpen className="w-5 h-5 mr-2" />
+                Program Content Management
+              </CardTitle>
+              <CardDescription>
+                Manage tests, checklists, and feedback forms for training programs
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {programs.length === 0 ? (
+                <div className="text-center py-12">
+                  <BookOpen className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-500">No programs available. Ask an admin to create training programs first.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {programs.map((program) => (
+                    <div key={program.id}>
+                      <Card className="border-2 border-blue-200">
+                        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <CardTitle className="text-lg">{program.name}</CardTitle>
+                              {program.description && (
+                                <CardDescription>{program.description}</CardDescription>
+                              )}
+                              <div className="flex gap-3 mt-2">
+                                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                  Pass Mark: {program.pass_percentage}%
+                                </span>
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setSelectedProgram(selectedProgram?.id === program.id ? null : program)}
+                            >
+                              <ClipboardList className="w-4 h-4 mr-2" />
+                              {selectedProgram?.id === program.id ? 'Hide' : 'Manage Content'}
+                            </Button>
+                          </div>
+                        </CardHeader>
+                      </Card>
+
+                      {/* Expandable Content Management Section */}
+                      {selectedProgram?.id === program.id && (
+                        <Card className="mt-2 border-l-4 border-blue-500">
+                          <CardContent className="pt-6">
+                            <Tabs defaultValue="tests" className="w-full">
+                              <TabsList className="grid w-full grid-cols-3 mb-4">
+                                <TabsTrigger value="tests">
+                                  <ClipboardList className="w-4 h-4 mr-2" />
+                                  Tests
+                                </TabsTrigger>
+                                <TabsTrigger value="checklists">
+                                  <ClipboardCheck className="w-4 h-4 mr-2" />
+                                  Checklists
+                                </TabsTrigger>
+                                <TabsTrigger value="feedback">
+                                  <MessageSquare className="w-4 h-4 mr-2" />
+                                  Feedback
+                                </TabsTrigger>
+                              </TabsList>
+
+                              {/* Tests Tab */}
+                              <TabsContent value="tests">
+                                <div className="mb-4">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setSelectedProgram(null)}
+                                  >
+                                    ← Back to Programs
+                                  </Button>
+                                </div>
+                                <TestManagement program={program} />
+                              </TabsContent>
+
+                              {/* Checklists Tab */}
+                              <TabsContent value="checklists">
+                                <div className="mb-4">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setSelectedProgram(null)}
+                                  >
+                                    ← Back to Programs
+                                  </Button>
+                                </div>
+                                <ChecklistManagement program={program} />
+                              </TabsContent>
+
+                              {/* Feedback Tab */}
+                              <TabsContent value="feedback">
+                                <div className="mb-4">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setSelectedProgram(null)}
+                                  >
+                                    ← Back to Programs
+                                  </Button>
+                                </div>
+                                <FeedbackManagement program={program} />
+                              </TabsContent>
+                            </Tabs>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
