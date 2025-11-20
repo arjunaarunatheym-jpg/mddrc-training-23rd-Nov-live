@@ -101,10 +101,6 @@ const Login = ({ onLogin }) => {
     }
   };
 
-  const primaryColor = settings?.primary_color || "#3b82f6";
-  const secondaryColor = settings?.secondary_color || "#6366f1";
-  const companyName = settings?.company_name || "Malaysian Defensive Driving and Riding Centre Sdn Bhd";
-
   return (
     <div 
       className="min-h-screen flex items-center justify-center p-4"
