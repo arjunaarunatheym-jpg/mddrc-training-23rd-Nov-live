@@ -2995,35 +2995,187 @@ async def generate_docx_report(session_id: str, current_user: User = Depends(get
         
         doc.add_page_break()
         
-        # CHIEF TRAINER FEEDBACK
-        doc.add_heading('9. CHIEF TRAINER FEEDBACK', 1)
-        chief_trainer_feedback = await db.chief_trainer_feedback.find_one({"session_id": session_id}, {"_id": 0})
-        if chief_trainer_feedback:
-            responses = chief_trainer_feedback.get('responses', {})
-            for question_id, answer in responses.items():
-                # Get question text from template
-                template = await db.feedback_templates.find_one({"id": "chief_trainer_feedback_template"}, {"_id": 0})
-                if template:
-                    for q in template.get('questions', []):
-                        if q.get('id') == question_id:
-                            doc.add_paragraph(f"{q.get('question')}:", style='Heading 3')
-                            if q.get('type') == 'rating':
-                                stars = '⭐' * int(answer) if isinstance(answer, (int, float)) else answer
-                                doc.add_paragraph(f"   Rating: {stars} ({answer}/{q.get('scale', 5)})")
-                            else:
-                                doc.add_paragraph(f"   {answer}")
-                            doc.add_paragraph()
-        else:
-            doc.add_paragraph("[Chief trainer feedback pending]")
+        # RECOMMENDATIONS MOVING FORWARD
+        doc.add_heading('12. RECOMMENDATIONS MOVING FORWARD', 1)
+        doc.add_paragraph(
+            "Based on the training outcomes, participant feedback, and safety observations, "
+            "the following recommendations are proposed to sustain and enhance the safety culture:"
+        )
+        doc.add_paragraph()
+        
+        recommendations_forward = [
+            "1. ENFORCE PRE-RIDE/PRE-DRIVE SAFETY CHECKS:",
+            f"   • Mandate daily pre-{'ride' if is_motorcycle else 'drive'} safety inspections using a standardized checklist",
+            "   • Implement digital logging system for inspection records",
+            "   • Designate safety officers to conduct random spot checks",
+            "",
+            "2. MONTHLY VERIFICATION PROGRAM:",
+            "   • Conduct monthly vehicle condition audits",
+            "   • Schedule preventive maintenance based on mileage/usage",
+            "   • Track and analyze vehicle-related incidents",
+            "",
+            "3. MAINTENANCE SUPPORT:",
+            "   • Establish partnerships with authorized service centers for employee discounts",
+            "   • Provide maintenance subsidy program for safety-critical components",
+            "   • Create emergency maintenance fund for immediate safety repairs",
+            "",
+            "4. POST-TRAINING MATERIALS:",
+            "   • Distribute safety reminder cards or posters for display",
+            "   • Share digital safety tips via company communication channels",
+            "   • Conduct quarterly safety awareness campaigns",
+            "",
+            "5. TAILOR PRACTICALS TO CLIENT ROUTES:",
+            "   • Identify high-risk routes and areas commonly used by employees",
+            "   • Conduct route-specific safety briefings",
+            "   • Share incident hotspot maps and avoidance strategies",
+            "",
+            "6. PROMOTE SAFETY CULTURE:",
+            "   • Recognize and reward safe riding/driving behavior",
+            "   • Establish peer mentorship program for new employees",
+            "   • Include safety KPIs in performance evaluations",
+            "",
+            "7. FOLLOW-UP FOR OUTLIERS:",
+            f"   • Provide one-on-one coaching for {len([p for p in participants if p['improvement'] < 0])} participants who showed score decrease" if any(p['improvement'] < 0 for p in participants) else "   • Continue monitoring participant performance in real-world scenarios",
+            "   • Conduct 3-month post-training assessment to measure retention",
+            "   • Offer refresher training for employees showing concerning behavior"
+        ]
+        
+        for rec in recommendations_forward:
+            doc.add_paragraph(rec)
         
         doc.add_page_break()
         
-        # RECOMMENDATIONS
-        doc.add_heading('10. RECOMMENDATIONS', 1)
-        doc.add_paragraph("[Please add recommendations here]")
+        # CONCLUSION
+        doc.add_heading('13. CONCLUSION', 1)
+        doc.add_paragraph(
+            f"The Defensive {'Riding' if is_motorcycle else 'Driving'} Training conducted for "
+            f"{company.get('name', 'N/A')} from {session.get('start_date', 'N/A')} to {session.get('end_date', 'N/A')} "
+            f"was successfully completed with {len(participants)} participants demonstrating measurable improvement in "
+            f"safety awareness and defensive {'riding' if is_motorcycle else 'driving'} competencies."
+        )
+        doc.add_paragraph()
+        
+        doc.add_paragraph(
+            f"Key achievements include an average score improvement of {improvement:+.1f}%, "
+            f"a post-training pass rate of {(post_pass_count/len(participants)*100):.0f}%, and high participant "
+            f"satisfaction levels. The training successfully enhanced hazard recognition skills, emergency response "
+            f"techniques, and safety-first mindset among participants."
+        )
+        doc.add_paragraph()
+        
+        if vehicle_issues:
+            doc.add_paragraph(
+                f"Vehicle safety inspections identified {len(vehicle_issues)} {'motorcycles' if is_motorcycle else 'vehicles'} "
+                "requiring immediate attention. Detailed recommendations have been provided to address these concerns "
+                "and prevent potential accidents."
+            )
+            doc.add_paragraph()
+        
+        doc.add_paragraph(
+            "MDDRC extends sincere appreciation to the management and employees of "
+            f"{company.get('name', 'the company')} for their strong collaboration and commitment throughout this program. "
+            "The enthusiastic participation and positive learning attitude demonstrated by all participants contributed "
+            "significantly to the program's success."
+        )
+        doc.add_paragraph()
+        
+        doc.add_paragraph(
+            "We remain committed to supporting your organization's journey towards a safer workplace and look forward "
+            "to continued partnership in promoting road safety excellence."
+        )
+        
+        doc.add_page_break()
+        
+        # APPENDICES
+        doc.add_heading('APPENDICES', 1)
+        
+        # APPENDIX A: Pre & Post Test Raw Scores
+        doc.add_heading('Appendix A: Pre & Post Test Raw Scores', 2)
+        appendix_table = doc.add_table(rows=len(participants)+1, cols=5)
+        appendix_table.style = 'Light Grid Accent 1'
+        hdr = appendix_table.rows[0].cells
+        hdr[0].text = 'No.'
+        hdr[1].text = 'Participant Name'
+        hdr[2].text = 'Pre-Test Score'
+        hdr[3].text = 'Post-Test Score'
+        hdr[4].text = 'Improvement'
+        
+        for idx, p in enumerate(participants, 1):
+            row = appendix_table.rows[idx].cells
+            row[0].text = str(idx)
+            row[1].text = p['name']
+            row[2].text = f"{p['pre_test_score']:.0f}%"
+            row[3].text = f"{p['post_test_score']:.0f}%"
+            row[4].text = f"{p['improvement']:+.0f}%"
+        
+        doc.add_page_break()
+        
+        # APPENDIX B: Vehicle Condition Photos
+        if vehicle_issues:
+            doc.add_heading('Appendix B: Vehicle Condition Photos', 2)
+            doc.add_paragraph("Photographic evidence of safety issues identified during vehicle inspections:")
+            doc.add_paragraph()
+            for vehicle_issue in vehicle_issues:
+                doc.add_paragraph(f"{vehicle_issue['participant_name']}:", style='Heading 4')
+                for issue in vehicle_issue['issues']:
+                    if issue['photo_url']:
+                        doc.add_paragraph(f"• {issue['item']}")
+                        doc.add_paragraph(f"  [Photo URL: {issue['photo_url']}]")
+                doc.add_paragraph()
+            doc.add_page_break()
+        
+        # APPENDIX C: Feedback Form Summary
+        doc.add_heading('Appendix C: Participant Feedback Form Summary', 2)
+        if feedback_data:
+            doc.add_paragraph("Complete participant feedback responses:")
+            doc.add_paragraph()
+            for idx, fb in enumerate(feedback_data, 1):
+                doc.add_paragraph(f"{idx}. {fb['participant_name']}", style='Heading 4')
+                for response in fb['responses']:
+                    doc.add_paragraph(f"   Q: {response['question']}")
+                    doc.add_paragraph(f"   A: {response['answer']}")
+                doc.add_paragraph()
+        else:
+            doc.add_paragraph("[No feedback data available]")
+        
+        doc.add_page_break()
+        
+        # SIGNATURES
+        doc.add_heading('APPROVAL & SIGNATURES', 1)
+        doc.add_paragraph()
+        sig_table = doc.add_table(rows=4, cols=2)
+        sig_table.style = 'Light List'
+        
+        sig_table.rows[0].cells[0].text = 'Prepared by:'
+        sig_table.rows[0].cells[1].text = ''
+        sig_table.rows[1].cells[0].text = 'Name:'
+        sig_table.rows[1].cells[1].text = current_user.full_name
+        sig_table.rows[2].cells[0].text = 'Position:'
+        sig_table.rows[2].cells[1].text = 'Training Coordinator'
+        sig_table.rows[3].cells[0].text = 'Date:'
+        sig_table.rows[3].cells[1].text = get_malaysia_time().strftime('%Y-%m-%d')
+        
         doc.add_paragraph()
         doc.add_paragraph()
+        doc.add_paragraph("_" * 60)
         doc.add_paragraph()
+        
+        sig_table2 = doc.add_table(rows=4, cols=2)
+        sig_table2.style = 'Light List'
+        sig_table2.rows[0].cells[0].text = 'Reviewed & Approved by:'
+        sig_table2.rows[0].cells[1].text = ''
+        sig_table2.rows[1].cells[0].text = 'Name:'
+        sig_table2.rows[1].cells[1].text = '________________________'
+        sig_table2.rows[2].cells[0].text = 'Position:'
+        sig_table2.rows[2].cells[1].text = 'Person In Charge / Supervisor'
+        sig_table2.rows[3].cells[0].text = 'Date:'
+        sig_table2.rows[3].cells[1].text = '________________________'
+        
+        doc.add_paragraph()
+        doc.add_paragraph()
+        footer = doc.add_paragraph('--- END OF REPORT ---')
+        footer.alignment = 1
+        
         doc.add_page_break()
         
         # SIGNATURES
