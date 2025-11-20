@@ -1560,8 +1560,8 @@ async def get_tests_by_program(program_id: str, current_user: User = Depends(get
 
 @api_router.delete("/tests/{test_id}")
 async def delete_test(test_id: str, current_user: User = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can delete tests")
+    if current_user.role not in ["admin", "assistant_admin"]:
+        raise HTTPException(status_code=403, detail="Only admins and assistant admins can delete tests")
     
     result = await db.tests.delete_one({"id": test_id})
     
