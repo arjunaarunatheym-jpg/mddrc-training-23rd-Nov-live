@@ -776,7 +776,13 @@ async def register_user(user_data: UserCreate, current_user: User = Depends(get_
 
 @api_router.post("/auth/login", response_model=TokenResponse)
 async def login(user_data: UserLogin):
-    user_doc = await db.users.find_one({"email": user_data.email}, {"_id": 0})
+    # Allow login with email OR IC number
+    user_doc = await db.users.find_one({
+        "$or": [
+            {"email": user_data.email},
+            {"id_number": user_data.email}  # Allow IC as username
+        ]
+    }, {"_id": 0})
     if not user_doc:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
