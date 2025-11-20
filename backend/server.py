@@ -4960,6 +4960,44 @@ logger = logging.getLogger(__name__)
 async def setup_admin_account():
     """Create or update admin account on startup"""
     try:
+        # PERFORMANCE OPTIMIZATION: Create database indexes
+        # Indexes dramatically speed up queries on large datasets
+        logging.info("📊 Creating database indexes for performance optimization...")
+        
+        try:
+            # Users collection indexes
+            await db.users.create_index("id", unique=True)
+            await db.users.create_index("email", unique=True)
+            await db.users.create_index("role")
+            await db.users.create_index([("company_id", 1), ("role", 1)])
+            
+            # Sessions collection indexes
+            await db.sessions.create_index("id", unique=True)
+            await db.sessions.create_index("program_id")
+            await db.sessions.create_index("company_id")
+            await db.sessions.create_index([("start_date", 1), ("end_date", 1)])
+            
+            # Test results collection indexes
+            await db.test_results.create_index([("session_id", 1), ("participant_id", 1)])
+            await db.test_results.create_index("test_type")
+            
+            # Attendance collection indexes
+            await db.attendance.create_index([("session_id", 1), ("participant_id", 1)])
+            await db.attendance.create_index([("session_id", 1), ("date", 1)])
+            
+            # Participant access collection indexes
+            await db.participant_access.create_index([("session_id", 1), ("participant_id", 1)], unique=True)
+            
+            # Feedback collection indexes
+            await db.course_feedback.create_index([("session_id", 1), ("participant_id", 1)])
+            
+            # Vehicle issues collection indexes
+            await db.vehicle_issues.create_index([("session_id", 1), ("participant_id", 1)])
+            
+            logging.info("✅ Database indexes created successfully")
+        except Exception as idx_error:
+            logging.warning(f"⚠️  Index creation warning (may already exist): {str(idx_error)}")
+        
         # Admin credentials from environment variables
         admin_email = os.environ.get('ADMIN_EMAIL', 'admin@example.com')
         admin_password = os.environ.get('ADMIN_PASSWORD', 'changeme123')
