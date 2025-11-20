@@ -946,77 +946,143 @@ const AdminDashboard = ({ user, onLogout }) => {
                     </div>
                   ) : (
                     programs.map((program) => (
-                      <Card key={program.id} className="mb-4">
-                        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <CardTitle>{program.name}</CardTitle>
-                              {program.description && (
-                                <CardDescription>{program.description}</CardDescription>
-                              )}
-                              <div className="flex gap-3 mt-2">
-                                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                                  Pass Mark: {program.pass_percentage}%
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  Created: {new Date(program.created_at).toLocaleDateString()}
-                                </span>
+                      <div key={program.id} className="mb-4">
+                        <Card>
+                          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <CardTitle>{program.name}</CardTitle>
+                                {program.description && (
+                                  <CardDescription>{program.description}</CardDescription>
+                                )}
+                                <div className="flex gap-3 mt-2">
+                                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                    Pass Mark: {program.pass_percentage}%
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    Created: {new Date(program.created_at).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="flex gap-2 flex-wrap">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleEditProgram(program)}
+                                >
+                                  <Edit className="w-4 h-4 mr-1" />
+                                  Edit
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleDeleteClick("program", program)}
+                                >
+                                  <Trash2 className="w-4 h-4 mr-1" />
+                                  Delete
+                                </Button>
                               </div>
                             </div>
+                          </CardHeader>
+                          <CardContent className="pt-4">
                             <div className="flex gap-2 flex-wrap">
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleEditProgram(program)}
+                                onClick={() => setSelectedProgram(selectedProgram?.id === program.id ? null : program)}
                               >
-                                <Edit className="w-4 h-4 mr-1" />
-                                Edit
+                                <ClipboardList className="w-4 h-4 mr-2" />
+                                Manage Tests & Checklists
                               </Button>
                               <Button
                                 size="sm"
-                                variant="destructive"
-                                onClick={() => handleDeleteClick("program", program)}
+                                variant="outline"
+                                onClick={() => {
+                                  if (selectedProgram?.id === program.id) {
+                                    setSelectedProgram(null);
+                                  } else {
+                                    setSelectedProgram(program);
+                                    // Auto switch to feedback tab if needed
+                                    setTimeout(() => {
+                                      const feedbackTab = document.querySelector(`[data-program-id="${program.id}"] [value="feedback-form"]`);
+                                      if (feedbackTab) feedbackTab.click();
+                                    }, 100);
+                                  }
+                                }}
                               >
-                                <Trash2 className="w-4 h-4 mr-1" />
-                                Delete
+                                <MessageSquare className="w-4 h-4 mr-2" />
+                                Manage Feedback Form
                               </Button>
                             </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="pt-4">
-                          <Tabs defaultValue="tests" className="w-full">
-                            <TabsList className="grid w-full grid-cols-3 mb-4">
-                              <TabsTrigger value="tests">
-                                <ClipboardList className="w-4 h-4 mr-2" />
-                                Tests
-                              </TabsTrigger>
-                              <TabsTrigger value="checklists">
-                                <ClipboardCheck className="w-4 h-4 mr-2" />
-                                Checklists
-                              </TabsTrigger>
-                              <TabsTrigger value="feedback-form">
-                                <MessageSquare className="w-4 h-4 mr-2" />
-                                Feedback
-                              </TabsTrigger>
-                            </TabsList>
-                            
-                            {/* Tests Tab */}
-                            <TabsContent value="tests">
-                              <TestManagement program={program} />
-                            </TabsContent>
-                            
-                            {/* Checklists Tab */}
-                            <TabsContent value="checklists">
-                              <ChecklistManagement program={program} />
-                            </TabsContent>
-                            
-                            {/* Feedback Tab */}
-                            <TabsContent value="feedback-form">
-                              <FeedbackManagement program={program} />
-                            </TabsContent>
-                          </Tabs>
-                        </CardContent>
-                      </Card>
+                          </CardContent>
+                        </Card>
+                        
+                        {/* Expandable Management Section */}
+                        {selectedProgram?.id === program.id && (
+                          <Card className="mt-2 border-l-4 border-blue-500">
+                            <CardContent className="pt-6">
+                              <Tabs defaultValue="tests" className="w-full" data-program-id={program.id}>
+                                <TabsList className="grid w-full grid-cols-3 mb-4">
+                                  <TabsTrigger value="tests">
+                                    <ClipboardList className="w-4 h-4 mr-2" />
+                                    Tests
+                                  </TabsTrigger>
+                                  <TabsTrigger value="checklists">
+                                    <ClipboardCheck className="w-4 h-4 mr-2" />
+                                    Checklists
+                                  </TabsTrigger>
+                                  <TabsTrigger value="feedback-form">
+                                    <MessageSquare className="w-4 h-4 mr-2" />
+                                    Feedback
+                                  </TabsTrigger>
+                                </TabsList>
+                                
+                                {/* Tests Tab */}
+                                <TabsContent value="tests">
+                                  <div className="mb-4">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => setSelectedProgram(null)}
+                                    >
+                                      ← Back to Programs
+                                    </Button>
+                                  </div>
+                                  <TestManagement program={program} />
+                                </TabsContent>
+                                
+                                {/* Checklists Tab */}
+                                <TabsContent value="checklists">
+                                  <div className="mb-4">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => setSelectedProgram(null)}
+                                    >
+                                      ← Back to Programs
+                                    </Button>
+                                  </div>
+                                  <ChecklistManagement program={program} />
+                                </TabsContent>
+                                
+                                {/* Feedback Tab */}
+                                <TabsContent value="feedback-form">
+                                  <div className="mb-4">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => setSelectedProgram(null)}
+                                    >
+                                      ← Back to Programs
+                                    </Button>
+                                  </div>
+                                  <FeedbackManagement program={program} />
+                                </TabsContent>
+                              </Tabs>
+                            </CardContent>
+                          </Card>
+                        )}
+                      </div>
                     ))
                   )}
                 </div>
