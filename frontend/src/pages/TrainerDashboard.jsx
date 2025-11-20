@@ -244,7 +244,7 @@ const TrainerDashboard = ({ user, onLogout }) => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="sessions" className="w-full">
-          <TabsList className="flex flex-wrap w-full mb-8 h-auto justify-start gap-2 bg-gray-100 p-2 rounded-lg md:grid md:grid-cols-4">
+          <TabsList className="flex flex-wrap w-full mb-8 h-auto justify-start gap-2 bg-gray-100 p-2 rounded-lg md:grid md:grid-cols-3">
             <TabsTrigger value="sessions" data-testid="sessions-tab" className="flex-1 min-w-[140px] md:min-w-0">
               <Calendar className="w-4 h-4 mr-2" />
               <span className="text-sm">My Sessions</span>
@@ -252,10 +252,6 @@ const TrainerDashboard = ({ user, onLogout }) => {
             <TabsTrigger value="checklists" data-testid="checklists-tab" className="flex-1 min-w-[140px] md:min-w-0">
               <ClipboardCheck className="w-4 h-4 mr-2" />
               <span className="text-sm">Checklists</span>
-            </TabsTrigger>
-            <TabsTrigger value="results" data-testid="results-tab" className="flex-1 min-w-[140px] md:min-w-0">
-              <FileText className="w-4 h-4 mr-2" />
-              <span className="text-sm">Session Results</span>
             </TabsTrigger>
             {isChiefTrainerForAnySessions() && (
               <TabsTrigger value="feedback" data-testid="feedback-tab" className="flex-1 min-w-[140px] md:min-w-0">
