@@ -722,22 +722,26 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
           </Card>
         ) : (
           <Tabs defaultValue="sessions" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="sessions">
+            <TabsList className="flex flex-wrap w-full h-auto justify-start gap-2 bg-gray-100 p-2 rounded-lg sm:grid sm:grid-cols-4">
+              <TabsTrigger value="sessions" className="flex-1 min-w-[100px] sm:min-w-0">
                 <Calendar className="w-4 h-4 mr-2" />
-                My Sessions
+                <span className="hidden sm:inline">My Sessions</span>
+                <span className="sm:hidden">Sessions</span>
               </TabsTrigger>
-              <TabsTrigger value="management">
+              <TabsTrigger value="management" className="flex-1 min-w-[100px] sm:min-w-0">
                 <Users className="w-4 h-4 mr-2" />
-                Session Management
+                <span className="hidden sm:inline">Session Management</span>
+                <span className="sm:hidden">Management</span>
               </TabsTrigger>
-              <TabsTrigger value="report">
+              <TabsTrigger value="report" className="flex-1 min-w-[100px] sm:min-w-0">
                 <FileText className="w-4 h-4 mr-2" />
-                Training Report
+                <span className="hidden sm:inline">Training Report</span>
+                <span className="sm:hidden">Report</span>
               </TabsTrigger>
-              <TabsTrigger value="analytics">
+              <TabsTrigger value="analytics" className="flex-1 min-w-[100px] sm:min-w-0">
                 <BarChart3 className="w-4 h-4 mr-2" />
-                Analytics
+                <span className="hidden sm:inline">Analytics</span>
+                <span className="sm:hidden">Analytics</span>
               </TabsTrigger>
             </TabsList>
 
