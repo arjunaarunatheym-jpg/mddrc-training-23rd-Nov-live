@@ -2794,8 +2794,8 @@ async def generate_docx_report(session_id: str, current_user: User = Depends(get
         
         doc.add_page_break()
         
-        # PARTICIPANT FEEDBACK
-        doc.add_heading('6. PARTICIPANT FEEDBACK', 1)
+        # PARTICIPANT FEEDBACK SUMMARY (Enhanced)
+        doc.add_heading('9. PARTICIPANT FEEDBACK SUMMARY', 1)
         if feedback_data:
             # Calculate average star ratings
             star_questions = []
