@@ -1610,6 +1610,15 @@ async def mark_session_completed(session_id: str, current_user: User = Depends(g
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     
+    # VALIDATION: Check if training report is uploaded (required before completing)
+    training_report = await db.training_reports.find_one({"session_id": session_id}, {"_id": 0})
+    
+    if not training_report or not training_report.get("final_pdf_filename"):
+        raise HTTPException(
+            status_code=400, 
+            detail="Training report must be uploaded before marking session as completed. Please upload the final PDF report first."
+        )
+    
     # Update session completion status
     await db.sessions.update_one(
         {"id": session_id},
