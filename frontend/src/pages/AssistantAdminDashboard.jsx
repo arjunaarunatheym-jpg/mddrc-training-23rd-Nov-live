@@ -291,23 +291,27 @@ const AssistantAdminDashboard = ({ user, onLogout }) => {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {participants.map((participant, idx) => (
-                    <div
-                      key={participant.id}
-                      className="p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg border border-green-200"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="font-semibold text-gray-700 bg-white px-3 py-1 rounded">
-                          {idx + 1}
-                        </span>
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900">{participant.full_name}</p>
-                          <p className="text-sm text-gray-600">IC: {participant.id_number}</p>
-                          <p className="text-xs text-gray-500">Login: {participant.id_number} / mddrc1</p>
+                  {participants.map((participant, idx) => {
+                    // Handle nested structure: {user: {...}, access: {...}}
+                    const user = participant.user || participant;
+                    return (
+                      <div
+                        key={user.id || idx}
+                        className="p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg border border-green-200"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="font-semibold text-gray-700 bg-white px-3 py-1 rounded">
+                            {idx + 1}
+                          </span>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">{user.full_name}</p>
+                            <p className="text-sm text-gray-600">IC: {user.id_number}</p>
+                            <p className="text-xs text-gray-500">Login: {user.id_number} / mddrc1</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
