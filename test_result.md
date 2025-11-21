@@ -676,3 +676,5 @@ frontend:
       - working: true
         agent: "main"
         comment: "✅ Calendar dots ALREADY IMPLEMENTED. Code at lines 264-271 shows dots for dates with trainings. Dots are colored using primaryColor from theme. Feature complete - no additional work needed."
+  - agent: "main"
+    message: "BUG FIX - COORDINATOR & TRAINER SESSION FILTERING: Fixed two critical issues. BUG 1: Coordinators couldn't see completed sessions in Analytics tab - FIXED by removing completion_status filter from /sessions endpoint, now coordinators can mark sessions as completed and still see them in active list until archived. BUG 2: Trainers seeing past training sessions - FIXED by adding role-specific filtering: trainers now only see future/current sessions (end_date >= today), past sessions only appear in Past Training tab. Backend changes in /sessions endpoint (lines 1166-1198): added conditional query based on role, trainers get strict future filter, coordinators/admin see all non-archived including completed ongoing sessions. Also fixed completed_date to store as ISO string instead of datetime object (line 1612). Backend restarted successfully."
