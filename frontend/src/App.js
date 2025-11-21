@@ -112,6 +112,16 @@ function App() {
             }
           />
           <Route
+            path="/calendar"
+            element={
+              user && ["admin", "assistant_admin", "coordinator", "trainer"].includes(user.role) ? (
+                <CalendarDashboard user={user} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route
             path="/admin"
             element={
               user && user.role === "admin" ? (
