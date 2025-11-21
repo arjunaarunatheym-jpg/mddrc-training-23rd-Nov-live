@@ -21,6 +21,13 @@ const TrainerDashboard = ({ user, onLogout }) => {
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
+  // Past Training states
+  const [pastTrainingSessions, setPastTrainingSessions] = useState([]);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [loadingPastTraining, setLoadingPastTraining] = useState(false);
+  const [expandedPastSession, setExpandedPastSession] = useState(null);
+
 
   useEffect(() => {
     loadSessions();
