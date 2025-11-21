@@ -13,6 +13,7 @@ import { LogOut, Calendar, Users, FileText, BarChart3, Camera, Upload, Sparkles,
 import { useTheme } from "../context/ThemeContext";
 
 const CoordinatorDashboard = ({ user, onLogout }) => {
+  const navigate = useNavigate();
   const { primaryColor, companyName, logoUrl } = useTheme();
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
