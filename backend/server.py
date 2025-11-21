@@ -1455,15 +1455,21 @@ async def add_participants_to_session(
 @api_router.put("/sessions/{session_id}")
 async def update_session(session_id: str, session_data: dict, current_user: User = Depends(get_current_user)):
     # Allow admins to update any session, coordinators can update sessions they're assigned to
+    session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
     if current_user.role == "coordinator":
         # Check if coordinator is assigned to this session
-        session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
-        if not session:
-            raise HTTPException(status_code=404, detail="Session not found")
         if session.get("coordinator_id") != current_user.id:
             raise HTTPException(status_code=403, detail="You can only update sessions assigned to you")
     elif current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Only admins and coordinators can update sessions")
+    
+    # Check if participant_ids changed (new participants added)
+    old_participant_ids = set(session.get("participant_ids", []))
+    new_participant_ids = set(session_data.get("participant_ids", []))
+    newly_added_participants = new_participant_ids - old_participant_ids
     
     result = await db.sessions.update_one(
         {"id": session_id},
@@ -1472,6 +1478,11 @@ async def update_session(session_id: str, session_data: dict, current_user: User
     
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Create participant_access records for newly added participants
+    # This ensures checklists and tests show up for trainers immediately
+    for user_id in newly_added_participants:
+        await get_or_create_participant_access(user_id, session_id)
     
     return {"message": "Session updated successfully"}
 
