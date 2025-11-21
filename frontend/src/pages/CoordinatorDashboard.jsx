@@ -1547,9 +1547,60 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
                       </Card>
 
                       {professionalReportStatus.pdf_submitted && (
-                        <div className="bg-green-100 border-2 border-green-400 rounded-lg p-4 text-center">
-                          <p className="text-green-900 font-bold text-lg">🎉 Report Successfully Submitted!</p>
-                          <p className="text-green-800 text-sm mt-1">Supervisors and admins have been notified and can download the PDF.</p>
+                        <div className="space-y-4">
+                          <div className="bg-green-100 border-2 border-green-400 rounded-lg p-4 text-center">
+                            <p className="text-green-900 font-bold text-lg">🎉 Report Successfully Submitted!</p>
+                            <p className="text-green-800 text-sm mt-1">Supervisors and admins have been notified and can download the PDF.</p>
+                          </div>
+                          
+                          {/* Mark as Completed Section */}
+                          <Card className="bg-blue-50 border-blue-200">
+                            <CardContent className="pt-6">
+                              <div className="text-center space-y-4">
+                                <div>
+                                  <h4 className="font-semibold text-blue-900 text-lg">Complete Training Archive</h4>
+                                  <p className="text-sm text-blue-800">
+                                    Mark this session as completed to archive it and make it available in Past Training records.
+                                  </p>
+                                  <p className="text-xs text-blue-600 mt-2">
+                                    This allows coordinators, admins, and assistant admins to access this session in their Past Training archives.
+                                  </p>
+                                </div>
+                                
+                                {selectedSession?.completion_status === 'completed' ? (
+                                  <div className="bg-green-100 border border-green-400 rounded-lg p-3">
+                                    <p className="text-green-900 font-semibold">✓ Session Marked as Completed</p>
+                                    <p className="text-green-700 text-sm">
+                                      This session is now archived and available in Past Training records.
+                                    </p>
+                                    {selectedSession?.completed_date && (
+                                      <p className="text-green-600 text-xs mt-1">
+                                        Completed on: {new Date(selectedSession.completed_date).toLocaleString()}
+                                      </p>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <Button
+                                    onClick={handleMarkSessionCompleted}
+                                    disabled={markingCompleted}
+                                    className="bg-blue-600 hover:bg-blue-700"
+                                  >
+                                    {markingCompleted ? (
+                                      <>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                        Marking as Completed...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <CheckCircle className="w-4 h-4 mr-2" />
+                                        Mark as Completed
+                                      </>
+                                    )}
+                                  </Button>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
                         </div>
                       )}
                     </div>
