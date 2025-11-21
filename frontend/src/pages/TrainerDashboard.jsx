@@ -165,6 +165,54 @@ const TrainerDashboard = ({ user, onLogout }) => {
     navigate(`/results-summary/${sessionId}`);
   };
 
+  const loadPastTraining = async () => {
+    try {
+      setLoadingPastTraining(true);
+      const params = new URLSearchParams();
+      if (selectedMonth && selectedYear) {
+        params.append('month', selectedMonth);
+        params.append('year', selectedYear);
+      }
+      const response = await axiosInstance.get(`/sessions/past-training?${params}`);
+      setPastTrainingSessions(response.data);
+    } catch (error) {
+      toast.error("Failed to load past training sessions");
+      setPastTrainingSessions([]);
+    } finally {
+      setLoadingPastTraining(false);
+    }
+  };
+
+  const handlePastSessionClick = (session) => {
+    setExpandedPastSession(expandedPastSession?.id === session.id ? null : session);
+  };
+
+  const generateYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = currentYear; year >= currentYear - 10; year--) {
+      years.push(year);
+    }
+    return years;
+  };
+
+  const generateMonthOptions = () => {
+    return [
+      { value: 1, label: 'January' },
+      { value: 2, label: 'February' },
+      { value: 3, label: 'March' },
+      { value: 4, label: 'April' },
+      { value: 5, label: 'May' },
+      { value: 6, label: 'June' },
+      { value: 7, label: 'July' },
+      { value: 8, label: 'August' },
+      { value: 9, label: 'September' },
+      { value: 10, label: 'October' },
+      { value: 11, label: 'November' },
+      { value: 12, label: 'December' }
+    ];
+  };
+
   const toggleSessionExpand = (sessionId) => {
     setExpandedSession(expandedSession === sessionId ? null : sessionId);
   };
