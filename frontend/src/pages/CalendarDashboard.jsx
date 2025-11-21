@@ -13,7 +13,9 @@ import {
   Building2,
   MapPin,
   Clock,
-  LogOut
+  LogOut,
+  Settings,
+  BarChart3
 } from "lucide-react";
 
 const CalendarDashboard = ({ user, onLogout }) => {
