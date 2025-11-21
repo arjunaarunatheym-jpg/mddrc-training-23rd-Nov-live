@@ -77,7 +77,7 @@ const SupervisorDashboard = ({ user, onLogout }) => {
           <div className="flex items-center gap-4">
             {logoUrl && (
               <button
-                onClick={() => navigate('/calendar')}
+                onClick={() => navigate('/')}
                 className="hover:opacity-80 transition-opacity cursor-pointer"
               >
                 <img 
