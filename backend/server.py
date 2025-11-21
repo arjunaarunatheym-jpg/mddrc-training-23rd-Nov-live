@@ -751,16 +751,19 @@ async def register_user(user_data: UserCreate, current_user: User = Depends(get_
         # Default password: mddrc1
         if not password:
             password = "mddrc1"
-        # Email is truly optional - leave blank if not provided
-        # No auto-generation
+        # Auto-generate email if not provided (for unique constraint)
+        if not email or email.strip() == "":
+            if user_data.id_number:
+                email = f"{user_data.id_number.replace('-', '').replace(' ', '')}@temp.mddrc.local"
+            else:
+                email = f"user_{uuid.uuid4().hex[:8]}@temp.mddrc.local"
     
-    # Check if user exists by email (if provided) OR IC number
-    query_conditions = [{"id_number": user_data.id_number}]
-    if email:  # Only check email if provided
-        query_conditions.append({"email": email})
-    
+    # Check if user exists by email OR IC number
     existing = await db.users.find_one({
-        "$or": query_conditions
+        "$or": [
+            {"id_number": user_data.id_number},
+            {"email": email}
+        ]
     }, {"_id": 0})
     
     if existing:
@@ -771,7 +774,7 @@ async def register_user(user_data: UserCreate, current_user: User = Depends(get_
     
     hashed_pw = hash_password(password)
     user_obj = User(
-        email=email,
+        email=email,  # Now always has a value (auto-generated if needed)
         full_name=user_data.full_name,
         id_number=user_data.id_number,
         role=user_data.role,
