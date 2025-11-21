@@ -532,7 +532,5 @@ const TrainerDashboard = ({ user, onLogout }) => {
     </div>
   );
 };
-  );
-};
 
 export default TrainerDashboard;
