@@ -573,12 +573,18 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
       setMarkingCompleted(true);
       await axiosInstance.post(`/sessions/${selectedSession.id}/mark-completed`);
       
-      toast.success("Session marked as completed and archived!");
+      toast.success("✓ Training marked as completed and moved to Past Training!");
       
       // Reload session data to show updated completion status
       await selectSession(selectedSession);
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to mark session as completed");
+      const errorMessage = error.response?.data?.detail || "Failed to mark session as completed";
+      toast.error(errorMessage);
+      
+      // If error is about missing report, reload checklist to show current status
+      if (errorMessage.includes("report")) {
+        loadCompletionChecklist(selectedSession.id);
+      }
     } finally {
       setMarkingCompleted(false);
     }
