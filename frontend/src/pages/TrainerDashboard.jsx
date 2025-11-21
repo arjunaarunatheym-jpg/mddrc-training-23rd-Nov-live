@@ -173,11 +173,16 @@ const TrainerDashboard = ({ user, onLogout }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             {logoUrl && (
-              <img 
-                src={logoUrl} 
-                alt={companyName}
-                className="h-10 w-auto object-contain"
-              />
+              <button
+                onClick={() => navigate('/calendar')}
+                className="hover:opacity-80 transition-opacity cursor-pointer"
+              >
+                <img 
+                  src={logoUrl} 
+                  alt={companyName}
+                  className="h-10 w-auto object-contain"
+                />
+              </button>
             )}
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Trainer Portal</h1>
