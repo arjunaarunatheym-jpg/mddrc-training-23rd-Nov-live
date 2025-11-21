@@ -151,10 +151,11 @@ const SupervisorDashboard = ({ user, onLogout }) => {
             {/* Attendance View */}
             {selectedSession && (
               <Tabs defaultValue="attendance" className="space-y-4">
-                <TabsList>
-                  <TabsTrigger value="attendance">
+                <TabsList className="flex flex-wrap w-full h-auto justify-start gap-2 bg-gray-100 p-2 rounded-lg">
+                  <TabsTrigger value="attendance" className="flex-1 min-w-[120px] sm:min-w-0">
                     <Clock className="w-4 h-4 mr-2" />
-                    Attendance
+                    <span className="hidden sm:inline">Attendance</span>
+                    <span className="sm:hidden">Attend</span>
                   </TabsTrigger>
                 </TabsList>
 
