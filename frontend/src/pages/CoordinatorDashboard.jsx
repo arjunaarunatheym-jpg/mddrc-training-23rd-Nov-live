@@ -90,6 +90,9 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
   // Attendance status state
   const [attendanceStatus, setAttendanceStatus] = useState({});  // { participant_id: "present" | "absent" }
   const [updatingAttendance, setUpdatingAttendance] = useState({});  // { participant_id: boolean }
+  
+  // Vehicle issues expanded state
+  const [expandedVehicleIssue, setExpandedVehicleIssue] = useState(null);  // participant name
 
   useEffect(() => {
     loadSessions();
