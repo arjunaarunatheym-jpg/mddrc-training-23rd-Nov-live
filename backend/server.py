@@ -3686,11 +3686,13 @@ async def get_supervisor_reports(current_user: User = Depends(get_current_user))
     
     session_ids = [s['id'] for s in sessions]
     
-    # Get submitted reports for these sessions
+    # Get submitted reports for these sessions that are marked as completed
+    # Only show reports that have been pushed to supervisors (session marked as completed)
     reports = await db.training_reports.find(
         {
             "session_id": {"$in": session_ids},
-            "status": "submitted"
+            "status": "submitted",
+            "available_to_supervisors": True  # Only show completed/archived sessions
         },
         {"_id": 0}
     ).to_list(100)
