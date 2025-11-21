@@ -194,7 +194,7 @@ const CalendarDashboard = ({ user, onLogout }) => {
                     {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
                   </CardTitle>
                   <CardDescription>
-                    Future training sessions scheduled
+                    All training sessions (past and future)
                   </CardDescription>
                 </div>
               </div>
