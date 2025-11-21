@@ -1599,6 +1599,33 @@ async def get_session_status(session_id: str, current_user: User = Depends(get_c
         }
     }
 
+@api_router.get("/sessions/{session_id}/completion-checklist")
+async def get_completion_checklist(session_id: str, current_user: User = Depends(get_current_user)):
+    """Get checklist status for session completion (training report upload status)"""
+    if current_user.role not in ["coordinator", "admin", "assistant_admin"]:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    # Check if training report is uploaded
+    training_report = await db.training_reports.find_one({"session_id": session_id}, {"_id": 0})
+    
+    checklist = {
+        "can_complete": False,
+        "items": {
+            "training_report_uploaded": {
+                "completed": bool(training_report and training_report.get("final_pdf_filename")),
+                "label": "Final Training Report (PDF) Uploaded",
+                "required": True
+            }
+        }
+    }
+    
+    # Check if all required items are completed
+    checklist["can_complete"] = all(
+        item["completed"] for item in checklist["items"].values() if item["required"]
+    )
+    
+    return checklist
+
 @api_router.post("/sessions/{session_id}/mark-completed")
 async def mark_session_completed(session_id: str, current_user: User = Depends(get_current_user)):
     """Mark session as completed by coordinator (allows archival for coordinators/admin/assistant admin)"""
