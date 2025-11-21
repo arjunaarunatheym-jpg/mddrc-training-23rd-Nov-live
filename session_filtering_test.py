@@ -64,7 +64,7 @@ class SessionFilteringTestRunner:
         
         # Use existing coordinator from the system
         login_data = {
-            "email": "coordinator@mddrc.com.my",
+            "email": "malek@mddrc.com.my",
             "password": "mddrc1"
         }
         
