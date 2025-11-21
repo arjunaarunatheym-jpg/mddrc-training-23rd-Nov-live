@@ -546,6 +546,23 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const handleMarkSessionCompleted = async () => {
+    if (!selectedSession) return;
+    try {
+      setMarkingCompleted(true);
+      await axiosInstance.post(`/sessions/${selectedSession.id}/mark-completed`);
+      
+      toast.success("Session marked as completed and archived!");
+      
+      // Reload session data to show updated completion status
+      await selectSession(selectedSession);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to mark session as completed");
+    } finally {
+      setMarkingCompleted(false);
+    }
+  };
+
 
   const handleUpdateSession = async () => {
     try {
