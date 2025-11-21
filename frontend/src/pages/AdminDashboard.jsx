@@ -1644,49 +1644,41 @@ const AdminDashboard = ({ user, onLogout }) => {
                               />
                             </div>
                             <div>
-                              <Label htmlFor="participant-id">ID Number *</Label>
+                              <Label htmlFor="participant-id">ID Number * (will be used as login ID)</Label>
                               <Input
                                 id="participant-id"
                                 data-testid="participant-id-input"
                                 value={newParticipant.id_number}
                                 onChange={(e) => setNewParticipant({ ...newParticipant, id_number: e.target.value })}
-                                placeholder="ID123456"
+                                placeholder="990101-01-1234"
                               />
                             </div>
                             <div>
-                              <Label htmlFor="participant-email">Email *</Label>
+                              <Label htmlFor="participant-email">Email (optional)</Label>
                               <Input
                                 id="participant-email"
                                 data-testid="participant-email-input"
                                 type="email"
                                 value={newParticipant.email}
                                 onChange={(e) => setNewParticipant({ ...newParticipant, email: e.target.value })}
-                                placeholder="john@example.com"
+                                placeholder="john@example.com (optional)"
                               />
                             </div>
                             <div>
-                              <Label htmlFor="participant-phone">Phone Number</Label>
+                              <Label htmlFor="participant-phone">Phone Number (optional)</Label>
                               <Input
                                 id="participant-phone"
                                 data-testid="participant-phone-input"
                                 type="tel"
                                 value={newParticipant.phone_number}
                                 onChange={(e) => setNewParticipant({ ...newParticipant, phone_number: e.target.value })}
-                                placeholder="+1234567890"
-                              />
-                            </div>
-                            <div className="col-span-2">
-                              <Label htmlFor="participant-password">Password *</Label>
-                              <Input
-                                id="participant-password"
-                                data-testid="participant-password-input"
-                                type="password"
-                                value={newParticipant.password}
-                                onChange={(e) => setNewParticipant({ ...newParticipant, password: e.target.value })}
-                                placeholder="Password"
+                                placeholder="+60123456789 (optional)"
                               />
                             </div>
                           </div>
+                          <p className="text-xs text-gray-500 bg-blue-50 p-2 rounded">
+                            💡 Default login: IC number / password: mddrc1
+                          </p>
                           <Button
                             type="button"
                             data-testid="add-participant-button"
