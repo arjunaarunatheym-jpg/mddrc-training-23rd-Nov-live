@@ -20,6 +20,23 @@ import { useTheme } from "../context/ThemeContext";
 const AdminDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const { primaryColor, secondaryColor, companyName, logoUrl } = useTheme();
+  
+  // Helper function to format FastAPI validation errors
+  const formatValidationError = (error) => {
+    if (typeof error === 'string') return error;
+    if (Array.isArray(error)) {
+      // FastAPI validation errors are arrays of {type, loc, msg, input, ctx}
+      return error.map(err => {
+        const field = err.loc ? err.loc.join(' > ') : 'Unknown field';
+        return `${field}: ${err.msg}`;
+      }).join('; ');
+    }
+    if (typeof error === 'object' && error.detail) {
+      return formatValidationError(error.detail);
+    }
+    return 'An error occurred';
+  };
+  
   const [companies, setCompanies] = useState([]);
   const [programs, setPrograms] = useState([]);
   const [sessions, setSessions] = useState([]);
