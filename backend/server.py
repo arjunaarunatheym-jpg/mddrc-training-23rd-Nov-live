@@ -1188,8 +1188,9 @@ async def get_sessions(current_user: User = Depends(get_current_user)):
                 {"is_archived": {"$ne": True}},  # Not archived
                 {
                     "$or": [
-                        {"completion_status": {"$exists": False}},  # No completion_status field (new sessions)
-                        {"completion_status": {"$ne": "completed"}}  # Not marked as completed
+                        {"completion_status": {"$exists": False}},  # Legacy: No completion_status field
+                        {"completion_status": "ongoing"},  # Ongoing sessions
+                        {"completion_status": {"$nin": ["completed", "archived"]}}  # Not completed or archived
                     ]
                 }
             ]
