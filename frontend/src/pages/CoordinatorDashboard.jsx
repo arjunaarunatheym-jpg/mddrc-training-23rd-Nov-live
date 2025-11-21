@@ -309,9 +309,10 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
         await loadChecklistIssues(sessionId, sessionParticipants);
       }
       
-      // Load coordinator feedback and completion checklist
+      // Load coordinator feedback, completion checklist, and attendance status
       await loadCoordinatorFeedback(sessionId);
       await loadCompletionChecklist(sessionId);
+      await loadAttendanceStatus(sessionId);
     } catch (error) {
       console.error("Failed to load session data", error);
       toast.error("Failed to load session data: " + error.message);
