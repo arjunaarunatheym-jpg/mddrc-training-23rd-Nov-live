@@ -83,6 +83,9 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [loadingPastTraining, setLoadingPastTraining] = useState(false);
   const [expandedPastSession, setExpandedPastSession] = useState(null);
+  
+  // Completion checklist state
+  const [completionChecklist, setCompletionChecklist] = useState(null);
 
   useEffect(() => {
     loadSessions();
