@@ -1575,46 +1575,6 @@ async def get_past_training_sessions(
     
     return sessions
 
-@api_router.get("/sessions/calendar")
-async def get_calendar_sessions(current_user: User = Depends(get_current_user)):
-    """Get sessions for calendar view (future sessions only for admin-level roles)"""
-    if current_user.role not in ["admin", "coordinator", "assistant_admin", "trainer"]:
-        raise HTTPException(status_code=403, detail="Unauthorized")
-    
-    # Get future sessions (up to 1 year from now)
-    current_date = get_malaysia_time().date()
-    one_year_from_now = current_date.replace(year=current_date.year + 1)
-    
-    query = {
-        "start_date": {
-            "$gte": current_date.isoformat(),
-            "$lte": one_year_from_now.isoformat()
-        }
-    }
-    
-    sessions = await db.sessions.find(query, {"_id": 0}).to_list(1000)
-    
-    # Enrich with company and program data for calendar display
-    for session in sessions:
-        # Get company info
-        if session.get("company_id"):
-            company = await db.companies.find_one({"id": session["company_id"]}, {"_id": 0})
-            session["company_name"] = company.get("name", "Unknown") if company else "Unknown"
-        else:
-            session["company_name"] = "Unknown"
-        
-        # Get program info
-        if session.get("program_id"):
-            program = await db.programs.find_one({"id": session["program_id"]}, {"_id": 0})
-            session["program_name"] = program.get("name", "Unknown") if program else "Unknown"
-        else:
-            session["program_name"] = "Unknown"
-        
-        # Add participant count
-        session["participant_count"] = len(session.get("participant_ids", []))
-    
-    return sessions
-
 @api_router.get("/sessions/{session_id}/results-summary")
 async def get_results_summary(session_id: str, current_user: User = Depends(get_current_user)):
     # Check if user has permission (admin, coordinator, or chief trainer)
