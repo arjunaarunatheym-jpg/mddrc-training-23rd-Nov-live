@@ -128,10 +128,6 @@ const TrainerDashboard = ({ user, onLogout }) => {
     }
   };
 
-  const handleViewResults = (sessionId) => {
-    navigate(`/results-summary/${sessionId}`);
-  };
-
   const handleSubmitFeedback = async () => {
     if (!selectedFeedbackSession) return;
 
