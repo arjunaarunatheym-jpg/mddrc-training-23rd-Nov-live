@@ -1126,6 +1126,7 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
                               <tr className="border-b bg-gray-50">
                                 <th className="text-left p-3 font-semibold">Participant Name</th>
                                 <th className="text-left p-3 font-semibold">ID Number</th>
+                                <th className="text-center p-3 font-semibold">Attendance</th>
                                 <th className="text-center p-3 font-semibold">Pre-Test</th>
                                 <th className="text-center p-3 font-semibold">Post-Test</th>
                                 <th className="text-center p-3 font-semibold">Feedback</th>
