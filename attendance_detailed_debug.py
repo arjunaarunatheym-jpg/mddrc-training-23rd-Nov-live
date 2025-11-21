@@ -7,7 +7,7 @@ import requests
 import json
 from datetime import datetime
 
-BASE_URL = "https://saferide-mgmt.preview.emergentagent.com/api"
+BASE_URL = "https://mddrc-training.preview.emergentagent.com/api"
 
 def detailed_debug():
     session = requests.Session()

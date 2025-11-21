@@ -16,7 +16,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://saferide-mgmt.preview.emergentagent.com/api"
+BASE_URL = "https://mddrc-training.preview.emergentagent.com/api"
 TRAINER_EMAIL = "vijay@mddrc.com.my"
 TRAINER_PASSWORD = "mddrc1"
 
