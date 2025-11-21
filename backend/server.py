@@ -1615,7 +1615,7 @@ async def mark_session_completed(session_id: str, current_user: User = Depends(g
             "$set": {
                 "completion_status": "completed",
                 "completed_by_coordinator": True,
-                "completed_date": get_malaysia_time()
+                "completed_date": get_malaysia_time().isoformat()  # Store as ISO string for MongoDB
             }
         }
     )
