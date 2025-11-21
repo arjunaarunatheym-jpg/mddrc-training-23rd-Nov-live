@@ -477,7 +477,10 @@ const AdminDashboard = ({ user, onLogout }) => {
       loadData();
     } catch (error) {
       console.error("Session creation error:", error);
-      toast.error(error.response?.data?.detail || "Failed to create session");
+      const errorMessage = error.response?.data?.detail 
+        ? formatValidationError(error.response.data.detail)
+        : "Failed to create session";
+      toast.error(errorMessage);
     }
   };
 
