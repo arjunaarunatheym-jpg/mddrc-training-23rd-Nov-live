@@ -18,6 +18,7 @@ import Settings from "./Settings";
 import { useTheme } from "../context/ThemeContext";
 
 const AdminDashboard = ({ user, onLogout }) => {
+  const navigate = useNavigate();
   const { primaryColor, secondaryColor, companyName, logoUrl } = useTheme();
   const [companies, setCompanies] = useState([]);
   const [programs, setPrograms] = useState([]);
