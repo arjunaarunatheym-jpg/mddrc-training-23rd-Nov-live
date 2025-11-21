@@ -1430,15 +1430,22 @@ async def add_participants_to_session(
     current_participants = session.get("participant_ids", [])
     
     # Add new participants (avoid duplicates)
+    newly_added = []
     for user_id in added_ids:
         if user_id not in current_participants:
             current_participants.append(user_id)
+            newly_added.append(user_id)
     
     # Update session
     await db.sessions.update_one(
         {"id": session_id},
         {"$set": {"participant_ids": current_participants}}
     )
+    
+    # Create participant_access records for newly added participants
+    # This ensures checklists and tests show up for trainers immediately
+    for user_id in newly_added:
+        await get_or_create_participant_access(user_id, session_id)
     
     return {
         "message": f"Successfully added {len(added_ids)} participant(s)",
