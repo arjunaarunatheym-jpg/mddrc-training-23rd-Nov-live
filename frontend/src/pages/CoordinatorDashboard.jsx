@@ -1645,12 +1645,9 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
                             <CardContent className="pt-6">
                               <div className="text-center space-y-4">
                                 <div>
-                                  <h4 className="font-semibold text-blue-900 text-lg">Complete Training Archive</h4>
+                                  <h4 className="font-semibold text-blue-900 text-lg">Complete Training & Archive</h4>
                                   <p className="text-sm text-blue-800">
-                                    Mark this session as completed to archive it and make it available in Past Training records.
-                                  </p>
-                                  <p className="text-xs text-blue-600 mt-2">
-                                    This allows coordinators, admins, and assistant admins to access this session in their Past Training archives.
+                                    Complete the checklist below before marking this session as completed.
                                   </p>
                                 </div>
                                 
@@ -1667,23 +1664,61 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
                                     )}
                                   </div>
                                 ) : (
-                                  <Button
-                                    onClick={handleMarkSessionCompleted}
-                                    disabled={markingCompleted}
-                                    className="bg-blue-600 hover:bg-blue-700"
-                                  >
-                                    {markingCompleted ? (
-                                      <>
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                        Marking as Completed...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <CheckCircle className="w-4 h-4 mr-2" />
-                                        Mark as Completed
-                                      </>
+                                  <>
+                                    {/* Completion Checklist */}
+                                    {completionChecklist && (
+                                      <div className="bg-white rounded-lg p-4 text-left space-y-3 border border-blue-200">
+                                        <h5 className="font-semibold text-gray-900 text-sm">Completion Checklist</h5>
+                                        {Object.entries(completionChecklist.items || {}).map(([key, item]) => (
+                                          <div key={key} className="flex items-start gap-3">
+                                            <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
+                                              item.completed ? 'bg-green-500' : 'bg-gray-300'
+                                            }`}>
+                                              {item.completed && (
+                                                <CheckCircle className="w-3 h-3 text-white" />
+                                              )}
+                                            </div>
+                                            <div className="flex-1">
+                                              <p className={`text-sm font-medium ${
+                                                item.completed ? 'text-green-900' : 'text-gray-700'
+                                              }`}>
+                                                {item.label}
+                                                {item.required && <span className="text-red-500 ml-1">*</span>}
+                                              </p>
+                                            </div>
+                                          </div>
+                                        ))}
+                                        
+                                        {!completionChecklist.can_complete && (
+                                          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-3">
+                                            <p className="text-amber-900 text-xs">
+                                              ⚠️ Please complete all required items before marking as completed
+                                            </p>
+                                          </div>
+                                        )}
+                                      </div>
                                     )}
-                                  </Button>
+                                    
+                                    <Button
+                                      onClick={handleMarkSessionCompleted}
+                                      disabled={markingCompleted || !completionChecklist?.can_complete}
+                                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                    >
+                                      {markingCompleted ? (
+                                        <>
+                                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                          Marking as Completed...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <CheckCircle className="w-4 h-4 mr-2" />
+                                          {completionChecklist?.can_complete 
+                                            ? "Mark Training as Completed" 
+                                            : "Complete Checklist to Continue"}
+                                        </>
+                                      )}
+                                    </Button>
+                                  </>
                                 )}
                               </div>
                             </CardContent>
