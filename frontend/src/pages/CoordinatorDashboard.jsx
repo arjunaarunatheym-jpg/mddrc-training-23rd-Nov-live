@@ -1150,6 +1150,61 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
                                     </td>
                                     <td className="p-3 text-gray-700">{p.id_number || 'N/A'}</td>
                                     <td className="p-3 text-center">
+                                      <div className="flex flex-col gap-1 items-center">
+                                        {attendanceStatus[p.id] === 'absent' ? (
+                                          <>
+                                            <span className="px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-800">
+                                              ✗ ABSENT
+                                            </span>
+                                            <Button
+                                              onClick={() => handleMarkAttendance(p.id, 'present')}
+                                              disabled={updatingAttendance[p.id]}
+                                              size="sm"
+                                              variant="outline"
+                                              className="text-xs h-6"
+                                            >
+                                              {updatingAttendance[p.id] ? "..." : "Mark Present"}
+                                            </Button>
+                                          </>
+                                        ) : attendanceStatus[p.id] === 'present' ? (
+                                          <>
+                                            <span className="px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-800">
+                                              ✓ PRESENT
+                                            </span>
+                                            <Button
+                                              onClick={() => handleMarkAttendance(p.id, 'absent')}
+                                              disabled={updatingAttendance[p.id]}
+                                              size="sm"
+                                              variant="outline"
+                                              className="text-xs h-6"
+                                            >
+                                              {updatingAttendance[p.id] ? "..." : "Mark Absent"}
+                                            </Button>
+                                          </>
+                                        ) : (
+                                          <div className="flex gap-1">
+                                            <Button
+                                              onClick={() => handleMarkAttendance(p.id, 'present')}
+                                              disabled={updatingAttendance[p.id]}
+                                              size="sm"
+                                              className="text-xs h-7 bg-green-600 hover:bg-green-700"
+                                            >
+                                              Present
+                                            </Button>
+                                            <Button
+                                              onClick={() => handleMarkAttendance(p.id, 'absent')}
+                                              disabled={updatingAttendance[p.id]}
+                                              size="sm"
+                                              variant="destructive"
+                                              className="text-xs h-7"
+                                            >
+                                              Absent
+                                            </Button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </td>
+                                    <td className="p-3 text-center">
                                       {preTest ? (
                                         <div className="flex flex-col items-center gap-1">
                                           <span className={`px-2 py-1 rounded text-xs font-bold ${
