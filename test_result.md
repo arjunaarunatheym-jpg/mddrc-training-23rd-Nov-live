@@ -539,6 +539,21 @@ frontend:
         agent: "testing"
         comment: "🎉 CALENDAR & PAST TRAINING ENDPOINTS FULLY TESTED AND WORKING! Comprehensive testing completed with 11/11 tests passed (100% success rate). ✅ CALENDAR ENDPOINT (GET /api/sessions/calendar): Admin and trainer access working correctly (200 OK), participant access properly denied (403 Forbidden), unauthenticated requests denied (403), response structure includes all required fields (id, name, start_date, end_date, company_name, program_name, participant_count), only future sessions returned (up to 1 year), sessions properly enriched with company and program data. ✅ PAST TRAINING ENDPOINT (GET /api/sessions/past-training): Admin access working with proper filtering (completed sessions only), trainer access working with different behavior (auto-archived past sessions), month/year filtering working correctly (tested with month=11&year=2025), participant access properly denied (403), unauthenticated requests denied (403), response structure includes all required fields with proper data enrichment. Both endpoints are production-ready with full authentication, authorization, data filtering, and response structure validation."
 
+  - task: "Session Filtering Logic Fixes"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Session filtering fixes requested for coordinator and trainer roles. Need to test: 1) Coordinator Session Filtering - should return ALL non-archived sessions including completed ones that are ongoing/future, 2) Trainer Session Filtering - should ONLY return future/current sessions (end_date >= today), 3) Mark Session as Completed functionality, 4) Past Training endpoints for both coordinators and trainers."
+      - working: true
+        agent: "testing"
+        comment: "🎉 SESSION FILTERING LOGIC FIXES FULLY TESTED AND WORKING! Comprehensive testing completed with 10/10 tests passed (100% success rate). ✅ TEST 1 - COORDINATOR SESSION FILTERING: Coordinators correctly see ALL non-archived sessions including completed ones that are still ongoing/future. Past sessions (end_date < today) are properly filtered out. Completed sessions with end_date >= today are correctly included. ✅ TEST 2 - TRAINER SESSION FILTERING: Trainers correctly see ONLY future/current sessions (end_date >= today). Past sessions are properly excluded. Completed sessions that are still ongoing are correctly included. ✅ TEST 3 - MARK SESSION AS COMPLETED: POST /api/sessions/{session_id}/mark-completed working correctly. Sets completion_status='completed', completed_by_coordinator=True, and completed_date as ISO string format. ✅ TEST 4 - COORDINATOR PAST TRAINING: GET /api/sessions/past-training correctly returns sessions where completed_by_coordinator=True AND end_date < today. ✅ TEST 5 - TRAINER PAST TRAINING: GET /api/sessions/past-training correctly returns ALL sessions where end_date < today (automatic archival, no completed_by_coordinator flag required). All session filtering logic is working as specified and production-ready."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
