@@ -1344,35 +1344,64 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
                           <p className="text-sm text-gray-500 mt-1">All vehicles inspected are in good condition</p>
                         </div>
                       ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-2">
+                          <p className="text-sm text-gray-600 mb-3">
+                            {checklistIssues.length} participant{checklistIssues.length !== 1 ? 's' : ''} with vehicle issues. Click to view details.
+                          </p>
                           {checklistIssues.map((issue, idx) => (
-                            <div key={idx} className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                              <h4 className="font-semibold text-red-900 mb-2">{issue.participant_name}</h4>
-                              <div className="space-y-2">
-                                {issue.items.map((item, itemIdx) => (
-                                  <div key={itemIdx} className="p-3 bg-white rounded border border-red-200">
-                                    <p className="font-semibold text-sm text-red-900 mb-2">
-                                      🔧 {item.item || item.item_name || item.name || 'Item'}
-                                    </p>
-                                    {item.comments && (
-                                      <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded mb-2">
-                                        <span className="font-medium">Issue: </span>{item.comments}
-                                      </p>
-                                    )}
-                                    {(item.photo_url || item.photo) && (
-                                      <div className="mt-2">
-                                        <p className="text-xs text-gray-600 mb-1">Photo:</p>
-                                        <img 
-                                          src={item.photo_url || item.photo} 
-                                          alt={item.item || 'Vehicle item'} 
-                                          className="w-32 h-32 object-cover rounded border-2 border-red-300 cursor-pointer hover:scale-105 transition-transform"
-                                          onClick={() => window.open(item.photo_url || item.photo, '_blank')}
-                                        />
-                                      </div>
-                                    )}
+                            <div key={idx} className="border border-red-200 rounded-lg overflow-hidden">
+                              {/* Collapsed view - just participant name */}
+                              <div 
+                                className="p-3 bg-red-50 hover:bg-red-100 cursor-pointer transition-colors flex justify-between items-center"
+                                onClick={() => setExpandedVehicleIssue(expandedVehicleIssue === issue.participant_name ? null : issue.participant_name)}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <span className="text-red-600 font-bold">⚠️</span>
+                                  <div>
+                                    <h4 className="font-semibold text-red-900">{issue.participant_name}</h4>
+                                    <p className="text-xs text-red-700">{issue.items.length} issue{issue.items.length !== 1 ? 's' : ''} found</p>
                                   </div>
-                                ))}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-red-600 font-medium">
+                                    {expandedVehicleIssue === issue.participant_name ? 'Hide Details' : 'View Details'}
+                                  </span>
+                                  <span className={`text-red-600 transition-transform ${expandedVehicleIssue === issue.participant_name ? 'rotate-180' : ''}`}>
+                                    ▼
+                                  </span>
+                                </div>
                               </div>
+                              
+                              {/* Expanded view - issue details */}
+                              {expandedVehicleIssue === issue.participant_name && (
+                                <div className="p-4 bg-white border-t border-red-200">
+                                  <div className="space-y-3">
+                                    {issue.items.map((item, itemIdx) => (
+                                      <div key={itemIdx} className="p-3 bg-red-50 rounded border border-red-200">
+                                        <p className="font-semibold text-sm text-red-900 mb-2">
+                                          🔧 {item.item || item.item_name || item.name || 'Item'}
+                                        </p>
+                                        {item.comments && (
+                                          <p className="text-sm text-gray-700 bg-white p-2 rounded mb-2">
+                                            <span className="font-medium">Issue: </span>{item.comments}
+                                          </p>
+                                        )}
+                                        {(item.photo_url || item.photo) && (
+                                          <div className="mt-2">
+                                            <p className="text-xs text-gray-600 mb-1">Photo:</p>
+                                            <img 
+                                              src={item.photo_url || item.photo} 
+                                              alt={item.item || 'Vehicle item'} 
+                                              className="w-32 h-32 object-cover rounded border-2 border-red-300 cursor-pointer hover:scale-105 transition-transform"
+                                              onClick={() => window.open(item.photo_url || item.photo, '_blank')}
+                                            />
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
