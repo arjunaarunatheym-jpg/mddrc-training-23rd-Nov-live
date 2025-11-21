@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 const CalendarDashboard = ({ user, onLogout }) => {
+  const navigate = useNavigate();
   const { primaryColor, secondaryColor, companyName, logoUrl } = useTheme();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [sessions, setSessions] = useState([]);
