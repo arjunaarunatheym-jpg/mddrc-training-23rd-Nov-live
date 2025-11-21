@@ -1628,7 +1628,7 @@ async def get_completion_checklist(session_id: str, current_user: User = Depends
 
 @api_router.post("/sessions/{session_id}/mark-completed")
 async def mark_session_completed(session_id: str, current_user: User = Depends(get_current_user)):
-    """Mark session as completed by coordinator (allows archival for coordinators/admin/assistant admin)"""
+    """Mark session as completed by coordinator - archives session and pushes report to supervisors"""
     if current_user.role not in ["coordinator", "admin"]:
         raise HTTPException(status_code=403, detail="Only coordinators and admins can mark sessions as completed")
     
@@ -1646,19 +1646,35 @@ async def mark_session_completed(session_id: str, current_user: User = Depends(g
             detail="Training report must be uploaded before marking session as completed. Please upload the final PDF report first."
         )
     
-    # Update session completion status
+    # Update session completion status and archive
     await db.sessions.update_one(
         {"id": session_id},
         {
             "$set": {
                 "completion_status": "completed",
                 "completed_by_coordinator": True,
-                "completed_date": get_malaysia_time().isoformat()  # Store as ISO string for MongoDB
+                "completed_date": get_malaysia_time().isoformat(),
+                "report_available_to_supervisors": True  # Flag to indicate report is now available
             }
         }
     )
     
-    return {"message": "Session marked as completed successfully"}
+    # Update training report to mark as available to supervisors
+    await db.training_reports.update_one(
+        {"session_id": session_id},
+        {
+            "$set": {
+                "available_to_supervisors": True,
+                "pushed_to_supervisors_at": get_malaysia_time().isoformat()
+            }
+        }
+    )
+    
+    return {
+        "message": "Session marked as completed successfully. Report is now available to supervisors.",
+        "session_archived": True,
+        "report_pushed_to_supervisors": True
+    }
 
 @api_router.get("/sessions/{session_id}/results-summary")
 async def get_results_summary(session_id: str, current_user: User = Depends(get_current_user)):
