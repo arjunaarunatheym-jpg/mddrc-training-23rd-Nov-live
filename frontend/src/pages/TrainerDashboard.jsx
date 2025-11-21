@@ -135,43 +135,8 @@ const TrainerDashboard = ({ user, onLogout }) => {
     }
   };
 
-  const loadSessionResults = async (session) => {
-    try {
-      setSelectedResultsSession(session);
-      
-      const [attendanceRes, testResultsRes, feedbackRes] = await Promise.all([
-        axiosInstance.get(`/attendance/session/${session.id}`).catch(() => ({ data: [] })),
-        axiosInstance.get(`/tests/results/session/${session.id}`).catch(() => ({ data: [] })),
-        axiosInstance.get(`/feedback/session/${session.id}`).catch(() => ({ data: [] }))
-      ]);
-      
-      const attendanceData = attendanceRes.data || [];
-      const testResultsData = testResultsRes.data || [];
-      const feedbackData = feedbackRes.data || [];
-      
-      setAttendance(attendanceData);
-      setTestResults(testResultsData);
-      setCourseFeedback(feedbackData);
-      
-      // Calculate session statistics
-      const preTestResults = testResultsData.filter(r => r.test_type === 'pre');
-      const postTestResults = testResultsData.filter(r => r.test_type === 'post');
-      
-      const participants = sessionParticipants[session.id] || [];
-      const attendanceRate = participants.length > 0 ? 
-        Math.round((attendanceData.length / participants.length) * 100) : 0;
-      
-      setSessionStats({
-        totalParticipants: participants.length,
-        attendanceRate: attendanceRate,
-        preTestCompleted: preTestResults.length,
-        postTestCompleted: postTestResults.length,
-        feedbackReceived: feedbackData.length
-      });
-      
-    } catch (error) {
-      toast.error("Failed to load session results");
-    }
+  const handleViewResults = (sessionId) => {
+    navigate(`/results-summary/${sessionId}`);
   };
 
   const handleSubmitFeedback = async () => {
