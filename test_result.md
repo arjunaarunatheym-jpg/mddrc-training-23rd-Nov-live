@@ -562,7 +562,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Session Filtering Logic Fixes Testing Complete"
+    - "Session Creation Testing with Admin User Complete"
   stuck_tasks: 
     - "Attendance records display issue"
   test_all: false
