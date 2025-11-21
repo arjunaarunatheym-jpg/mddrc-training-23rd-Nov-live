@@ -903,7 +903,7 @@ const AdminDashboard = ({ user, onLogout }) => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="flex flex-wrap w-full mb-8 h-auto justify-start gap-2 bg-gray-100 p-2 rounded-lg md:grid md:grid-cols-8">
+          <TabsList className="flex flex-wrap w-full mb-8 h-auto justify-start gap-2 bg-gray-100 p-2 rounded-lg md:grid md:grid-cols-9">
             <TabsTrigger value="programs" data-testid="programs-tab" className="flex-1 min-w-[120px] md:min-w-0">
               <BookOpen className="w-4 h-4 mr-2" />
               <span className="hidden sm:inline">Programs</span>
@@ -919,15 +919,25 @@ const AdminDashboard = ({ user, onLogout }) => {
               <span className="hidden sm:inline">Sessions</span>
               <span className="sm:hidden">Sessions</span>
             </TabsTrigger>
-            <TabsTrigger value="reports" data-testid="reports-tab" className="flex-1 min-w-[120px] md:min-w-0">
-              <FileText className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Reports</span>
-              <span className="sm:hidden">Reports</span>
+            <TabsTrigger value="participants" data-testid="participants-tab" className="flex-1 min-w-[120px] md:min-w-0">
+              <Users className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Participants</span>
+              <span className="sm:hidden">Participants</span>
             </TabsTrigger>
             <TabsTrigger value="staff" data-testid="staff-tab" className="flex-1 min-w-[120px] md:min-w-0">
               <UserCog className="w-4 h-4 mr-2" />
               <span className="hidden sm:inline">Staff</span>
               <span className="sm:hidden">Staff</span>
+            </TabsTrigger>
+            <TabsTrigger value="past-training" data-testid="past-training-tab" className="flex-1 min-w-[120px] md:min-w-0">
+              <FileText className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Past Training</span>
+              <span className="sm:hidden">Past</span>
+            </TabsTrigger>
+            <TabsTrigger value="reports" data-testid="reports-tab" className="flex-1 min-w-[120px] md:min-w-0">
+              <FileText className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Reports</span>
+              <span className="sm:hidden">Reports</span>
             </TabsTrigger>
             <TabsTrigger value="users" data-testid="users-tab" className="flex-1 min-w-[120px] md:min-w-0">
               <Users className="w-4 h-4 mr-2" />
@@ -938,11 +948,6 @@ const AdminDashboard = ({ user, onLogout }) => {
               <SettingsIcon className="w-4 h-4 mr-2" />
               <span className="hidden sm:inline">Settings</span>
               <span className="sm:hidden">Settings</span>
-            </TabsTrigger>
-            <TabsTrigger value="certificates" data-testid="certificates-tab" className="flex-1 min-w-[120px] md:min-w-0">
-              <Award className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Certificates</span>
-              <span className="sm:hidden">Certificates</span>
             </TabsTrigger>
           </TabsList>
 
