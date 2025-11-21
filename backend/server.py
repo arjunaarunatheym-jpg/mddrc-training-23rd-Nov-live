@@ -159,6 +159,11 @@ class Session(BaseModel):
     trainer_assignments: List[dict] = []
     coordinator_id: Optional[str] = None
     status: str = "active"  # "active" or "inactive"
+    completion_status: str = "ongoing"  # "ongoing", "completed", "archived"
+    is_archived: bool = False
+    archived_date: Optional[datetime] = None
+    completed_by_coordinator: bool = False
+    completed_date: Optional[datetime] = None
     created_at: datetime = Field(default_factory=get_malaysia_time)
 
 class ParticipantData(BaseModel):
