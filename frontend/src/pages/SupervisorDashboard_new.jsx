@@ -9,6 +9,7 @@ import { Users, FileText, Calendar, LogOut, CheckCircle2, Clock } from "lucide-r
 import { useTheme } from "../context/ThemeContext";
 
 const SupervisorDashboard = ({ user, onLogout }) => {
+  const navigate = useNavigate();
   const { primaryColor, companyName, logoUrl } = useTheme();
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
