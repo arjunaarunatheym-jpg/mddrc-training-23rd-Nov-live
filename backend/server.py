@@ -1184,7 +1184,12 @@ async def get_sessions(current_user: User = Depends(get_current_user)):
         query = {
             "$and": [
                 {"is_archived": {"$ne": True}},  # Not archived
-                {"completion_status": {"$ne": "completed"}}  # Not yet marked as completed
+                {
+                    "$or": [
+                        {"completion_status": {"$exists": False}},  # No completion_status field (new sessions)
+                        {"completion_status": {"$ne": "completed"}}  # Not marked as completed
+                    ]
+                }
             ]
         }
     
