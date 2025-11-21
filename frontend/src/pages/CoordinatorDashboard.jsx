@@ -86,6 +86,10 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
   
   // Completion checklist state
   const [completionChecklist, setCompletionChecklist] = useState(null);
+  
+  // Attendance status state
+  const [attendanceStatus, setAttendanceStatus] = useState({});  // { participant_id: "present" | "absent" }
+  const [updatingAttendance, setUpdatingAttendance] = useState({});  // { participant_id: boolean }
 
   useEffect(() => {
     loadSessions();
