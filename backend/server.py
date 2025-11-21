@@ -3643,25 +3643,10 @@ async def upload_final_pdf_report(
             upsert=True
         )
         
-        # AUTOMATICALLY mark session as completed when final PDF is uploaded
-        # This archives the session and makes report available to supervisors
-        await db.sessions.update_one(
-            {"id": session_id},
-            {
-                "$set": {
-                    "completion_status": "completed",
-                    "completed_by_coordinator": True,
-                    "completed_date": get_malaysia_time().isoformat(),
-                    "report_submitted": True
-                }
-            }
-        )
-        
         return {
-            "message": "Final report submitted successfully. Session has been archived and report is now available to supervisors.",
+            "message": "Final report uploaded successfully. You can now mark the session as completed.",
             "filename": pdf_filename,
-            "pdf_url": f"/api/static/reports_pdf/{pdf_filename}",
-            "session_archived": True
+            "pdf_url": f"/api/static/reports_pdf/{pdf_filename}"
         }
         
     except Exception as e:
