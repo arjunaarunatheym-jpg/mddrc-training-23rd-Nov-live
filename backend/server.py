@@ -1464,6 +1464,142 @@ async def get_session_status(session_id: str, current_user: User = Depends(get_c
         }
     }
 
+@api_router.post("/sessions/{session_id}/mark-completed")
+async def mark_session_completed(session_id: str, current_user: User = Depends(get_current_user)):
+    """Mark session as completed by coordinator (allows archival for coordinators/admin/assistant admin)"""
+    if current_user.role not in ["coordinator", "admin"]:
+        raise HTTPException(status_code=403, detail="Only coordinators and admins can mark sessions as completed")
+    
+    # Get session
+    session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Update session completion status
+    await db.sessions.update_one(
+        {"id": session_id},
+        {
+            "$set": {
+                "completion_status": "completed",
+                "completed_by_coordinator": True,
+                "completed_date": get_malaysia_time()
+            }
+        }
+    )
+    
+    return {"message": "Session marked as completed successfully"}
+
+@api_router.get("/sessions/past-training")
+async def get_past_training_sessions(
+    month: Optional[int] = None,
+    year: Optional[int] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get archived/past training sessions with filtering by month and year"""
+    if current_user.role not in ["admin", "coordinator", "assistant_admin", "trainer"]:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    # Build query based on user role and archival rules
+    query = {}
+    current_date = get_malaysia_time().date()
+    
+    if current_user.role in ["trainer"]:
+        # Trainers: Sessions past today's date are automatically archived
+        query = {
+            "$or": [
+                {"is_archived": True},
+                {"end_date": {"$lt": current_date.isoformat()}}
+            ]
+        }
+    else:
+        # Coordinators/Admin/Assistant Admin: Only sessions marked as completed by coordinator
+        query = {
+            "$and": [
+                {"completed_by_coordinator": True},
+                {
+                    "$or": [
+                        {"is_archived": True},
+                        {"end_date": {"$lt": current_date.isoformat()}}
+                    ]
+                }
+            ]
+        }
+    
+    # Add date filtering if provided
+    if month and year:
+        # Filter by sessions that ended in the specified month/year
+        start_of_month = f"{year}-{month:02d}-01"
+        if month == 12:
+            end_of_month = f"{year+1}-01-01"
+        else:
+            end_of_month = f"{year}-{month+1:02d}-01"
+        
+        query["end_date"] = {
+            "$gte": start_of_month,
+            "$lt": end_of_month
+        }
+    
+    # Get matching sessions
+    sessions = await db.sessions.find(query, {"_id": 0}).to_list(1000)
+    
+    # Enrich with company and program data
+    for session in sessions:
+        # Get company info
+        if session.get("company_id"):
+            company = await db.companies.find_one({"id": session["company_id"]}, {"_id": 0})
+            session["company_name"] = company.get("name", "Unknown") if company else "Unknown"
+        else:
+            session["company_name"] = "Unknown"
+        
+        # Get program info
+        if session.get("program_id"):
+            program = await db.programs.find_one({"id": session["program_id"]}, {"_id": 0})
+            session["program_name"] = program.get("name", "Unknown") if program else "Unknown"
+        else:
+            session["program_name"] = "Unknown"
+    
+    return sessions
+
+@api_router.get("/sessions/calendar")
+async def get_calendar_sessions(current_user: User = Depends(get_current_user)):
+    """Get sessions for calendar view (future sessions only for admin-level roles)"""
+    if current_user.role not in ["admin", "coordinator", "assistant_admin", "trainer"]:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    # Get future sessions (up to 1 year from now)
+    current_date = get_malaysia_time().date()
+    one_year_from_now = current_date.replace(year=current_date.year + 1)
+    
+    query = {
+        "start_date": {
+            "$gte": current_date.isoformat(),
+            "$lte": one_year_from_now.isoformat()
+        }
+    }
+    
+    sessions = await db.sessions.find(query, {"_id": 0}).to_list(1000)
+    
+    # Enrich with company and program data for calendar display
+    for session in sessions:
+        # Get company info
+        if session.get("company_id"):
+            company = await db.companies.find_one({"id": session["company_id"]}, {"_id": 0})
+            session["company_name"] = company.get("name", "Unknown") if company else "Unknown"
+        else:
+            session["company_name"] = "Unknown"
+        
+        # Get program info
+        if session.get("program_id"):
+            program = await db.programs.find_one({"id": session["program_id"]}, {"_id": 0})
+            session["program_name"] = program.get("name", "Unknown") if program else "Unknown"
+        else:
+            session["program_name"] = "Unknown"
+        
+        # Add participant count
+        session["participant_count"] = len(session.get("participant_ids", []))
+    
+    return sessions
+
 @api_router.get("/sessions/{session_id}/results-summary")
 async def get_results_summary(session_id: str, current_user: User = Depends(get_current_user)):
     # Check if user has permission (admin, coordinator, or chief trainer)
