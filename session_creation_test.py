@@ -139,7 +139,7 @@ class SessionCreationTestRunner:
                 {
                     "full_name": "Test Participant",
                     "id_number": "990101-01-1234",
-                    "email": "",
+                    "email": "testparticipant@example.com",
                     "password": "mddrc1",
                     "phone_number": ""
                 }
