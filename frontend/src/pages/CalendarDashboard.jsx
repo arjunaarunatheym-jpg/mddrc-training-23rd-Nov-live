@@ -286,36 +286,36 @@ const CalendarDashboard = ({ user, onLogout }) => {
                           )}
                         </button>
                         
-                        {/* Expanded session details */}
+                        {/* Expanded session details - Mobile Friendly */}
                         {isExpanded && daysSessions.length > 0 && (
-                          <div className="absolute top-full left-0 right-0 z-50 mt-1">
+                          <div className="fixed md:absolute top-20 md:top-full left-2 right-2 md:left-0 md:right-0 z-50 mt-1 max-h-[70vh] overflow-y-auto">
                             <Card className="shadow-lg border-2 border-blue-200">
-                              <CardContent className="p-3">
+                              <CardContent className="p-2 sm:p-3">
                                 <div className="space-y-2">
                                   {daysSessions.map((session) => (
                                     <div 
                                       key={session.id}
-                                      className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg"
+                                      className="p-2 sm:p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg"
                                     >
-                                      <div className="flex justify-between items-start">
-                                        <div className="flex-1">
-                                          <h4 className="font-semibold text-gray-900 text-sm">
+                                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                                        <div className="flex-1 min-w-0">
+                                          <h4 className="font-semibold text-gray-900 text-xs sm:text-sm truncate">
                                             {session.name}
                                           </h4>
                                           <div className="flex items-center gap-1 text-xs text-gray-600 mt-1">
-                                            <Building2 className="w-3 h-3" />
-                                            <span>{session.company_name}</span>
+                                            <Building2 className="w-3 h-3 flex-shrink-0" />
+                                            <span className="truncate">{session.company_name}</span>
                                           </div>
                                           <div className="flex items-center gap-1 text-xs text-gray-600">
-                                            <CalendarIcon className="w-3 h-3" />
-                                            <span>{session.program_name}</span>
+                                            <CalendarIcon className="w-3 h-3 flex-shrink-0" />
+                                            <span className="truncate">{session.program_name}</span>
                                           </div>
                                           <div className="flex items-center gap-1 text-xs text-gray-600">
-                                            <MapPin className="w-3 h-3" />
-                                            <span>{session.location}</span>
+                                            <MapPin className="w-3 h-3 flex-shrink-0" />
+                                            <span className="truncate">{session.location}</span>
                                           </div>
                                         </div>
-                                        <Badge variant="secondary" className="text-xs">
+                                        <Badge variant="secondary" className="text-xs self-start flex-shrink-0">
                                           <Users className="w-3 h-3 mr-1" />
                                           {session.participant_count}
                                         </Badge>
