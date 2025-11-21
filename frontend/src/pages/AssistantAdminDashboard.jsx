@@ -16,6 +16,7 @@ import ChecklistManagement from "./ChecklistManagement";
 import FeedbackManagement from "./FeedbackManagement";
 
 const AssistantAdminDashboard = ({ user, onLogout }) => {
+  const navigate = useNavigate();
   const { primaryColor, secondaryColor, companyName, logoUrl } = useTheme();
   const [sessions, setSessions] = useState([]);
   const [companies, setCompanies] = useState([]);
