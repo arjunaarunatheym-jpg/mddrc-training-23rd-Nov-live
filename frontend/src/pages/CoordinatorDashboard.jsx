@@ -701,7 +701,11 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
         await loadSessionData(selectedSession);
       }
     } catch (error) {
-      toast.error(error.response?.data?.detail || "Failed to add participant");
+      console.error("Add participant error:", error);
+      const errorMessage = error.response?.data?.detail 
+        ? formatValidationError(error.response.data.detail)
+        : "Failed to add participant";
+      toast.error(errorMessage);
     }
   };
 
