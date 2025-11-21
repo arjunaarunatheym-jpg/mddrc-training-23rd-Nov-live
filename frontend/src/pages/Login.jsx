@@ -144,14 +144,14 @@ const Login = ({ onLogin }) => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email or IC Number</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
                     id="email"
                     data-testid="login-email-input"
-                    type="email"
-                    placeholder="admin@example.com"
+                    type="text"
+                    placeholder="admin@example.com or IC number"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
