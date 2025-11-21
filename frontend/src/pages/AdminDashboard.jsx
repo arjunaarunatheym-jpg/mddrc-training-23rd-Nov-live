@@ -1617,7 +1617,7 @@ const AdminDashboard = ({ user, onLogout }) => {
                         <div className="space-y-4 border-t pt-4">
                           <h3 className="font-semibold text-lg">Add Participants</h3>
                           <p className="text-sm text-gray-600">
-                            Type participant details below. System will automatically link existing users if name, email, or ID number matches.
+                            Type participant details below. Login ID will be their IC number and default password is "mddrc1". System will automatically link existing users if name or ID number matches.
                           </p>
                           
                           {/* Match Status Indicator */}
