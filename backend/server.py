@@ -1149,6 +1149,8 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
     
     doc = session_obj.model_dump()
     doc['created_at'] = doc['created_at'].isoformat()
+    doc['completion_status'] = 'active'  # Initialize as active (not completed)
+    doc['completed_by_coordinator'] = False  # Not yet completed
     
     await db.sessions.insert_one(doc)
     
