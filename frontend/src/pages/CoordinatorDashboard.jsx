@@ -729,7 +729,7 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
           </Card>
         ) : (
           <Tabs defaultValue="sessions" className="space-y-6">
-            <TabsList className="flex flex-wrap w-full h-auto justify-start gap-2 bg-gray-100 p-2 rounded-lg sm:grid sm:grid-cols-4">
+            <TabsList className="flex flex-wrap w-full h-auto justify-start gap-2 bg-gray-100 p-2 rounded-lg sm:grid sm:grid-cols-5">
               <TabsTrigger value="sessions" className="flex-1 min-w-[100px] sm:min-w-0">
                 <Calendar className="w-4 h-4 mr-2" />
                 <span className="hidden sm:inline">My Sessions</span>
@@ -739,6 +739,11 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
                 <Users className="w-4 h-4 mr-2" />
                 <span className="hidden sm:inline">Session Management</span>
                 <span className="sm:hidden">Management</span>
+              </TabsTrigger>
+              <TabsTrigger value="past-training" className="flex-1 min-w-[100px] sm:min-w-0">
+                <FileText className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Past Training</span>
+                <span className="sm:hidden">Past</span>
               </TabsTrigger>
               <TabsTrigger value="report" className="flex-1 min-w-[100px] sm:min-w-0">
                 <FileText className="w-4 h-4 mr-2" />
