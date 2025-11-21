@@ -154,14 +154,31 @@ const CalendarDashboard = ({ user, onLogout }) => {
               <p className="text-sm text-gray-600">Welcome, {user.full_name}</p>
             </div>
           </div>
-          <Button
-            onClick={onLogout}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => {
+                if (user.role === "admin") navigate("/admin");
+                else if (user.role === "assistant_admin") navigate("/assistant-admin");
+                else if (user.role === "coordinator") navigate("/coordinator");
+                else if (user.role === "trainer") navigate("/trainer");
+              }}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span className="hidden sm:inline">Dashboard</span>
+            </Button>
+            <Button
+              onClick={onLogout}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Logout</span>
+            </Button>
+          </div>
         </div>
       </header>
 
