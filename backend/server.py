@@ -1168,20 +1168,26 @@ async def get_sessions(current_user: User = Depends(get_current_user)):
     current_date = get_malaysia_time().date()
     
     # Base query: exclude archived sessions and show only current/future sessions
-    query = {
-        "$and": [
-            {"is_archived": {"$ne": True}},  # Not archived
-            {
-                "$or": [
-                    {"end_date": {"$gte": current_date.isoformat()}},  # Current or future sessions
-                    {"completion_status": {"$ne": "completed"}}  # Or not yet completed
-                ]
-            }
-        ]
-    }
+    # For trainers: only show future/current sessions (end_date >= today)
+    # For coordinators/admin: show all non-archived sessions (including completed ones that are ongoing)
+    if current_user.role in ["trainer"]:
+        query = {
+            "$and": [
+                {"is_archived": {"$ne": True}},  # Not archived
+                {"end_date": {"$gte": current_date.isoformat()}},  # Only current or future sessions for trainers
+                {"status": "active"}
+            ]
+        }
+    else:
+        query = {
+            "$and": [
+                {"is_archived": {"$ne": True}},  # Not archived
+                {"end_date": {"$gte": current_date.isoformat()}}  # Current or future sessions
+            ]
+        }
     
     # Add role-specific filters
-    if current_user.role not in ["admin"]:
+    if current_user.role not in ["admin", "trainer"]:
         query["$and"].append({"status": "active"})
     
     if current_user.role == "participant":
