@@ -11,6 +11,7 @@ import TrainerDashboard from "./pages/TrainerDashboard";
 import TrainerChiefFeedback from "./pages/TrainerChiefFeedback";
 import TrainerChecklist from "./pages/TrainerChecklist";
 import CoordinatorDashboard from "./pages/CoordinatorDashboard";
+import CalendarDashboard from "./pages/CalendarDashboard";
 import TakeTest from "./pages/TakeTest";
 import TestResults from "./pages/TestResults";
 import ResultsSummary from "./pages/ResultsSummary";
