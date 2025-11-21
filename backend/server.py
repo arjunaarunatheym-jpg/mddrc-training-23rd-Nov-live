@@ -1164,20 +1164,35 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
 
 @api_router.get("/sessions", response_model=List[Session])
 async def get_sessions(current_user: User = Depends(get_current_user)):
-    # Non-admin users only see active sessions
-    query = {}
+    # Get current/upcoming sessions only (exclude archived ones)
+    current_date = get_malaysia_time().date()
+    
+    # Base query: exclude archived sessions and show only current/future sessions
+    query = {
+        "$and": [
+            {"is_archived": {"$ne": True}},  # Not archived
+            {
+                "$or": [
+                    {"end_date": {"$gte": current_date.isoformat()}},  # Current or future sessions
+                    {"completion_status": {"$ne": "completed"}}  # Or not yet completed
+                ]
+            }
+        ]
+    }
+    
+    # Add role-specific filters
     if current_user.role not in ["admin"]:
-        query["status"] = "active"
+        query["$and"].append({"status": "active"})
     
     if current_user.role == "participant":
-        query["participant_ids"] = current_user.id
+        query["$and"].append({"participant_ids": current_user.id})
         sessions = await db.sessions.find(query, {"_id": 0}).to_list(1000)
         
         # Auto-create participant_access records for each session
         for session in sessions:
             await get_or_create_participant_access(current_user.id, session['id'])
     elif current_user.role == "supervisor":
-        query["supervisor_ids"] = current_user.id
+        query["$and"].append({"supervisor_ids": current_user.id})
         sessions = await db.sessions.find(query, {"_id": 0}).to_list(1000)
     else:
         sessions = await db.sessions.find(query, {"_id": 0}).to_list(1000)
