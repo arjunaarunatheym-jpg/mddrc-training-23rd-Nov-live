@@ -676,7 +676,13 @@ async def find_or_create_user(user_data: dict, role: str, company_id: str) -> di
         
         hashed_password = pwd_context.hash(password)
         
-        # Email is optional - leave blank if not provided (no auto-generation)
+        # Auto-generate email if not provided (for unique constraint)
+        if not email or email.strip() == "":
+            # Generate unique email using ID number or timestamp
+            if id_number:
+                email = f"{id_number.replace('-', '').replace(' ', '')}@temp.mddrc.local"
+            else:
+                email = f"user_{uuid.uuid4().hex[:8]}@temp.mddrc.local"
         
         new_user = User(
             email=email,
