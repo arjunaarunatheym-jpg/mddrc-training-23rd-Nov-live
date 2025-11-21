@@ -645,8 +645,8 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
   };
 
   const handleAddParticipant = async () => {
-    if (!newParticipant.email || !newParticipant.password || !newParticipant.full_name || !newParticipant.id_number) {
-      toast.error("Please fill all required fields");
+    if (!newParticipant.full_name || !newParticipant.id_number) {
+      toast.error("Please fill all required fields (name and ID number)");
       return;
     }
 
@@ -656,9 +656,11 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
     }
 
     try {
-      // Create new user
+      // Create new user with defaults
       const userResponse = await axiosInstance.post("/auth/register", {
         ...newParticipant,
+        password: newParticipant.password || "mddrc1",  // Default password
+        email: newParticipant.email || "",  // Optional email
         role: "participant",
         company_id: selectedSession.company_id
       });
