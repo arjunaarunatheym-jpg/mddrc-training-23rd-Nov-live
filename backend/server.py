@@ -1599,6 +1599,70 @@ async def get_session_status(session_id: str, current_user: User = Depends(get_c
         }
     }
 
+@api_router.post("/sessions/{session_id}/participants/{participant_id}/attendance")
+async def mark_participant_attendance(
+    session_id: str,
+    participant_id: str,
+    status: str,  # "present" or "absent"
+    current_user: User = Depends(get_current_user)
+):
+    """Mark participant as present or absent for a session"""
+    if current_user.role not in ["coordinator", "admin"]:
+        raise HTTPException(status_code=403, detail="Only coordinators and admins can mark attendance")
+    
+    if status not in ["present", "absent"]:
+        raise HTTPException(status_code=400, detail="Status must be 'present' or 'absent'")
+    
+    # Check if session exists
+    session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # Check if participant is in this session
+    if participant_id not in session.get("participant_ids", []):
+        raise HTTPException(status_code=400, detail="Participant not enrolled in this session")
+    
+    # Update or create attendance record
+    await db.participant_attendance.update_one(
+        {
+            "session_id": session_id,
+            "participant_id": participant_id
+        },
+        {
+            "$set": {
+                "status": status,
+                "marked_by": current_user.id,
+                "marked_at": get_malaysia_time().isoformat()
+            }
+        },
+        upsert=True
+    )
+    
+    return {
+        "message": f"Participant marked as {status}",
+        "status": status
+    }
+
+@api_router.get("/sessions/{session_id}/participants/attendance")
+async def get_session_attendance_status(
+    session_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get attendance status for all participants in a session"""
+    if current_user.role not in ["coordinator", "admin", "trainer"]:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    
+    # Get all attendance records for this session
+    attendance_records = await db.participant_attendance.find(
+        {"session_id": session_id},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    # Return as dictionary with participant_id as key
+    attendance_dict = {record["participant_id"]: record["status"] for record in attendance_records}
+    
+    return attendance_dict
+
 @api_router.get("/sessions/{session_id}/completion-checklist")
 async def get_completion_checklist(session_id: str, current_user: User = Depends(get_current_user)):
     """Get checklist status for session completion (training report upload status)"""
