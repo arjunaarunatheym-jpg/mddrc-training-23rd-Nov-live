@@ -1368,8 +1368,8 @@ async def get_session(session_id: str, current_user: User = Depends(get_current_
 
 @api_router.get("/sessions/{session_id}/participants")
 async def get_session_participants(session_id: str, current_user: User = Depends(get_current_user)):
-    if current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Only admins can view participants")
+    if current_user.role not in ["admin", "assistant_admin"]:
+        raise HTTPException(status_code=403, detail="Only admins and assistant admins can view participants")
     
     session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
     if not session:
