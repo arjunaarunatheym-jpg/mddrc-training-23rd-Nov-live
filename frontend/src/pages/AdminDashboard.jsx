@@ -320,13 +320,19 @@ const AdminDashboard = ({ user, onLogout }) => {
   };
 
   const handleAddParticipant = () => {
-    if (!newParticipant.email || !newParticipant.password || !newParticipant.full_name || !newParticipant.id_number) {
-      toast.error("Please fill all required fields (name, email, password, ID number)");
+    if (!newParticipant.full_name || !newParticipant.id_number) {
+      toast.error("Please fill all required fields (name and ID number)");
       return;
     }
+    // Set default password for new participants
+    const participantWithDefaults = {
+      ...newParticipant,
+      password: "mddrc1", // Default password
+      email: newParticipant.email || "" // Optional
+    };
     setSessionForm({
       ...sessionForm,
-      participants: [...sessionForm.participants, { ...newParticipant }],
+      participants: [...sessionForm.participants, participantWithDefaults],
     });
     setNewParticipant({ email: "", password: "", full_name: "", id_number: "", phone_number: "" });
     setParticipantMatchStatus(null);
@@ -334,7 +340,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     if (participantMatchStatus?.exists) {
       toast.success(`✓ Existing participant "${newParticipant.full_name}" will be linked to this session`);
     } else {
-      toast.success(`New participant "${newParticipant.full_name}" added to list`);
+      toast.success(`New participant "${newParticipant.full_name}" added (Login: IC number, Password: mddrc1)`);
     }
   };
 
