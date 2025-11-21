@@ -126,11 +126,16 @@ const AssistantAdminDashboard = ({ user, onLogout }) => {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               {logoUrl && (
-                <img 
-                  src={logoUrl} 
-                  alt={companyName}
-                  className="h-10 w-auto object-contain"
-                />
+                <button
+                  onClick={() => navigate('/calendar')}
+                  className="hover:opacity-80 transition-opacity cursor-pointer"
+                >
+                  <img 
+                    src={logoUrl} 
+                    alt={companyName}
+                    className="h-10 w-auto object-contain"
+                  />
+                </button>
               )}
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Assistant Admin Portal</h1>
