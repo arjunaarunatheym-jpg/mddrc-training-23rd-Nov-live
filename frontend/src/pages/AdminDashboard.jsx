@@ -473,15 +473,21 @@ const AdminDashboard = ({ user, onLogout }) => {
   };
 
   const handleAddParticipantToEdit = () => {
-    if (!newParticipant.email || !newParticipant.password || !newParticipant.full_name || !newParticipant.id_number) {
-      toast.error("Please fill all participant fields");
+    if (!newParticipant.full_name || !newParticipant.id_number) {
+      toast.error("Please fill required fields (name and ID number)");
       return;
     }
+    // Set default password for new participants
+    const participantWithDefaults = {
+      ...newParticipant,
+      password: "mddrc1", // Default password
+      email: newParticipant.email || "" // Optional
+    };
     setEditingSession({
       ...editingSession,
-      newParticipants: [...(editingSession.newParticipants || []), { ...newParticipant }],
+      newParticipants: [...(editingSession.newParticipants || []), participantWithDefaults],
     });
-    setNewParticipant({ email: "", password: "", full_name: "", id_number: "" });
+    setNewParticipant({ email: "", password: "", full_name: "", id_number: "", phone_number: "" });
   };
 
   const handleRemoveNewParticipant = (index) => {
