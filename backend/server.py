@@ -1164,12 +1164,12 @@ async def create_session(session_data: SessionCreate, current_user: User = Depen
 
 @api_router.get("/sessions", response_model=List[Session])
 async def get_sessions(current_user: User = Depends(get_current_user)):
-    # Get current/upcoming sessions only (exclude archived ones)
+    # Get sessions based on role-specific rules
     current_date = get_malaysia_time().date()
     
-    # Base query: exclude archived sessions and show only current/future sessions
-    # For trainers: only show future/current sessions (end_date >= today)
-    # For coordinators/admin: show all non-archived sessions (including completed ones that are ongoing)
+    # Base query: exclude archived sessions
+    # For trainers: only show future/current sessions (end_date >= today) - auto-archive past sessions
+    # For coordinators/admin/assistant_admin: show ALL non-completed sessions (no date filtering) - manual completion required
     if current_user.role in ["trainer"]:
         query = {
             "$and": [
@@ -1179,10 +1179,12 @@ async def get_sessions(current_user: User = Depends(get_current_user)):
             ]
         }
     else:
+        # Coordinators/Admin/Assistant Admin: Show all non-completed sessions (regardless of end_date)
+        # Sessions only disappear when marked as completed by coordinator
         query = {
             "$and": [
                 {"is_archived": {"$ne": True}},  # Not archived
-                {"end_date": {"$gte": current_date.isoformat()}}  # Current or future sessions
+                {"completion_status": {"$ne": "completed"}}  # Not yet marked as completed
             ]
         }
     
