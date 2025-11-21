@@ -50,6 +50,7 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
   const [generatingDOCX, setGeneratingDOCX] = useState(false);
   const [uploadingEdited, setUploadingEdited] = useState(false);
   const [submittingFinal, setSubmittingFinal] = useState(false);
+  const [markingCompleted, setMarkingCompleted] = useState(false);
   const [editSessionDialogOpen, setEditSessionDialogOpen] = useState(false);
   const [editingSession, setEditingSession] = useState(null);
   const [checklistIssues, setChecklistIssues] = useState([]);
