@@ -167,11 +167,11 @@ class Session(BaseModel):
     created_at: datetime = Field(default_factory=get_malaysia_time)
 
 class ParticipantData(BaseModel):
-    email: EmailStr
-    password: str
+    email: Optional[str] = ""  # Optional - can be empty string
+    password: str = "mddrc1"  # Default password
     full_name: str
-    id_number: str
-    phone_number: Optional[str] = None
+    id_number: str  # Required - used as login username
+    phone_number: Optional[str] = ""
 
 class SupervisorData(BaseModel):
     email: EmailStr
