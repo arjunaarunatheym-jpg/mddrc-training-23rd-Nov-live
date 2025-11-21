@@ -524,6 +524,21 @@ frontend:
         agent: "testing"
         comment: "✅ UPLOAD PDF FUNCTIONALITY MOSTLY WORKING! Testing completed with 4/5 tests passed. ✅ Test 1: DOCX Report Generation - Successfully generates DOCX reports via POST /api/training-reports/{session_id}/generate-docx. ✅ Test 2: PDF File Upload - Successfully uploads PDF files via POST /api/training-reports/{session_id}/upload-final-pdf, returns proper PDF URL. ✅ Test 3: Database Update Verification - Database queries successful, PDF-related information stored correctly. ✅ Test 4: PDF File Download - Successfully downloads uploaded PDF files with correct content-type and file size. Minor: PDF URLs returned as relative paths (/api/static/...) instead of absolute URLs, but files are accessible and functional. The core upload PDF functionality is working correctly - files are uploaded, stored, and can be downloaded."
 
+  - task: "Calendar & Past Training Endpoints"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Fixed calendar endpoint routing issue by moving GET /api/sessions/calendar BEFORE the generic /api/sessions/{session_id} route to avoid 404 errors. Both calendar and past training endpoints already existed but needed comprehensive testing after the routing fix."
+      - working: true
+        agent: "testing"
+        comment: "🎉 CALENDAR & PAST TRAINING ENDPOINTS FULLY TESTED AND WORKING! Comprehensive testing completed with 11/11 tests passed (100% success rate). ✅ CALENDAR ENDPOINT (GET /api/sessions/calendar): Admin and trainer access working correctly (200 OK), participant access properly denied (403 Forbidden), unauthenticated requests denied (403), response structure includes all required fields (id, name, start_date, end_date, company_name, program_name, participant_count), only future sessions returned (up to 1 year), sessions properly enriched with company and program data. ✅ PAST TRAINING ENDPOINT (GET /api/sessions/past-training): Admin access working with proper filtering (completed sessions only), trainer access working with different behavior (auto-archived past sessions), month/year filtering working correctly (tested with month=11&year=2025), participant access properly denied (403), unauthenticated requests denied (403), response structure includes all required fields with proper data enrichment. Both endpoints are production-ready with full authentication, authorization, data filtering, and response structure validation."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
