@@ -2240,7 +2240,10 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
                                       { headers: { 'Content-Type': 'multipart/form-data' } }
                                     );
                                     
-                                    toast.success("Final report submitted successfully!");
+                                    // Reload completion checklist to update status
+                                    await loadCompletionChecklist(selectedSession.id);
+                                    
+                                    toast.success("✓ Final report uploaded successfully! You can now mark the training as completed.");
                                     setProfessionalReportStatus({
                                       ...professionalReportStatus,
                                       pdf_submitted: true
