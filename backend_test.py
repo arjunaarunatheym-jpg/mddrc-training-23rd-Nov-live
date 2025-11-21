@@ -16,8 +16,8 @@ from datetime import datetime
 
 # Configuration
 BASE_URL = "https://mddrc-training.preview.emergentagent.com/api"
-ADMIN_EMAIL = "admin@example.com"
-ADMIN_PASSWORD = "admin123"
+ADMIN_EMAIL = "arjuna@mddrc.com.my"
+ADMIN_PASSWORD = "Dana102229"
 
 class TestRunner:
     def __init__(self):
