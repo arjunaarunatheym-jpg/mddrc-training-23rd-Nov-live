@@ -1294,17 +1294,18 @@ async def get_past_training_sessions(
 
 @api_router.get("/sessions/calendar")
 async def get_calendar_sessions(current_user: User = Depends(get_current_user)):
-    """Get sessions for calendar view (future sessions only for admin-level roles)"""
+    """Get sessions for calendar view (shows all sessions from past year to next year)"""
     if current_user.role not in ["admin", "coordinator", "assistant_admin", "trainer"]:
         raise HTTPException(status_code=403, detail="Unauthorized")
     
-    # Get future sessions (up to 1 year from now)
+    # Get all sessions from 1 year ago to 1 year in future
     current_date = get_malaysia_time().date()
+    one_year_ago = current_date.replace(year=current_date.year - 1)
     one_year_from_now = current_date.replace(year=current_date.year + 1)
     
     query = {
         "start_date": {
-            "$gte": current_date.isoformat(),
+            "$gte": one_year_ago.isoformat(),
             "$lte": one_year_from_now.isoformat()
         }
     }
