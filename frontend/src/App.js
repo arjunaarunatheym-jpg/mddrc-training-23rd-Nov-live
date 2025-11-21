@@ -88,20 +88,13 @@ function App() {
             path="/"
             element={
               user ? (
-                user.role === "admin" ? (
-                  <Navigate to="/admin" replace />
-                ) : user.role === "assistant_admin" ? (
-                  <Navigate to="/assistant-admin" replace />
-                ) : user.role === "participant" ? (
+                user.role === "participant" ? (
                   <Navigate to="/participant" replace />
                 ) : user.role === "supervisor" || user.role === "pic_supervisor" ? (
                   <Navigate to="/supervisor" replace />
-                ) : user.role === "trainer" ? (
-                  <Navigate to="/trainer" replace />
-                ) : user.role === "coordinator" ? (
-                  <Navigate to="/coordinator" replace />
                 ) : (
-                  <Navigate to="/login" replace />
+                  // All other roles (admin, assistant_admin, coordinator, trainer) go to calendar
+                  <Navigate to="/calendar" replace />
                 )
               ) : (
                 <Navigate to="/login" replace />
