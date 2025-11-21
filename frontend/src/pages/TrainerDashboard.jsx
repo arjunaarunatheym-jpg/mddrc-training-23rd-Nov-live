@@ -318,7 +318,7 @@ const TrainerDashboard = ({ user, onLogout }) => {
                                   <span>{participants.length} Participants</span>
                                 </div>
                                 <Button
-                                  onClick={() => loadSessionResults(session)}
+                                  onClick={() => handleViewResults(session.id)}
                                   size="sm"
                                   variant="outline"
                                   data-testid={`view-results-${session.id}`}
