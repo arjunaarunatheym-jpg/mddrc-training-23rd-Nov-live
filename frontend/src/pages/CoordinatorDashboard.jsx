@@ -2263,9 +2263,9 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
                           </div>
 
                           {professionalReportStatus.pdf_submitted && (
-                            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                              <p className="text-green-800 font-medium">✓ Final report submitted successfully!</p>
-                              <p className="text-sm text-green-700 mt-1">Report is now available in Supervisor and Admin portals.</p>
+                            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                              <p className="text-blue-800 font-medium">✓ Final report uploaded successfully!</p>
+                              <p className="text-sm text-blue-700 mt-1">You can now mark the training as completed below.</p>
                             </div>
                           )}
                         </div>
