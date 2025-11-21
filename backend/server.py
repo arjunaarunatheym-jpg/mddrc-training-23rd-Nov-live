@@ -1391,6 +1391,57 @@ async def get_session_participants(session_id: str, current_user: User = Depends
     
     return participants
 
+@api_router.post("/sessions/{session_id}/participants")
+async def add_participants_to_session(
+    session_id: str,
+    participant_ids: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Add participants to a session by IC number or user ID"""
+    if current_user.role not in ["admin", "assistant_admin"]:
+        raise HTTPException(status_code=403, detail="Only admins and assistant admins can add participants")
+    
+    session = await db.sessions.find_one({"id": session_id}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    # participant_ids is a list of IC numbers or user IDs
+    ids_to_add = participant_ids.get("participant_ids", [])
+    if not ids_to_add:
+        raise HTTPException(status_code=400, detail="No participant IDs provided")
+    
+    # Find users by IC number or user ID
+    added_ids = []
+    for identifier in ids_to_add:
+        # Try to find by IC number first, then by user ID
+        user = await db.users.find_one(
+            {"$or": [{"id_number": identifier}, {"id": identifier}]},
+            {"_id": 0, "id": 1}
+        )
+        if user:
+            added_ids.append(user["id"])
+        else:
+            raise HTTPException(status_code=404, detail=f"User not found: {identifier}")
+    
+    # Get current participant list
+    current_participants = session.get("participant_ids", [])
+    
+    # Add new participants (avoid duplicates)
+    for user_id in added_ids:
+        if user_id not in current_participants:
+            current_participants.append(user_id)
+    
+    # Update session
+    await db.sessions.update_one(
+        {"id": session_id},
+        {"$set": {"participant_ids": current_participants}}
+    )
+    
+    return {
+        "message": f"Successfully added {len(added_ids)} participant(s)",
+        "added_count": len(added_ids)
+    }
+
 @api_router.put("/sessions/{session_id}")
 async def update_session(session_id: str, session_data: dict, current_user: User = Depends(get_current_user)):
     # Allow admins to update any session, coordinators can update sessions they're assigned to
