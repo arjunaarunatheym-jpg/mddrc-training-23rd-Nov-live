@@ -207,6 +207,16 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const loadCompletionChecklist = async (sessionId) => {
+    try {
+      const response = await axiosInstance.get(`/sessions/${sessionId}/completion-checklist`);
+      setCompletionChecklist(response.data);
+    } catch (error) {
+      console.error("Failed to load completion checklist:", error);
+      setCompletionChecklist(null);
+    }
+  };
+
 
   const loadSessionData = async (session) => {
     try {
