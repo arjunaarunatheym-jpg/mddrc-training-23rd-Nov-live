@@ -221,6 +221,37 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const loadAttendanceStatus = async (sessionId) => {
+    try {
+      const response = await axiosInstance.get(`/sessions/${sessionId}/participants/attendance`);
+      setAttendanceStatus(response.data);
+    } catch (error) {
+      console.error("Failed to load attendance status:", error);
+      setAttendanceStatus({});
+    }
+  };
+
+  const handleMarkAttendance = async (participantId, status) => {
+    if (!selectedSession) return;
+    
+    try {
+      setUpdatingAttendance(prev => ({ ...prev, [participantId]: true }));
+      
+      await axiosInstance.post(
+        `/sessions/${selectedSession.id}/participants/${participantId}/attendance`,
+        null,
+        { params: { status } }
+      );
+      
+      setAttendanceStatus(prev => ({ ...prev, [participantId]: status }));
+      toast.success(`Participant marked as ${status}`);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to update attendance");
+    } finally {
+      setUpdatingAttendance(prev => ({ ...prev, [participantId]: false }));
+    }
+  };
+
 
   const loadSessionData = async (session) => {
     try {
