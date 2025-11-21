@@ -562,7 +562,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Calendar & Past Training Endpoints Testing"
+    - "Session Filtering Logic Fixes Testing Complete"
   stuck_tasks: 
     - "Attendance records display issue"
   test_all: false
