@@ -598,7 +598,10 @@ const CoordinatorDashboard = ({ user, onLogout }) => {
         pdf_filename: response.data.pdf_filename
       }));
       
-      toast.success("Final report submitted successfully! PDF has been sent to supervisors and admins.");
+      // Reload completion checklist to update status
+      await loadCompletionChecklist(selectedSession.id);
+      
+      toast.success("✓ Final report uploaded successfully! You can now mark the training as completed.");
     } catch (error) {
       toast.error(error.response?.data?.detail || "Failed to submit final report");
     } finally {
