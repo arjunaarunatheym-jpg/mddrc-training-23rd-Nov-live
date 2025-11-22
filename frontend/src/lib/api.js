@@ -1,4 +1,7 @@
-const API_URL = process.env.REACT_APP_API_URL;
+// Base URL for your backend.
+// Uses environment variable if set, otherwise falls back to Emergent URL.
+const API_URL =
+  process.env.REACT_APP_API_URL || "https://drivescore.emergent.host/api";
 
 export async function apiFetch(endpoint, options = {}) {
   const url = `${API_URL}${endpoint}`;
@@ -26,12 +29,24 @@ export async function apiFetch(endpoint, options = {}) {
   };
 }
 
+// Login helper – email/IC goes into "username" field
 export async function login(identifier, password) {
-  // identifier = email or IC number from the form
-  return apiFetch("/api/auth/login", {
+  return apiFetch("/auth/login", {
     method: "POST",
     body: JSON.stringify({
-      username: identifier, // backend expects "username"
+      username: identifier,
+      password: password,
+    }),
+  });
+}
+
+
+// Login helper – email/IC goes into "username" field
+export async function login(identifier, password) {
+  return apiFetch("/auth/login", {
+    method: "POST",
+    body: JSON.stringify({
+      username: identifier,
       password: password,
     }),
   });
