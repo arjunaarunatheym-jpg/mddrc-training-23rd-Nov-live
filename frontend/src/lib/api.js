@@ -1,17 +1,21 @@
 // Base URL for your backend.
 // Uses environment variable if set, otherwise falls back to Emergent URL.
-const API_URL =
-  process.env.REACT_APP_API_URL || "https://drivescore.emergent.host/api";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
-export async function apiFetch(endpoint, options = {}) {
-  const url = `${API_URL}${endpoint}`;
-
-  const defaultOptions = {
+export async function apiLogin(email, password) {
+  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json'
     },
-    ...options,
-  };
+    body: JSON.stringify({ email, password })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Login failed: ${response.status}`);
+  }
+
+  return response.json();
 
   const res = await fetch(url, defaultOptions);
 
