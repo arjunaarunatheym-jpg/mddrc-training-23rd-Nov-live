@@ -27,11 +27,13 @@ export async function apiFetch(endpoint, options = {}) {
 }
 
 export async function login(identifier, password) {
-  return apiFetch("/login", {
+  // identifier = email or IC number from the form
+  return apiFetch("/api/auth/login", {
     method: "POST",
     body: JSON.stringify({
-      identifier: identifier, 
+      username: identifier, // backend expects "username"
       password: password,
     }),
   });
 }
+
