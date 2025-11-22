@@ -26,9 +26,12 @@ export async function apiFetch(endpoint, options = {}) {
   };
 }
 
-export async function login(email, password) {
+export async function login(identifier, password) {
   return apiFetch("/login", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({
+      identifier: identifier, 
+      password: password,
+    }),
   });
 }
